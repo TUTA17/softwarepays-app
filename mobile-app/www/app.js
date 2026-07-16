@@ -18,6 +18,8 @@
 
   var state = {
     token: null,
+    adminId: null,
+    manageAllOrders: false,
     status: 'pending_manual',
     page: 1,
     lastPage: 1,
@@ -111,6 +113,8 @@
     }).then(function (result) {
       if (!result.ok) throw new Error(result.data.message || 'Đăng nhập thất bại');
       state.token = result.data.token;
+      state.adminId = result.data.admin.id;
+      state.manageAllOrders = !!result.data.admin.manage_all_orders;
       return setToken(state.token);
     }).then(function () {
       showOrders();
@@ -126,6 +130,8 @@
   function doLogout() {
     var token = state.token;
     state.token = null;
+    state.adminId = null;
+    state.manageAllOrders = false;
     clearToken();
     showLogin();
     if (token) {
@@ -206,6 +212,19 @@
       var statusLabel = STATUS_LABELS[order.status] || order.status;
       var badgeClass = 'badge badge-' + order.status;
 
+      var assignedToMe = order.assigned_admin_id && order.assigned_admin_id === state.adminId;
+      var lockedByOther = order.assigned_admin_id && !assignedToMe;
+      var canAct = !lockedByOther || state.manageAllOrders;
+
+      var assigneeLine;
+      if (assignedToMe) {
+        assigneeLine = '<span class="badge" style="background:#dbeafe;color:#1e40af;">Bạn đang xử lý</span>';
+      } else if (order.assigned_admin_name) {
+        assigneeLine = '<span class="assignee-text">Người xử lý: ' + escapeHtml(order.assigned_admin_name) + '</span>';
+      } else {
+        assigneeLine = '<span class="assignee-text">Chưa nhận</span>';
+      }
+
       card.innerHTML =
         '<div class="order-card-top">' +
           '<div>' +
@@ -215,33 +234,66 @@
           '</div>' +
           '<span class="' + badgeClass + '">' + statusLabel + '</span>' +
         '</div>' +
-        '<div class="order-time">' + formatTime(order.sold_at) + '</div>';
+        '<div class="order-time">' + formatTime(order.sold_at) + ' &middot; ' + assigneeLine + '</div>';
 
       var actions = document.createElement('div');
       actions.className = 'order-actions';
 
       if (order.status === 'pending_manual') {
-        actions.innerHTML =
-          '<input type="text" placeholder="Nhập key/nội dung giao cho khách" class="key-input">' +
-          '<div class="order-actions-row">' +
-            '<button class="btn btn-primary btn-fulfill-manual">Giao tay</button>' +
-            '<button class="btn btn-fulfill-api">Lấy key qua API</button>' +
-          '</div>';
+        if (!order.assigned_admin_id) {
+          var claimBtn = document.createElement('button');
+          claimBtn.className = 'btn btn-primary';
+          claimBtn.textContent = 'Nhận đơn';
+          claimBtn.onclick = function () { claimOrder(order.id); };
+          actions.appendChild(claimBtn);
+        } else if (lockedByOther && !state.manageAllOrders) {
+          var lockedMsg = document.createElement('div');
+          lockedMsg.className = 'assignee-text';
+          lockedMsg.textContent = 'Đơn đã được ' + (order.assigned_admin_name || 'người khác') + ' nhận xử lý.';
+          actions.appendChild(lockedMsg);
+        }
 
-        actions.querySelector('.btn-fulfill-manual').onclick = function () {
-          var keyCode = actions.querySelector('.key-input').value.trim();
-          if (!keyCode) { showToast('Vui lòng nhập key trước.'); return; }
-          fulfillManual(order.id, keyCode, card);
-        };
-        actions.querySelector('.btn-fulfill-api').onclick = function () {
-          if (!confirm('Gọi API nhà cung cấp để mua key thật cho đơn này?')) return;
-          fulfillViaApi(order.id, card);
-        };
+        if (canAct && order.assigned_admin_id) {
+          var form = document.createElement('div');
+          form.innerHTML =
+            '<input type="text" placeholder="Nhập key/nội dung giao cho khách" class="key-input">' +
+            '<input type="text" placeholder="Ghi chú (không bắt buộc)" class="note-input">' +
+            '<div class="order-actions-row">' +
+              '<button class="btn btn-primary btn-fulfill-manual">Giao tay</button>' +
+              '<button class="btn btn-fulfill-api">Lấy key qua API</button>' +
+            '</div>';
+          actions.appendChild(form);
+
+          form.querySelector('.btn-fulfill-manual').onclick = function () {
+            var keyCode = form.querySelector('.key-input').value.trim();
+            var note = form.querySelector('.note-input').value.trim();
+            if (!keyCode) { showToast('Vui lòng nhập key trước.'); return; }
+            fulfillManual(order.id, keyCode, note);
+          };
+          form.querySelector('.btn-fulfill-api').onclick = function () {
+            if (!confirm('Gọi API nhà cung cấp để mua key thật cho đơn này?')) return;
+            fulfillViaApi(order.id);
+          };
+        }
+
+        if (lockedByOther && state.manageAllOrders) {
+          var releaseBtn = document.createElement('button');
+          releaseBtn.className = 'btn btn-sm';
+          releaseBtn.textContent = 'Bỏ nhận';
+          releaseBtn.onclick = function () { releaseOrder(order.id); };
+          actions.appendChild(releaseBtn);
+        }
       } else if (order.key_code) {
         var keyDiv = document.createElement('div');
         keyDiv.className = 'order-key';
         keyDiv.textContent = order.key_code;
         actions.appendChild(keyDiv);
+        if (order.note) {
+          var noteDiv = document.createElement('div');
+          noteDiv.className = 'assignee-text';
+          noteDiv.textContent = 'Ghi chú: ' + order.note;
+          actions.appendChild(noteDiv);
+        }
       }
       if (order.status === 'failed' && order.error_message) {
         var errDiv = document.createElement('div');
@@ -255,8 +307,8 @@
     });
   }
 
-  function fulfillManual(id, keyCode, card) {
-    api('/orders/' + id + '/fulfill-manual', { method: 'POST', body: { key_code: keyCode } })
+  function fulfillManual(id, keyCode, note) {
+    api('/orders/' + id + '/fulfill-manual', { method: 'POST', body: { key_code: keyCode, note: note || null } })
       .then(function () {
         showToast('Đã giao key thủ công cho đơn #' + id + '.');
         resetAndLoadOrders();
@@ -264,10 +316,28 @@
       .catch(function (err) { showToast(err.message); });
   }
 
-  function fulfillViaApi(id, card) {
+  function fulfillViaApi(id) {
     api('/orders/' + id + '/fulfill-api', { method: 'POST' })
       .then(function () {
         showToast('Đã lấy key qua API thành công cho đơn #' + id + '.');
+        resetAndLoadOrders();
+      })
+      .catch(function (err) { showToast(err.message); });
+  }
+
+  function claimOrder(id) {
+    api('/orders/' + id + '/claim', { method: 'POST' })
+      .then(function () {
+        showToast('Bạn đã nhận xử lý đơn #' + id + '.');
+        resetAndLoadOrders();
+      })
+      .catch(function (err) { showToast(err.message); });
+  }
+
+  function releaseOrder(id) {
+    api('/orders/' + id + '/release', { method: 'POST' })
+      .then(function () {
+        showToast('Đã bỏ nhận đơn #' + id + '.');
         resetAndLoadOrders();
       })
       .catch(function (err) { showToast(err.message); });
@@ -332,14 +402,17 @@
     els.loadMoreBtn.addEventListener('click', loadMore);
 
     getToken().then(function (token) {
-      if (token) {
-        state.token = token;
+      if (!token) { showLogin(); return; }
+      state.token = token;
+      api('/me').then(function (me) {
+        state.adminId = me.id;
+        state.manageAllOrders = !!me.manage_all_orders;
         showOrders();
         resetAndLoadOrders();
         registerPushNotifications();
-      } else {
-        showLogin();
-      }
+      }).catch(function () {
+        // api() already handles 401 by logging out; other errors just leave the login view up.
+      });
     });
   }
 

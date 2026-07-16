@@ -14,6 +14,8 @@ Route::prefix('admin')->group(function () {
 
         Route::get('/orders', [OrderController::class, 'index']);
         Route::get('/orders/{id}', [OrderController::class, 'show']);
+        Route::post('/orders/{id}/claim', [OrderController::class, 'claim']);
+        Route::post('/orders/{id}/release', [OrderController::class, 'release']);
         Route::post('/orders/{id}/fulfill-manual', [OrderController::class, 'fulfillManual']);
         Route::post('/orders/{id}/fulfill-api', [OrderController::class, 'fulfillViaApi']);
 

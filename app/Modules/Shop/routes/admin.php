@@ -39,6 +39,8 @@ Route::prefix(config('app.admin_prefix', 'admin'))->name('admin.')->middleware([
     Route::get('/orders', [\App\Modules\Shop\Controllers\Admin\OrderController::class, 'index'])->name('orders');
     Route::post('/orders/{id}/fulfill-manual', [\App\Modules\Shop\Controllers\Admin\OrderController::class, 'fulfillManual'])->name('orders.fulfill_manual');
     Route::post('/orders/{id}/fulfill-api', [\App\Modules\Shop\Controllers\Admin\OrderController::class, 'fulfillViaApi'])->name('orders.fulfill_api');
+    Route::post('/orders/{id}/claim', [\App\Modules\Shop\Controllers\Admin\OrderController::class, 'claim'])->name('orders.claim');
+    Route::post('/orders/{id}/release', [\App\Modules\Shop\Controllers\Admin\OrderController::class, 'release'])->name('orders.release');
     Route::post('/orders/toggle-mode', [\App\Modules\Shop\Controllers\Admin\OrderController::class, 'toggleMode'])->name('orders.toggle_mode');
 
     // VPN & eSIM — quản lý riêng: tỉ lệ lợi nhuận + danh sách sản phẩm + upload ảnh

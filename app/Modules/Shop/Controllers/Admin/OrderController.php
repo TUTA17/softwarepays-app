@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Core\Models\Setting;
 use App\Modules\Theme\Models\GameKey;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
@@ -13,7 +14,7 @@ class OrderController extends Controller
     {
         $status = $request->query('status', 'pending_manual');
 
-        $query = GameKey::with('product')->whereNotNull('sold_to_user_id');
+        $query = GameKey::with('product', 'assignedAdmin')->whereNotNull('sold_to_user_id');
         if ($status !== 'all') {
             $query->where('status', $status);
         }
@@ -26,7 +27,10 @@ class OrderController extends Controller
         $pendingCount = GameKey::where('status', 'pending_manual')->count();
         $fulfillmentMode = Setting::getValue('order_fulfillment_mode', 'manual');
 
-        return view('shop::admin.orders', compact('orders', 'users', 'status', 'pendingCount', 'fulfillmentMode'));
+        $currentAdmin = Auth::guard('admin')->user();
+        $canManageAll = $currentAdmin->hasPermission('orders.manage_all');
+
+        return view('shop::admin.orders', compact('orders', 'users', 'status', 'pendingCount', 'fulfillmentMode', 'currentAdmin', 'canManageAll'));
     }
 
     // Bật/tắt nhanh chế độ xử lý đơn (thủ công / tự động) ngay tại trang Đơn Hàng,
@@ -41,16 +45,62 @@ class OrderController extends Controller
         return back()->with('success', "Đã chuyển chế độ xử lý đơn hàng sang: {$label}.");
     }
 
+    // Nhân viên bấm "Nhận đơn" — khoá đơn này lại để chỉ mình họ xử lý (trừ khi người khác có quyền orders.manage_all).
+    public function claim($id)
+    {
+        $gameKey = GameKey::findOrFail($id);
+        $admin = Auth::guard('admin')->user();
+
+        if ($gameKey->assigned_admin_id && $gameKey->assigned_admin_id != $admin->id) {
+            return back()->with('error', 'Đơn này đã có người khác nhận xử lý.');
+        }
+
+        $gameKey->update(['assigned_admin_id' => $admin->id, 'claimed_at' => now()]);
+
+        return back()->with('success', "Bạn đã nhận xử lý đơn #{$id}.");
+    }
+
+    // Gỡ khoá 1 đơn đang bị nhận (chỉ dành cho admin có quyền orders.manage_all — dùng khi nhân viên nghỉ/đơn bị kẹt).
+    public function release($id)
+    {
+        $admin = Auth::guard('admin')->user();
+        if (!$admin->hasPermission('orders.manage_all')) {
+            abort(403);
+        }
+
+        $gameKey = GameKey::findOrFail($id);
+        $gameKey->update(['assigned_admin_id' => null, 'claimed_at' => null]);
+
+        return back()->with('success', "Đã bỏ nhận đơn #{$id}.");
+    }
+
+    // Kiểm tra khoá "nhận đơn": chặn nếu đơn đã bị người khác nhận và admin hiện tại không có quyền orders.manage_all.
+    private function assertCanProcess(GameKey $gameKey, $admin): void
+    {
+        if ($gameKey->assigned_admin_id && $gameKey->assigned_admin_id != $admin->id && !$admin->hasPermission('orders.manage_all')) {
+            abort(403, 'Đơn này đã được ' . ($gameKey->assignedAdmin->name ?? 'người khác') . ' nhận xử lý.');
+        }
+    }
+
     // Admin nhập tay key/nội dung đã tự mua ở nơi khác, đánh dấu đơn hoàn tất.
     public function fulfillManual(Request $request, $id)
     {
-        $request->validate(['key_code' => 'required|string|max:5000']);
+        $request->validate([
+            'key_code' => 'required|string|max:5000',
+            'note' => 'nullable|string|max:5000',
+        ]);
 
         $gameKey = GameKey::findOrFail($id);
+        $admin = Auth::guard('admin')->user();
+        $this->assertCanProcess($gameKey, $admin);
+
         $gameKey->update([
             'key_code' => $request->key_code,
             'status' => 'sold',
             'error_message' => null,
+            'note' => $request->note,
+            'assigned_admin_id' => $gameKey->assigned_admin_id ?? $admin->id,
+            'claimed_at' => $gameKey->claimed_at ?? now(),
         ]);
 
         return back()->with('success', "Đã giao key thủ công cho đơn #{$id}.");
@@ -61,6 +111,8 @@ class OrderController extends Controller
     public function fulfillViaApi($id)
     {
         $gameKey = GameKey::findOrFail($id);
+        $admin = Auth::guard('admin')->user();
+        $this->assertCanProcess($gameKey, $admin);
 
         $newKeyString = app(\App\Services\WholesaleProviderService::class)->purchaseKey($gameKey->product_id);
         if (!$newKeyString) {
@@ -71,6 +123,8 @@ class OrderController extends Controller
             'key_code' => $newKeyString,
             'status' => 'sold',
             'error_message' => null,
+            'assigned_admin_id' => $gameKey->assigned_admin_id ?? $admin->id,
+            'claimed_at' => $gameKey->claimed_at ?? now(),
         ]);
 
         return back()->with('success', "Đã lấy key qua API thành công cho đơn #{$id}.");

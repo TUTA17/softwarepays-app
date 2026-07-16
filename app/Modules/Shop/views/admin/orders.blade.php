@@ -71,6 +71,7 @@
                         <th>Sản phẩm</th>
                         <th>Khách hàng</th>
                         <th>Trạng thái</th>
+                        <th>Người xử lý</th>
                         <th>Thời gian</th>
                         <th>Key / Thao tác</th>
                     </tr>
@@ -98,25 +99,62 @@
                                 <span class="badge badge-muted">{{ $order->status }}</span>
                             @endif
                         </td>
+                        <td style="font-size: 13px;">
+                            @if($order->assignedAdmin)
+                                @if($order->assignedAdmin->id === $currentAdmin->id)
+                                    <span class="badge" style="background:#dbeafe;color:#1e40af;">Bạn đang xử lý</span>
+                                @else
+                                    {{ $order->assignedAdmin->name }}
+                                @endif
+                            @else
+                                <span style="color: var(--text-muted);">Chưa nhận</span>
+                            @endif
+                        </td>
                         <td style="font-size: 13px; color: var(--text-muted);">{{ $order->sold_at ? \Carbon\Carbon::parse($order->sold_at)->format('d/m/Y H:i') : '-' }}</td>
                         <td style="min-width: 280px;">
+                            @php
+                                $lockedByOther = $order->assigned_admin_id && $order->assigned_admin_id != $currentAdmin->id;
+                                $canAct = !$lockedByOther || $canManageAll;
+                            @endphp
                             @if($order->status === 'pending_manual')
-                                <form action="{{ route('admin.orders.fulfill_manual', $order->id) }}" method="POST" style="display:flex; gap:6px; margin-bottom:6px;">
-                                    @csrf
-                                    <input type="text" name="key_code" required placeholder="Nhập key/nội dung giao cho khách" class="form-control" style="flex:1; padding:6px 10px; border:1px solid var(--border-color); border-radius:6px; font-family:monospace; font-size:12px;">
-                                    <button type="submit" class="btn btn-primary" style="padding:6px 12px; font-size:12px; white-space:nowrap;">Giao tay</button>
-                                </form>
-                                <form action="{{ route('admin.orders.fulfill_api', $order->id) }}" method="POST" onsubmit="return confirm('Gọi API nhà cung cấp để mua key thật cho đơn này?');">
-                                    @csrf
-                                    <button type="submit" class="btn" style="padding:6px 12px; font-size:12px; background: var(--bg-surface); border:1px solid var(--border-color); color: var(--text-primary);">Lấy key qua API</button>
-                                </form>
+                                @if(!$order->assigned_admin_id)
+                                    <form action="{{ route('admin.orders.claim', $order->id) }}" method="POST" style="margin-bottom:6px;">
+                                        @csrf
+                                        <button type="submit" class="btn btn-primary" style="padding:6px 12px; font-size:12px;">Nhận đơn</button>
+                                    </form>
+                                @elseif($lockedByOther && !$canManageAll)
+                                    <span style="font-size:12px; color: var(--text-muted);">Đơn đã được <strong>{{ $order->assignedAdmin->name ?? 'người khác' }}</strong> nhận xử lý.</span>
+                                @endif
+
+                                @if($canAct && $order->assigned_admin_id)
+                                    <form action="{{ route('admin.orders.fulfill_manual', $order->id) }}" method="POST" style="display:flex; flex-direction:column; gap:6px; margin-bottom:6px;">
+                                        @csrf
+                                        <input type="text" name="key_code" required placeholder="Nhập key/nội dung giao cho khách" class="form-control" style="padding:6px 10px; border:1px solid var(--border-color); border-radius:6px; font-family:monospace; font-size:12px;">
+                                        <input type="text" name="note" placeholder="Ghi chú (không bắt buộc)" class="form-control" style="padding:6px 10px; border:1px solid var(--border-color); border-radius:6px; font-size:12px;">
+                                        <button type="submit" class="btn btn-primary" style="padding:6px 12px; font-size:12px; white-space:nowrap;">Giao tay</button>
+                                    </form>
+                                    <form action="{{ route('admin.orders.fulfill_api', $order->id) }}" method="POST" onsubmit="return confirm('Gọi API nhà cung cấp để mua key thật cho đơn này?');" style="margin-bottom:6px;">
+                                        @csrf
+                                        <button type="submit" class="btn" style="padding:6px 12px; font-size:12px; background: var(--bg-surface); border:1px solid var(--border-color); color: var(--text-primary);">Lấy key qua API</button>
+                                    </form>
+                                @endif
+
+                                @if($lockedByOther && $canManageAll)
+                                    <form action="{{ route('admin.orders.release', $order->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn" style="padding:4px 10px; font-size:11px; background: var(--bg-surface); border:1px solid var(--border-color); color: var(--text-primary);">Bỏ nhận</button>
+                                    </form>
+                                @endif
                             @else
                                 <span style="font-family:monospace; font-size:12px; word-break:break-all;">{{ $order->key_code ?? '-' }}</span>
+                                @if($order->note)
+                                    <div style="font-size:12px; color: var(--text-muted); margin-top:4px;">Ghi chú: {{ $order->note }}</div>
+                                @endif
                             @endif
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">Không có đơn hàng nào</td></tr>
+                    <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Không có đơn hàng nào</td></tr>
                     @endforelse
                 </tbody>
             </table>

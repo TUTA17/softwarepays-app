@@ -40,6 +40,7 @@ class AuthController extends Controller
                 'id' => $admin->id,
                 'name' => $admin->name,
                 'email' => $admin->email,
+                'manage_all_orders' => $admin->hasPermission('orders.manage_all'),
             ],
         ]);
     }
@@ -52,6 +53,7 @@ class AuthController extends Controller
             'id' => $admin->id,
             'name' => $admin->name,
             'email' => $admin->email,
+            'manage_all_orders' => $admin->hasPermission('orders.manage_all'),
         ]);
     }
 

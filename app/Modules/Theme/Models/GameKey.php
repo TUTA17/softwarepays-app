@@ -16,16 +16,25 @@ class GameKey extends Model
         'delivery_data',
         'error_message',
         'sold_to_user_id',
-        'sold_at'
+        'sold_at',
+        'assigned_admin_id',
+        'claimed_at',
+        'note',
     ];
 
     protected $casts = [
         'delivery_data' => 'array',
         'sold_at' => 'datetime',
+        'claimed_at' => 'datetime',
     ];
 
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function assignedAdmin()
+    {
+        return $this->belongsTo(\App\Modules\Core\Models\Admin::class, 'assigned_admin_id');
     }
 }

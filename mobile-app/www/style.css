@@ -143,10 +143,14 @@ input[type="text"], input[type="password"] {
   border-radius: 8px;
   font-family: monospace;
   font-size: 12px;
+  margin-bottom: 8px;
 }
+.order-actions .note-input { font-family: inherit; }
 .order-actions-row { display: flex; gap: 8px; }
 .order-actions-row .btn { flex: 1; padding: 9px; font-size: 12px; }
 .order-key { font-family: monospace; font-size: 12px; word-break: break-all; color: var(--text); background: var(--bg); padding: 8px 10px; border-radius: 8px; margin-top: 8px; }
+.assignee-text { font-size: 12px; color: var(--text-muted); }
+.btn-sm { padding: 5px 12px; font-size: 11px; margin-top: 4px; }
 
 .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 14px; }
 .load-more { margin: 12px 16px; }
