@@ -1,0 +1,11 @@
+{
+    "name": "UserWallet",
+    "alias": "userwallet",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\UserWallet\\Providers\\UserWalletServiceProvider"
+    ],
+    "files": []
+}

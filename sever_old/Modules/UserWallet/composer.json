@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/userwallet",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\UserWallet\\": "app/",
+            "Modules\\UserWallet\\Database\\Factories\\": "database/factories/",
+            "Modules\\UserWallet\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\UserWallet\\Tests\\": "tests/"
+        }
+    }
+}

@@ -1,0 +1,12 @@
+{
+  "appId": "com.keyngon.admin",
+  "appName": "Keyngon Admin",
+  "webDir": "www",
+  "server": {
+    "url": "https://softwarepays.com/hethong-quantri",
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

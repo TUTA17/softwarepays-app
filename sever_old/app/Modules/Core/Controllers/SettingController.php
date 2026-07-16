@@ -1,0 +1,219 @@
+<?php
+
+namespace App\Modules\Core\Controllers;
+
+use App\Modules\Core\Models\Setting;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule; 
+
+
+class SettingController extends Controller
+{
+    /**
+     * Module config — giữ nguyên logic cũ
+     */
+    protected $module = [
+        'code' => 'setting',
+        'label' => 'Cấu hình chung',
+        'tabs' => [
+            'general_tab' => [
+                'label' => 'Cấu hình chung',
+                'icon' => 'settings',
+                'td' => [
+                    ['name' => 'name', 'type' => 'text', 'label' => 'Tên website', 'required' => true],
+                    ['name' => 'hotline', 'type' => 'text', 'label' => 'Hotline', 'col' => 6],
+                    ['name' => 'email', 'type' => 'text', 'label' => 'Email', 'col' => 6],
+                    ['name' => 'address', 'type' => 'textarea', 'label' => 'Địa chỉ'],
+                    ['name' => 'logo', 'type' => 'file_image', 'label' => 'Logo', 'col' => 6],
+                    ['name' => 'favicon', 'type' => 'file_image', 'label' => 'Favicon', 'col' => 6],
+                ]
+            ],
+            'social_tab' => [
+                'label' => 'Mạng xã hội',
+                'icon' => 'share',
+                'td' => [
+                    ['name' => 'facebook', 'type' => 'text', 'label' => 'Link Facebook', 'col' => 6],
+                    ['name' => 'fanpage', 'type' => 'text', 'label' => 'Link Fanpage', 'col' => 6],
+                    ['name' => 'zalo', 'type' => 'text', 'label' => 'Link Zalo', 'col' => 6],
+                    ['name' => 'youtube', 'type' => 'text', 'label' => 'Link Youtube', 'col' => 6],
+                    ['name' => 'instagram', 'type' => 'text', 'label' => 'Link Instagram', 'col' => 6],
+                    ['name' => 'twitter', 'type' => 'text', 'label' => 'Link Twitter', 'col' => 6],
+                ]
+            ],
+            'mail' => [
+                'label' => 'Cấu hình gửi mail',
+                'icon' => 'mail',
+                'td' => [
+                    ['name' => 'driver', 'type' => 'select', 'label' => 'Loại', 'options' => ['smtp' => 'SMTP', 'mailgun' => 'Mailgun']],
+                    ['name' => 'mail_name', 'type' => 'text', 'label' => 'Tên người gửi'],
+                    ['name' => 'smtp_host', 'type' => 'text', 'label' => 'Máy chủ SMTP', 'col' => 6],
+                    ['name' => 'smtp_port', 'type' => 'text', 'label' => 'Cổng', 'col' => 6],
+                    ['name' => 'smtp_encryption', 'type' => 'select', 'label' => 'Mã hóa', 'options' => ['tls' => 'TLS', 'ssl' => 'SSL'], 'col' => 6],
+                    ['name' => 'smtp_username', 'type' => 'text', 'label' => 'Tài khoản SMTP', 'col' => 6],
+                    ['name' => 'smtp_password', 'type' => 'text', 'label' => 'Mật khẩu SMTP'],
+                    ['name' => 'mailgun_domain', 'type' => 'text', 'label' => 'Domain Mailgun', 'col' => 6],
+                    ['name' => 'mailgun_secret', 'type' => 'text', 'label' => 'Secret Key Mailgun', 'col' => 6],
+                    ['name' => 'admin_emails', 'type' => 'textarea', 'label' => 'Email admin nhận thông báo', 'des' => 'Các mail cách nhau bởi dấu phẩy'],
+                ]
+            ],
+            'seo_tab' => [
+                'label' => 'Cấu hình SEO',
+                'icon' => 'travel_explore',
+                'td' => [
+                    ['name' => 'robots', 'type' => 'select', 'label' => 'Robots', 'options' => [
+                        'noindex,nofollow' => 'noindex, nofollow',
+                        'index,follow' => 'index, follow',
+                        'index,nofollow' => 'index, nofollow',
+                        'noindex,follow' => 'noindex, follow',
+                    ]],
+                    ['name' => 'default_meta_title', 'type' => 'text', 'label' => 'Meta Title mặc định'],
+                    ['name' => 'default_meta_description', 'type' => 'textarea', 'label' => 'Meta Description mặc định'],
+                    ['name' => 'default_meta_keywords', 'type' => 'text', 'label' => 'Meta Keywords mặc định'],
+                ]
+            ],
+            'admin_setting_tab' => [
+                'label' => 'Cấu hình trang admin',
+                'icon' => 'code',
+                'td' => [
+                    ['name' => 'admin_head_code', 'type' => 'textarea', 'label' => 'Code chèn vào head', 'rows' => 10],
+                    ['name' => 'admin_footer_code', 'type' => 'textarea', 'label' => 'Code chèn vào footer', 'rows' => 10],
+                ]
+            ],
+            'api_automation_tab' => [
+                'label' => 'Tự động hóa & API',
+                'icon' => 'smart_toy',
+                'td' => [
+                    ['name' => 'auto_fetch_games', 'type' => 'select', 'label' => 'Tự động lấy Game (Steam)', 'options' => ['1' => 'Bật', '0' => 'Tắt'], 'col' => 6],
+                    ['name' => 'wholesale_mock_mode', 'type' => 'select', 'label' => 'Chế độ giả lập lấy Key', 'options' => ['1' => 'Bật (Sinh key giả)', '0' => 'Tắt (Gọi API thật)'], 'col' => 6],
+                    ['name' => 'wholesale_profit_margin', 'type' => 'text', 'label' => 'Tỉ lệ lợi nhuận (%)', 'col' => 12, 'des' => 'Hệ thống tự động lấy giá gốc nhập Key từ API cộng thêm % này để làm giá bán.'],
+                    ['name' => 'wholesale_api_endpoint', 'type' => 'text', 'label' => 'API Endpoint (Wholesale)'],
+                    ['name' => 'wholesale_api_key', 'type' => 'text', 'label' => 'API Key (Wholesale)'],
+                ]
+            ],
+        ]
+    ];
+
+    /**
+     * GET /admin/settings — hiển thị form
+     */
+    public function index()
+    {
+        $tabs = Setting::getAllGrouped();
+
+        return view('core::settings.index', [
+            'module' => $this->module,
+            'tabs' => $tabs,
+        ]);
+    }
+
+    /**
+     * POST /admin/settings — lưu cấu hình
+     */
+    public function store(Request $request)
+    {
+        $rules = [
+            'general_tab_email' => ['nullable', 'email:rfc,dns'],
+            'general_tab_hotline' => ['nullable', 'regex:/^\d+$/'],
+            'general_tab_logo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,svg', 'max:10240'],
+            'general_tab_favicon' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,svg,ico', 'max:10240'],
+            'general_tab_logo_delete' => ['nullable', 'in:0,1'],
+            'general_tab_favicon_delete' => ['nullable', 'in:0,1'],
+            'general_tab_logo_current' => ['nullable', 'string'],
+            'general_tab_favicon_current' => ['nullable', 'string'],
+            'mail_admin_emails' => ['nullable', 'string', function ($attribute, $value, $fail) {
+                $emails = array_values(array_filter(array_map('trim', explode(',', (string) $value))));
+                foreach ($emails as $email) {
+                    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        $fail('Email admin không hợp lệ: ' . $email);
+                        return;
+                    }
+                }
+            }],
+        ];
+
+        foreach ($this->module['tabs'] as $type => $tab) {
+            foreach ($tab['td'] as $field) {
+                $inputName = $type . '_' . $field['name'];
+        
+                if ($field['type'] === 'text' || $field['type'] === 'textarea') {
+                    $rules[$inputName] = $rules[$inputName] ?? ['nullable', 'string'];
+                } elseif ($field['type'] === 'select') {
+                    $allowed = array_keys($field['options'] ?? []);
+                    $rules[$inputName] = $rules[$inputName] ?? (empty($allowed) ? ['nullable'] : ['nullable', Rule::in($allowed)]);
+                } elseif ($field['type'] === 'file_image') {
+                    $rules[$inputName] = $rules[$inputName] ?? ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,svg,ico', 'max:10240'];
+                    $rules[$inputName . '_delete'] = $rules[$inputName . '_delete'] ?? ['nullable', 'in:0,1'];
+                    $rules[$inputName . '_current'] = $rules[$inputName . '_current'] ?? ['nullable', 'string'];
+                }
+            }
+        }
+
+        $validated = $request->validate($rules);
+
+        $deleteExistingFile = function (string $publicPath): void {
+            $publicPath = trim($publicPath);
+            if ($publicPath === '') {
+                return;
+            }
+
+            if (str_starts_with($publicPath, 'storage/')) {
+                $relative = ltrim(substr($publicPath, strlen('storage/')), '/');
+                Storage::disk('public')->delete($relative);
+                return;
+            }
+
+            $absolute = public_path($publicPath);
+            if (File::exists($absolute)) {
+                File::delete($absolute);
+            }
+        };
+
+        foreach ($this->module['tabs'] as $type => $tab) {
+            foreach ($tab['td'] as $field) {
+                $inputName = $type . '_' . $field['name'];
+
+                if ($field['type'] === 'file_image') {
+                    $deleteFlag = (string) ($validated[$inputName . '_delete'] ?? '0');
+                    $currentValue = (string) ($validated[$inputName . '_current'] ?? '');
+
+                    if ($request->hasFile($inputName)) {
+                        $file = $request->file($inputName);
+                        if ($file->isValid()) {
+                            $deleteExistingFile($currentValue);
+
+                            $filename = $field['name'] . '_' . now()->timestamp . '.' . $file->getClientOriginalExtension();
+                            
+                            // Fix for Shared Hosting where public folder is bypassed
+                            $destinationPath = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/uploads/settings';
+                            if (!File::exists($destinationPath)) {
+                                File::makeDirectory($destinationPath, 0755, true);
+                            }
+                            $file->move($destinationPath, $filename);
+                            
+                            $value = 'uploads/settings/' . $filename;
+                        } else {
+                            $value = $currentValue;
+                        }
+                    } elseif ($deleteFlag === '1') {
+                        $deleteExistingFile($currentValue);
+                        $value = '';
+                    } else {
+                        $value = $currentValue;
+                    }
+                } else {
+                    $value = (string) ($validated[$inputName] ?? '');
+                }
+
+                Setting::updateOrCreate(
+                    ['name' => $field['name'], 'type' => $type],
+                    ['value' => $value]
+                );
+            }
+        }
+
+        return redirect()->route('admin.settings.index')->with('success', 'Cập nhật cấu hình thành công!');
+    }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "keyngon-admin-app",
+  "version": "1.0.0",
+  "description": "Android wrapper (Capacitor) cho trang quản trị Keyngon/SoftwarePays - dùng để nhận thông báo đơn hàng qua FCM.",
+  "private": true,
+  "scripts": {
+    "sync": "cap sync android"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/cli": "^8.4.2",
+    "@capacitor/core": "^8.4.2",
+    "@capacitor/push-notifications": "^8.1.2"
+  }
+}

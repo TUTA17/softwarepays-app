@@ -1,0 +1,18 @@
+# Ngăn chặn việc truy cập vào file .env và các file nhạy cảm
+<Files .*>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+</Files>
+
+# Bẻ lái ngầm vào public (Không làm đổi đường dẫn trên thanh địa chỉ)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Xử lý riêng cho trang chủ để tránh lỗi Apache tự động thêm /public/
+    RewriteRule ^$ public/index.php [L]
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
