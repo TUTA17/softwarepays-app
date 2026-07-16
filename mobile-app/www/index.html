@@ -1,7 +1,48 @@
 <!doctype html>
-<html>
-<head><meta charset="utf-8"><title>Keyngon Admin</title></head>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Keyngon Admin</title>
+  <link rel="stylesheet" href="style.css">
+</head>
 <body>
-<!-- Placeholder only: capacitor.config.json server.url loads the real admin site remotely. -->
+
+  <section id="login-view" class="view">
+    <div class="login-box">
+      <h1 class="app-title">Keyngon Admin</h1>
+      <p class="app-subtitle">Quản lý đơn hàng</p>
+      <form id="login-form">
+        <label>Email / Số điện thoại</label>
+        <input type="text" id="login-email" autocomplete="username" required>
+        <label>Mật khẩu</label>
+        <input type="password" id="login-password" autocomplete="current-password" required>
+        <div id="login-error" class="error-text"></div>
+        <button type="submit" id="login-submit" class="btn btn-primary btn-block">Đăng nhập</button>
+      </form>
+    </div>
+  </section>
+
+  <section id="orders-view" class="view hidden">
+    <header class="app-header">
+      <h1>Đơn Hàng</h1>
+      <div class="header-actions">
+        <button id="refresh-btn" class="icon-btn" title="Làm mới">&#8635;</button>
+        <button id="logout-btn" class="icon-btn" title="Đăng xuất">&#9211;</button>
+      </div>
+    </header>
+
+    <div id="filter-chips" class="filter-chips"></div>
+
+    <div id="orders-list" class="orders-list"></div>
+
+    <div id="empty-state" class="empty-state hidden">Không có đơn hàng nào</div>
+
+    <button id="load-more-btn" class="btn btn-block load-more hidden">Tải thêm</button>
+  </section>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
 </body>
 </html>
