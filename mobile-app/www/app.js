@@ -84,6 +84,11 @@
     return Number(n || 0).toLocaleString('vi-VN') + 'đ';
   }
 
+  function formatMoneyByCurrency(n, currency) {
+    if (currency === 'USD') return '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return formatMoney(n);
+  }
+
   function formatTime(iso) {
     if (!iso) return '-';
     var d = new Date(iso);
@@ -589,11 +594,52 @@
         '</div>' +
         '<div class="order-time">Tham gia: ' + formatTime(u.created_at) + '</div>' +
         '<div class="order-actions">' +
-          '<div class="mini-row"><span>Số dư ví</span><span class="mini-row-right">' + formatMoney(u.balance) + '</span></div>' +
+          '<div class="mini-row"><span>Ví VNĐ</span><span class="mini-row-right">' + formatMoney(u.balance) + '</span></div>' +
+          '<div class="mini-row"><span>Ví USD</span><span class="mini-row-right">' + formatMoneyByCurrency(u.balance_usd, 'USD') + '</span></div>' +
           '<div class="mini-row"><span>Điểm</span><span class="mini-row-right">' + (u.points || 0) + '</span></div>' +
+          '<button class="btn btn-sm btn-add-balance-toggle">+ Cộng tiền thủ công</button>' +
+          '<div class="add-balance-form hidden">' +
+            '<div class="add-balance-row">' +
+              '<input type="number" class="amount-input" placeholder="Số tiền" step="1" min="0">' +
+              '<select class="currency-select"><option value="VND">VNĐ</option><option value="USD">USD</option></select>' +
+            '</div>' +
+            '<input type="text" class="note-input" placeholder="Ghi chú (không bắt buộc)">' +
+            '<button class="btn btn-primary btn-block btn-add-balance-submit">Xác nhận cộng tiền</button>' +
+          '</div>' +
         '</div>';
+
+      var toggleBtn = card.querySelector('.btn-add-balance-toggle');
+      var form = card.querySelector('.add-balance-form');
+      var amountInput = card.querySelector('.amount-input');
+      var currencySelect = card.querySelector('.currency-select');
+      var noteInput = card.querySelector('.note-input');
+      var submitBtn = card.querySelector('.btn-add-balance-submit');
+
+      toggleBtn.onclick = function () {
+        form.classList.toggle('hidden');
+      };
+      currencySelect.onchange = function () {
+        var isUsd = currencySelect.value === 'USD';
+        amountInput.step = isUsd ? '0.01' : '1';
+        amountInput.placeholder = isUsd ? 'Số tiền ($)' : 'Số tiền (đ)';
+      };
+      submitBtn.onclick = function () {
+        var amount = parseFloat(amountInput.value);
+        if (!amount || amount <= 0) { showToast('Vui lòng nhập số tiền hợp lệ.'); return; }
+        addCustomerBalance(u.id, amount, currencySelect.value, noteInput.value.trim());
+      };
+
       els.customersList.appendChild(card);
     });
+  }
+
+  function addCustomerBalance(userId, amount, currency, note) {
+    api('/customers/' + userId + '/add-balance', { method: 'POST', body: { amount: amount, currency: currency, note: note || null } })
+      .then(function () {
+        showToast('Đã cộng ' + formatMoneyByCurrency(amount, currency) + ' vào ví khách hàng.');
+        resetAndLoadCustomers();
+      })
+      .catch(function (err) { showToast(err.message); });
   }
 
   var searchDebounceTimer = null;
@@ -652,7 +698,7 @@
           '<span class="badge" style="' + (isDeposit ? 'background:#dcfce7;color:#15803d;' : 'background:#fee2e2;color:#b91c1c;') + '">' + (TX_TYPE_LABELS[t.type] || t.type) + '</span>' +
         '</div>' +
         '<div class="order-time">' + formatTime(t.created_at) + ' &middot; ' + t.status + '</div>' +
-        '<div class="order-actions"><div class="mini-row"><span></span><span class="mini-row-right">' + sign + formatMoney(Math.abs(t.amount)) + '</span></div></div>';
+        '<div class="order-actions"><div class="mini-row"><span></span><span class="mini-row-right">' + sign + formatMoneyByCurrency(Math.abs(t.amount), t.currency) + '</span></div></div>';
       els.transactionsList.appendChild(card);
     });
   }

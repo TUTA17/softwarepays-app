@@ -29,6 +29,7 @@ Route::prefix('admin')->group(function () {
 
         Route::get('/dashboard', [DashboardController::class, 'index']);
         Route::get('/customers', [UserController::class, 'index']);
+        Route::post('/customers/{id}/add-balance', [UserController::class, 'addBalance']);
         Route::get('/transactions', [TransactionController::class, 'index']);
     });
 });

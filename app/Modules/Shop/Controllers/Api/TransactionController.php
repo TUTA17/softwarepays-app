@@ -31,6 +31,7 @@ class TransactionController extends Controller
                 'user_email' => $t->user->email ?? null,
                 'type' => $t->type,
                 'amount' => (float) $t->amount,
+                'currency' => $t->currency ?? 'VND',
                 'status' => $t->status,
                 'description' => $t->description,
                 'created_at' => $t->created_at,
