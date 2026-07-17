@@ -29,7 +29,12 @@ class FcmService
 
         $message = CloudMessage::new()
             ->withNotification(FcmNotification::create($title, $body))
-            ->withData(['url' => $url ?? '/']);
+            ->withData(['url' => $url ?? '/'])
+            ->withDefaultSounds()
+            ->withAndroidConfig(\Kreait\Firebase\Messaging\AndroidConfig::fromArray([
+                'priority' => 'high',
+                'notification' => ['notification_priority' => 'PRIORITY_MAX', 'sound' => 'default'],
+            ]));
 
         $report = $this->messaging()->sendMulticast($message, $deviceTokens->pluck('fcm_token')->all());
 
