@@ -9,11 +9,11 @@
   };
 
   var ORDER_FILTERS = [
-    { value: 'pending_manual', label: 'Chờ xử lý' },
-    { value: 'sold', label: 'Đã giao' },
-    { value: 'processing', label: 'Đang xử lý' },
-    { value: 'failed', label: 'Thất bại' },
     { value: 'all', label: 'Tất cả' },
+    { value: 'pending_manual', label: 'Chờ xử lý' },
+    { value: 'processing', label: 'Đang xử lý' },
+    { value: 'sold', label: 'Đã giao' },
+    { value: 'failed', label: 'Thất bại' },
   ];
 
   var STATUS_LABELS = {
@@ -45,6 +45,7 @@
     orderPendingCount: 0,
     orderLoading: false,
     ordersLoaded: false,
+    fulfillmentMode: 'manual',
 
     customersSearch: '',
     customersPage: 1,
@@ -284,6 +285,25 @@
     });
   }
 
+  // Chế độ xử lý đơn (thủ công / tự động) — cùng 1 setting với web, đổi ở đâu cũng áp dụng chung.
+  function renderFulfillmentMode() {
+    els.fulfillmentModeManual.classList.toggle('active', state.fulfillmentMode === 'manual');
+    els.fulfillmentModeAuto.classList.toggle('active', state.fulfillmentMode === 'auto');
+  }
+
+  function toggleFulfillmentMode(mode) {
+    if (state.fulfillmentMode === mode) return;
+    if (mode === 'auto' && !confirm('Bật chế độ TỰ ĐỘNG: hệ thống sẽ tự gọi API mua Key thật ngay khi khách thanh toán, không qua duyệt tay. Xác nhận?')) return;
+
+    api('/orders/toggle-mode', { method: 'POST', body: { mode: mode } })
+      .then(function () {
+        state.fulfillmentMode = mode;
+        renderFulfillmentMode();
+        showToast('Đã chuyển chế độ xử lý đơn hàng sang: ' + (mode === 'auto' ? 'Tự động' : 'Thủ công') + '.');
+      })
+      .catch(function (err) { showToast(err.message); });
+  }
+
   function resetAndLoadOrders() {
     state.orderPage = 1;
     els.ordersList.innerHTML = '';
@@ -302,6 +322,8 @@
         state.orderPendingCount = data.pending_count || 0;
         state.orderLastPage = data.last_page || 1;
         state.manageAllOrders = !!data.can_manage_all;
+        if (data.fulfillment_mode) state.fulfillmentMode = data.fulfillment_mode;
+        renderFulfillmentMode();
         var items = (data.orders && data.orders.data) || [];
         renderOrderChips();
         renderOrders(items);
@@ -320,6 +342,11 @@
 
   function renderOrders(items) {
     items.forEach(function (order) {
+      if (order.type === 'smm') {
+        renderSmmOrderCard(order);
+        return;
+      }
+
       var card = document.createElement('div');
       card.className = 'order-card';
       card.dataset.orderId = order.id;
@@ -420,6 +447,65 @@
       card.appendChild(actions);
       els.ordersList.appendChild(card);
     });
+  }
+
+  // Đơn MXH (Facebook/TikTok/YouTube...) không có claim/giao tay — chỉ xem thông tin và bấm
+  // cập nhật trạng thái thực tế từ nhà cung cấp SMM (không có webhook tự động báo về).
+  function renderSmmOrderCard(order) {
+    var card = document.createElement('div');
+    card.className = 'order-card';
+    card.dataset.orderId = order.id;
+
+    card.innerHTML =
+      '<div class="order-card-top">' +
+        '<div>' +
+          '<div class="order-id">#' + order.id + '</div>' +
+          '<div class="order-product">' + escapeHtml(order.product_name || 'N/A') + '</div>' +
+          '<div class="order-buyer">' + escapeHtml(order.buyer_name || '-') + (order.buyer_email ? ' &middot; ' + escapeHtml(order.buyer_email) : '') + '</div>' +
+        '</div>' +
+        '<span class="badge">' + escapeHtml(order.status) + '</span>' +
+      '</div>' +
+      '<div class="order-time">' + formatTime(order.sold_at) + ' &middot; SL: ' + (order.quantity || 0) + ' &middot; ' + formatMoney(order.charge || 0) + '</div>';
+
+    var actions = document.createElement('div');
+    actions.className = 'order-actions';
+    if (order.api_order_id) {
+      var refreshBtn = document.createElement('button');
+      refreshBtn.className = 'btn';
+      refreshBtn.textContent = 'Cập nhật trạng thái';
+      refreshBtn.onclick = function () { refreshSmmStatus(order.id); };
+      actions.appendChild(refreshBtn);
+    } else {
+      var sendBtn = document.createElement('button');
+      sendBtn.className = 'btn btn-primary';
+      sendBtn.textContent = 'Gửi qua API';
+      sendBtn.onclick = function () {
+        if (!confirm('Gửi đơn này qua API nhà cung cấp SMM ngay?')) return;
+        sendSmmToApi(order.id);
+      };
+      actions.appendChild(sendBtn);
+    }
+    card.appendChild(actions);
+
+    els.ordersList.appendChild(card);
+  }
+
+  function refreshSmmStatus(id) {
+    api('/orders/' + id + '/refresh-smm-status', { method: 'POST' })
+      .then(function (data) {
+        showToast('Đã cập nhật trạng thái đơn #' + id + ': ' + (data.status || ''));
+        resetAndLoadOrders();
+      })
+      .catch(function (err) { showToast(err.message); });
+  }
+
+  function sendSmmToApi(id) {
+    api('/orders/' + id + '/send-smm-to-api', { method: 'POST' })
+      .then(function () {
+        showToast('Đã gửi đơn #' + id + ' qua API thành công.');
+        resetAndLoadOrders();
+      })
+      .catch(function (err) { showToast(err.message); });
   }
 
   function fulfillManual(id, keyCode, note) {
@@ -594,6 +680,18 @@
       console.warn('FCM registration error', err);
     });
 
+    // Khi app đang MỞ (foreground), Android không tự hiện notification hệ thống cho sự kiện này
+    // (chỉ tự hiện khi app chạy nền/đã tắt) -> phải tự xử lý ở đây, nếu không sẽ như "không đồng bộ":
+    // đơn hàng mới vào nhưng admin đang mở app lại không thấy gì cả.
+    PushNotifications.addListener('pushNotificationReceived', function (notification) {
+      var title = (notification && notification.title) || 'Thông báo mới';
+      var body = (notification && notification.body) || '';
+      showToast(title + (body ? ': ' + body : ''));
+      if (state.token) {
+        resetAndLoadOrders();
+      }
+    });
+
     PushNotifications.addListener('pushNotificationActionPerformed', function () {
       if (state.token) {
         switchTab('orders');
@@ -630,6 +728,8 @@
       dashboardTopUsers: $('dashboard-top-users'),
       dashboardRecentTx: $('dashboard-recent-tx'),
 
+      fulfillmentModeManual: $('fulfillment-mode-manual'),
+      fulfillmentModeAuto: $('fulfillment-mode-auto'),
       filterChips: $('filter-chips'),
       ordersList: $('orders-list'),
       ordersEmpty: $('orders-empty'),
@@ -657,6 +757,8 @@
       btn.addEventListener('click', function () { switchTab(btn.dataset.tab); });
     });
 
+    els.fulfillmentModeManual.addEventListener('click', function () { toggleFulfillmentMode('manual'); });
+    els.fulfillmentModeAuto.addEventListener('click', function () { toggleFulfillmentMode('auto'); });
     els.ordersLoadMore.addEventListener('click', loadMoreOrders);
     els.customersLoadMore.addEventListener('click', loadMoreCustomers);
     els.customersSearch.addEventListener('input', onCustomersSearchInput);
