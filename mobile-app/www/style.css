@@ -1,5 +1,7 @@
 :root {
-  --primary: #2563eb;
+  --primary: #012656;
+  --primary-dark: #001433;
+  --accent: #ff6a00;
   --bg: #f1f5f9;
   --surface: #ffffff;
   --border: #e2e8f0;
@@ -38,17 +40,18 @@ html, body {
   align-items: center;
   justify-content: center;
   padding: 24px;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f9 100%);
 }
 .login-box {
   width: 100%;
   max-width: 360px;
   background: var(--surface);
-  border-radius: 16px;
-  padding: 28px 24px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  border-radius: 20px;
+  padding: 32px 28px;
+  box-shadow: 0 12px 32px rgba(1,38,86,0.12);
 }
-.app-title { margin: 0; font-size: 22px; font-weight: 800; color: var(--primary); text-align: center; }
-.app-subtitle { margin: 4px 0 24px; text-align: center; color: var(--text-muted); font-size: 13px; }
+.login-logo { display: block; margin: 0 auto 18px; max-width: 200px; height: auto; }
+.app-subtitle { margin: 4px 0 26px; text-align: center; color: var(--text-muted); font-size: 13px; }
 label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin: 14px 0 6px; }
 input[type="text"], input[type="password"] {
   width: 100%;
@@ -74,22 +77,27 @@ input[type="text"], input[type="password"] {
 .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
 .btn-block { width: 100%; padding: 13px; margin-top: 18px; font-size: 15px; }
 .btn:disabled { opacity: 0.6; }
+.btn-primary:active { background: var(--primary-dark); }
 
 /* Header */
 .app-header {
   position: sticky; top: 0; z-index: 5;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 18px;
+  padding: 14px 18px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 10px rgba(1,38,86,0.05);
 }
-.app-header h1 { margin: 0; font-size: 18px; font-weight: 800; }
+.header-left { display: flex; align-items: center; gap: 10px; }
+.header-mark { width: 26px; height: 26px; object-fit: contain; }
+.app-header h1 { margin: 0; font-size: 17px; font-weight: 800; color: var(--primary); }
 .header-actions { display: flex; gap: 8px; }
 .icon-btn {
   width: 36px; height: 36px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--surface);
+  color: var(--primary);
   font-size: 16px;
   cursor: pointer;
 }
@@ -186,7 +194,7 @@ input[type="text"], input[type="password"] {
   font-weight: 600;
   cursor: pointer;
 }
-.tab-btn.active { color: var(--primary); }
+.tab-btn.active { color: var(--accent); }
 .tab-icon { font-size: 18px; }
 
 /* Dashboard */
@@ -197,6 +205,7 @@ input[type="text"], input[type="password"] {
 .stat-card {
   background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
   padding: 14px;
+  border-top: 3px solid var(--accent);
 }
 .stat-value { font-size: 18px; font-weight: 800; color: var(--primary); }
 .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
@@ -204,11 +213,13 @@ input[type="text"], input[type="password"] {
 .chart-scroll {
   display: flex; align-items: flex-end; gap: 6px;
   overflow-x: auto; -webkit-overflow-scrolling: touch;
-  padding: 12px 16px 4px;
+  padding: 12px 10px 10px;
   height: 120px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  margin: 0 16px;
 }
 .chart-bar-wrap { flex: none; width: 18px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
-.chart-bar { width: 10px; background: var(--primary); border-radius: 4px 4px 0 0; min-height: 2px; }
+.chart-bar { width: 10px; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 2px; }
 .chart-label { font-size: 9px; color: var(--text-muted); margin-top: 4px; transform: rotate(0deg); white-space: nowrap; }
 
 .mini-list { padding: 0 16px; display: flex; flex-direction: column; gap: 2px; }

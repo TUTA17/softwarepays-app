@@ -1,6 +1,6 @@
 {
   "appId": "com.keyngon.admin",
-  "appName": "Keyngon Admin",
+  "appName": "SoftwarePays",
   "webDir": "www",
   "server": {
     "androidScheme": "https"
