@@ -1,8 +1,11 @@
 <?php
 
+use App\Modules\Auth\Controllers\Api\UserController;
 use App\Modules\Core\Controllers\Api\AuthController;
+use App\Modules\Core\Controllers\Api\DashboardController;
 use App\Modules\Core\Controllers\Api\PushController;
 use App\Modules\Shop\Controllers\Api\OrderController;
+use App\Modules\Shop\Controllers\Api\TransactionController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->group(function () {
@@ -20,5 +23,9 @@ Route::prefix('admin')->group(function () {
         Route::post('/orders/{id}/fulfill-api', [OrderController::class, 'fulfillViaApi']);
 
         Route::post('/push/fcm-token', [PushController::class, 'fcmToken']);
+
+        Route::get('/dashboard', [DashboardController::class, 'index']);
+        Route::get('/customers', [UserController::class, 'index']);
+        Route::get('/transactions', [TransactionController::class, 'index']);
     });
 });

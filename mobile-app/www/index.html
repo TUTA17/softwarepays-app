@@ -11,7 +11,7 @@
   <section id="login-view" class="view">
     <div class="login-box">
       <h1 class="app-title">Keyngon Admin</h1>
-      <p class="app-subtitle">Quản lý đơn hàng</p>
+      <p class="app-subtitle">Quản lý bán hàng</p>
       <form id="login-form">
         <label>Email / Số điện thoại</label>
         <input type="text" id="login-email" autocomplete="username" required>
@@ -23,23 +23,70 @@
     </div>
   </section>
 
-  <section id="orders-view" class="view hidden">
+  <div id="app-shell" class="hidden">
     <header class="app-header">
-      <h1>Đơn Hàng</h1>
+      <h1 id="header-title">Dashboard</h1>
       <div class="header-actions">
         <button id="refresh-btn" class="icon-btn" title="Làm mới">&#8635;</button>
         <button id="logout-btn" class="icon-btn" title="Đăng xuất">&#9211;</button>
       </div>
     </header>
 
-    <div id="filter-chips" class="filter-chips"></div>
+    <main id="tab-content">
+      <section id="view-dashboard" class="tab-view">
+        <div id="dashboard-stats" class="stat-grid"></div>
+        <div class="section-title">Doanh thu 30 ngày qua</div>
+        <div id="dashboard-chart" class="chart-scroll"></div>
+        <div class="section-title">Top 5 sản phẩm bán chạy</div>
+        <div id="dashboard-top-games" class="mini-list"></div>
+        <div class="section-title">Top 5 khách hàng VIP</div>
+        <div id="dashboard-top-users" class="mini-list"></div>
+        <div class="section-title">Giao dịch gần đây</div>
+        <div id="dashboard-recent-tx" class="mini-list"></div>
+      </section>
 
-    <div id="orders-list" class="orders-list"></div>
+      <section id="view-orders" class="tab-view hidden">
+        <div id="filter-chips" class="filter-chips"></div>
+        <div id="orders-list" class="orders-list"></div>
+        <div id="orders-empty" class="empty-state hidden">Không có đơn hàng nào</div>
+        <button id="orders-load-more" class="btn btn-block load-more hidden">Tải thêm</button>
+      </section>
 
-    <div id="empty-state" class="empty-state hidden">Không có đơn hàng nào</div>
+      <section id="view-customers" class="tab-view hidden">
+        <div class="search-bar">
+          <input type="text" id="customers-search" placeholder="Tìm theo tên hoặc email...">
+        </div>
+        <div id="customers-list" class="orders-list"></div>
+        <div id="customers-empty" class="empty-state hidden">Không có khách hàng nào</div>
+        <button id="customers-load-more" class="btn btn-block load-more hidden">Tải thêm</button>
+      </section>
 
-    <button id="load-more-btn" class="btn btn-block load-more hidden">Tải thêm</button>
-  </section>
+      <section id="view-transactions" class="tab-view hidden">
+        <div class="search-bar">
+          <input type="month" id="transactions-month">
+          <button id="transactions-filter-clear" class="btn btn-sm">Xoá lọc</button>
+        </div>
+        <div id="transactions-list" class="orders-list"></div>
+        <div id="transactions-empty" class="empty-state hidden">Không có giao dịch nào</div>
+        <button id="transactions-load-more" class="btn btn-block load-more hidden">Tải thêm</button>
+      </section>
+    </main>
+
+    <nav id="bottom-tabs" class="bottom-tabs">
+      <button class="tab-btn active" data-tab="dashboard">
+        <span class="tab-icon">&#9776;</span><span>Dashboard</span>
+      </button>
+      <button class="tab-btn" data-tab="orders">
+        <span class="tab-icon">&#128230;</span><span>Đơn hàng</span>
+      </button>
+      <button class="tab-btn" data-tab="customers">
+        <span class="tab-icon">&#128101;</span><span>Khách hàng</span>
+      </button>
+      <button class="tab-btn" data-tab="transactions">
+        <span class="tab-icon">&#128179;</span><span>Giao dịch</span>
+      </button>
+    </nav>
+  </div>
 
   <div id="toast" class="toast hidden"></div>
 
