@@ -27,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             \App\Http\Middleware\SetLocaleAndCurrency::class,
+            \App\Http\Middleware\VerifyHuman::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [

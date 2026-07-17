@@ -2,6 +2,10 @@
 // Core routes file. Module routes are loaded via ModulesServiceProvider.
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
+use App\Http\Controllers\HumanVerifyController;
+
+Route::get('/human-verify', [HumanVerifyController::class, 'form'])->name('human.verify.form');
+Route::post('/human-verify', [HumanVerifyController::class, 'verify'])->name('human.verify');
 
 // Webhook / API URL for external Cron Job (danh mục game — nay lấy từ Kinguin catalog thật,
 // không còn cào Steam nữa; route giữ nguyên URL cũ để cron job hiện có trên server không bị gãy).
