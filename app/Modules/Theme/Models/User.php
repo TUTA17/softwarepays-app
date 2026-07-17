@@ -21,6 +21,15 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'email_verified_at',
+        'google_id',
+        'github_id',
+        'avatar_url',
+        'affiliate_code',
+        'referred_by',
+        'balance',
+        'balance_usd',
+        'points',
     ];
 
     /**

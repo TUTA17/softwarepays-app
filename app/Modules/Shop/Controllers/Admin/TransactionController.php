@@ -55,13 +55,14 @@ public function exportTransactions(Request $request)
             $file = fopen('php://output', 'w');
             // Thêm BOM để Excel đọc đúng UTF-8
             fputs($file, "\xEF\xBB\xBF");
-            fputcsv($file, ['ID', 'Khách hàng', 'Số tiền', 'Mô tả', 'Mã tham chiếu', 'Thời gian']);
+            fputcsv($file, ['ID', 'Khách hàng', 'Số tiền', 'Đơn vị', 'Mô tả', 'Mã tham chiếu', 'Thời gian']);
 
             foreach ($transactions as $tx) {
                 fputcsv($file, [
                     $tx->id,
                     $tx->user ? $tx->user->name : 'N/A',
                     $tx->amount,
+                    $tx->currency ?? 'VND',
                     $tx->description,
                     $tx->reference_id,
                     $tx->created_at->format('d/m/Y H:i:s')

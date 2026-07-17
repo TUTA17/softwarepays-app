@@ -119,7 +119,7 @@
                 @else
                     <i class="{{ $faType }} {{ $icon }} {{ $colorClass }} text-[15px] w-5 text-center"></i>
                 @endif
-                <span class="text-sm tracking-wide">{{ \Illuminate\Support\Str::limit($category, 15) }}</span>
+                <span class="text-sm tracking-wide">{{ \Illuminate\Support\Str::limit($categoryLabels[$category] ?? $category, 15) }}</span>
             </button>
         @endforeach
     </div>
@@ -177,7 +177,7 @@
                 <select id="category_select" class="hidden">
                     <option value="">{{ __('-- Chọn nền tảng --') }}</option>
                     @foreach($categories as $category => $services)
-                        <option value="{{ md5($category) }}">{{ $category }}</option>
+                        <option value="{{ md5($category) }}">{{ $categoryLabels[$category] ?? $category }}</option>
                     @endforeach
                 </select>
 

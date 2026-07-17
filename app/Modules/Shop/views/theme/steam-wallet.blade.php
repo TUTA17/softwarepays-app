@@ -80,16 +80,26 @@
             <div class="lg:col-span-2 space-y-6">
                 <!-- Denomination Selection -->
                 <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                        <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <i class="fa-solid fa-tags text-blue-600"></i> {{ __('steamwallet.choose_denomination') }}
-                        </h3>
+                    <div class="flex flex-col gap-4 mb-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-tags text-blue-600"></i> {{ __('steamwallet.choose_denomination') }}
+                                <span class="text-sm font-normal text-slate-400">({{ $products->count() }})</span>
+                            </h3>
+                        </div>
 
-                        <!-- Region Filter -->
-                        <div class="flex items-center bg-slate-100 dark:bg-slate-900 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
-                            <button onclick="filterRegion('all', this)" class="region-tab active px-3 py-1.5 text-sm font-semibold rounded-md bg-white dark:bg-slate-800 shadow-sm text-blue-600 dark:text-blue-400 transition-all">{{ __('steamwallet.region_all') }}</button>
-                            <button onclick="filterRegion('Vietnam', this)" class="region-tab px-3 py-1.5 text-sm font-semibold rounded-md text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-all">{{ __('steamwallet.region_vietnam') }}</button>
-                            <button onclick="filterRegion('Global', this)" class="region-tab px-3 py-1.5 text-sm font-semibold rounded-md text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-all">{{ __('steamwallet.region_global') }}</button>
+                        <!-- Currency / Search Filter -->
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <select id="currency-filter" onchange="applyFilters()" class="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-semibold rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-48">
+                                <option value="all">{{ __('steamwallet.region_all') }} ({{ $products->count() }})</option>
+                                @foreach($currencyCounts as $code => $count)
+                                    <option value="{{ $code }}">{{ $code }} ({{ $count }})</option>
+                                @endforeach
+                            </select>
+                            <div class="relative flex-1">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                <input type="text" id="denomination-search" oninput="applyFilters()" placeholder="{{ __('steamwallet.search_placeholder') }}" class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
                         </div>
                     </div>
 
@@ -100,23 +110,20 @@
                     @else
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="denomination-grid">
                             @foreach($products as $index => $product)
-                                @php
-                                    $genres = json_decode($product->genres, true) ?? [];
-                                    $region = in_array('Vietnam', $genres) ? 'Vietnam' : (in_array('Global', $genres) ? 'Global' : 'Other');
-                                    $regionColor = $region === 'Vietnam' ? 'text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400' : 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400';
-                                @endphp
-                                <div class="denomination-option region-{{ $region }} relative cursor-pointer border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 rounded-xl p-4 transition-all" 
-                                     data-id="{{ $product->id }}" 
-                                     data-price="{{ $product->price }}" 
+                                <div class="denomination-option relative cursor-pointer border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 rounded-xl p-4 transition-all"
+                                     data-id="{{ $product->id }}"
+                                     data-price="{{ $product->price }}"
                                      data-name="{{ $product->name }}"
+                                     data-currency="{{ $product->currency_code }}"
+                                     data-search="{{ Str::lower($product->name) }}"
                                      onclick="selectDenomination(this)">
-                                    
+
                                     <div class="check-icon absolute top-2 right-2 text-blue-600 dark:text-blue-400 opacity-0 transition-opacity">
                                         <i class="fa-solid fa-circle-check"></i>
                                     </div>
-                                    
+
                                     <div class="mb-2">
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded {{ $regionColor }}">{{ $region }}</span>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400">{{ $product->currency_code }}</span>
                                     </div>
 
                                     <div class="font-bold text-slate-900 dark:text-white text-base mb-1">{{ str_replace('Steam Wallet ', '', $product->name) }}</div>
@@ -124,7 +131,7 @@
                                 </div>
                             @endforeach
                         </div>
-                        
+
                         <div id="no-region-products" class="hidden p-4 rounded-lg bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 text-center font-medium border border-orange-200 dark:border-orange-800 mt-4">
                             {{ __('steamwallet.no_region_match') }}
                         </div>
@@ -207,38 +214,37 @@
 <script>
     let currentPrice = 0;
     
-    function filterRegion(region, btnElement) {
-        // Update active tab styles
-        document.querySelectorAll('.region-tab').forEach(el => {
-            el.classList.remove('active', 'bg-white', 'dark:bg-slate-800', 'shadow-sm', 'text-blue-600', 'dark:text-blue-400');
-            el.classList.add('text-slate-500', 'hover:text-slate-700', 'dark:text-slate-400', 'dark:hover:text-slate-200');
-        });
-        
-        btnElement.classList.remove('text-slate-500', 'hover:text-slate-700', 'dark:text-slate-400', 'dark:hover:text-slate-200');
-        btnElement.classList.add('active', 'bg-white', 'dark:bg-slate-800', 'shadow-sm', 'text-blue-600', 'dark:text-blue-400');
-        
-        // Filter options
+    function applyFilters() {
+        const currency = document.getElementById('currency-filter').value;
+        const search = document.getElementById('denomination-search').value.trim().toLowerCase();
+
         let visibleCount = 0;
         let firstVisible = null;
-        
+        let currentStillVisible = false;
+        const currentSelected = document.querySelector('.denomination-option.border-blue-600');
+
         document.querySelectorAll('.denomination-option').forEach(el => {
-            if (region === 'all' || el.classList.contains('region-' + region)) {
-                el.style.display = 'block';
+            const matchesCurrency = currency === 'all' || el.getAttribute('data-currency') === currency;
+            const matchesSearch = !search || el.getAttribute('data-search').includes(search);
+            const visible = matchesCurrency && matchesSearch;
+
+            el.style.display = visible ? 'block' : 'none';
+            if (visible) {
                 visibleCount++;
                 if (!firstVisible) firstVisible = el;
-            } else {
-                el.style.display = 'none';
+                if (el === currentSelected) currentStillVisible = true;
             }
         });
-        
-        // Show/hide no products message
+
+        const buyForm = document.getElementById('buy-form');
         if (visibleCount === 0) {
             document.getElementById('no-region-products').classList.remove('hidden');
-            document.getElementById('buy-form').style.display = 'none';
+            if (buyForm) buyForm.style.display = 'none';
         } else {
             document.getElementById('no-region-products').classList.add('hidden');
-            document.getElementById('buy-form').style.display = 'block';
-            if (firstVisible) {
+            if (buyForm) buyForm.style.display = 'block';
+            // Chỉ tự chọn lại mệnh giá đầu tiên nếu mệnh giá đang chọn bị lọc mất khỏi danh sách.
+            if (!currentStillVisible && firstVisible) {
                 selectDenomination(firstVisible);
             }
         }

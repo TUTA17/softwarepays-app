@@ -104,8 +104,8 @@
                             <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
                                 <i class="fa-solid fa-hand-pointer text-blue-400"></i> {{ __('wallet.quick_amount_label') }}
                             </label>
-                            
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+
+                            <div id="amountBtnsVnd" class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
                                 <button type="button" class="amount-btn bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center cursor-pointer font-bold hover:bg-slate-50 dark:bg-slate-800" onclick="setAmount(50000, this)">50.000đ</button>
                                 <button type="button" class="amount-btn bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center cursor-pointer font-bold hover:bg-slate-50 dark:bg-slate-800" onclick="setAmount(100000, this)">100.000đ</button>
                                 <button type="button" class="amount-btn bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center cursor-pointer font-bold hover:bg-slate-50 dark:bg-slate-800" onclick="setAmount(200000, this)">200.000đ</button>
@@ -113,17 +113,25 @@
                                 <button type="button" class="amount-btn bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center cursor-pointer font-bold hover:bg-slate-50 dark:bg-slate-800" onclick="setAmount(1000000, this)">1.000.000đ</button>
                                 <button type="button" class="amount-btn bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center cursor-pointer font-bold hover:bg-slate-50 dark:bg-slate-800" onclick="setAmount(2000000, this)">2.000.000đ</button>
                             </div>
+                            <div id="amountBtnsUsd" class="hidden grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                                <button type="button" class="amount-btn bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center cursor-pointer font-bold hover:bg-slate-50 dark:bg-slate-800" onclick="setAmount(5, this)">$5</button>
+                                <button type="button" class="amount-btn bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center cursor-pointer font-bold hover:bg-slate-50 dark:bg-slate-800" onclick="setAmount(10, this)">$10</button>
+                                <button type="button" class="amount-btn bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center cursor-pointer font-bold hover:bg-slate-50 dark:bg-slate-800" onclick="setAmount(20, this)">$20</button>
+                                <button type="button" class="amount-btn bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center cursor-pointer font-bold hover:bg-slate-50 dark:bg-slate-800" onclick="setAmount(50, this)">$50</button>
+                                <button type="button" class="amount-btn bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center cursor-pointer font-bold hover:bg-slate-50 dark:bg-slate-800" onclick="setAmount(100, this)">$100</button>
+                                <button type="button" class="amount-btn bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center cursor-pointer font-bold hover:bg-slate-50 dark:bg-slate-800" onclick="setAmount(200, this)">$200</button>
+                            </div>
                         </div>
 
                         <div class="mb-8">
                             <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
-                                <i class="fa-solid fa-keyboard text-blue-400"></i> {{ __('wallet.custom_amount_label') }}
+                                <i class="fa-solid fa-keyboard text-blue-400"></i> <span id="customAmountLabel">{{ __('wallet.custom_amount_label') }}</span>
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <span class="text-slate-500 font-bold">₫</span>
+                                    <span class="text-slate-500 font-bold" id="customAmountPrefix">₫</span>
                                 </div>
-                                <input type="number" id="customAmount" min="10000" max="10000000" placeholder="Tối thiểu 10,000đ" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl pl-10 pr-4 py-4 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-xl font-display font-bold shadow-inner">
+                                <input type="number" id="customAmount" min="10000" max="10000000" step="1" placeholder="Tối thiểu 10,000đ" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl pl-10 pr-4 py-4 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-xl font-display font-bold shadow-inner">
                             </div>
                         </div>
 
@@ -279,7 +287,13 @@
                                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                                         <td class="p-4 font-mono text-xs text-slate-500">{{ $tx->reference_id ?? 'N/A' }}</td>
                                         <td class="p-4 text-slate-700 dark:text-slate-300 font-medium">{{ __('wallet.method_bank_transfer') }}</td>
-                                        <td class="p-4 font-bold text-slate-900 dark:text-white">{{ number_format($tx->amount) }}đ</td>
+                                        <td class="p-4 font-bold text-slate-900 dark:text-white">
+                                            @if(($tx->currency ?? 'VND') === 'USD')
+                                                ${{ number_format($tx->amount, 2) }}
+                                            @else
+                                                {{ number_format($tx->amount) }}đ
+                                            @endif
+                                        </td>
                                         <td class="p-4">
                                             @if($tx->status == 'completed')
                                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400 text-xs font-bold border border-emerald-200 dark:border-emerald-800/50"><i class="fa-solid fa-check"></i> {{ __('wallet.status_completed') }}</span>
@@ -295,7 +309,7 @@
                                         </td>
                                         <td class="p-4 text-slate-500 text-xs whitespace-nowrap">
                                             {{ $tx->created_at->format('d/m/Y - H:i:s') }}
-                                            @if($tx->status == 'pending' && !\Carbon\Carbon::parse($tx->created_at)->addMinutes(15)->isPast())
+                                            @if($tx->status == 'pending' && ($tx->currency ?? 'VND') === 'VND' && !\Carbon\Carbon::parse($tx->created_at)->addMinutes(15)->isPast())
                                                 <div class="mt-2 flex items-center gap-2">
                                                     <button onclick="continuePayment({{ $tx->amount }})" class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition">{{ __('wallet.retry_payment') }}</button>
                                                     <button onclick="cancelTx({{ $tx->id }})" class="px-2 py-1 bg-rose-500 text-white text-xs rounded hover:bg-rose-600 transition">{{ __('wallet.cancel_button') }}</button>
@@ -329,6 +343,9 @@
 <script>
     let depositMethod = {!! $isVndCurrency ? "'bank'" : "'paypal'" !!};
     let cryptoMethod = 'bitcoin';
+    // Ngân hàng (QR) = ví VNĐ; PayPal/Thẻ/Crypto = ví USD riêng, không quy đổi.
+    let currentUnit = depositMethod === 'bank' ? 'vnd' : 'usd';
+    let currentMinAmount = currentUnit === 'vnd' ? 10000 : 1;
 
     function setDepositMethod(method, btn) {
         depositMethod = method;
@@ -340,6 +357,35 @@
         btn.classList.remove('bg-white', 'dark:bg-slate-900', 'border-slate-200', 'dark:border-slate-700', 'text-slate-700', 'dark:text-slate-300');
 
         document.getElementById('cryptoCurrencyPicker').classList.toggle('hidden', method !== 'crypto');
+
+        // PayPal/Thẻ/Crypto nạp thẳng vào ví USD riêng (không quy đổi VNĐ); chỉ Ngân hàng (QR) dùng VNĐ.
+        currentUnit = method === 'bank' ? 'vnd' : 'usd';
+        currentMinAmount = currentUnit === 'vnd' ? 10000 : 1;
+
+        const amountInput = document.getElementById('customAmount');
+        const prefixEl = document.getElementById('customAmountPrefix');
+        const labelEl = document.getElementById('customAmountLabel');
+        if (currentUnit === 'usd') {
+            document.getElementById('amountBtnsVnd').classList.add('hidden');
+            document.getElementById('amountBtnsUsd').classList.remove('hidden');
+            prefixEl.textContent = '$';
+            amountInput.min = '1';
+            amountInput.step = '0.01';
+            amountInput.removeAttribute('max');
+            amountInput.placeholder = 'Tối thiểu $1';
+            labelEl.textContent = 'Hoặc nhập số tiền khác (USD)';
+        } else {
+            document.getElementById('amountBtnsVnd').classList.remove('hidden');
+            document.getElementById('amountBtnsUsd').classList.add('hidden');
+            prefixEl.textContent = '₫';
+            amountInput.min = '10000';
+            amountInput.step = '1';
+            amountInput.max = '10000000';
+            amountInput.placeholder = 'Tối thiểu 10,000đ';
+            labelEl.textContent = 'Hoặc nhập số tiền khác (VNĐ)';
+        }
+        amountInput.value = '';
+        document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
 
         const label = document.getElementById('btnGenerateLabel');
         if (method === 'bank') label.textContent = 'TẠO MÃ QR NẠP TIỀN';
@@ -376,8 +422,8 @@
             style: { layout: 'horizontal', height: 55, tagline: false },
             createOrder: function () {
                 const amount = document.getElementById('customAmount').value;
-                if (!amount || amount < 10000) {
-                    alert('Vui lòng nhập số tiền hợp lệ (Tối thiểu 10,000đ)');
+                if (!amount || Number(amount) < currentMinAmount) {
+                    alert('Vui lòng nhập số tiền hợp lệ (Tối thiểu $' + currentMinAmount + ')');
                     return Promise.reject(new Error('invalid amount'));
                 }
                 return fetch('{{ route('payments.paypal.create_order') }}?amount=' + amount, {
@@ -429,8 +475,9 @@
 
     function handleDepositSubmit() {
         const amount = document.getElementById('customAmount').value;
-        if (!amount || amount < 10000) {
-            alert('Vui lòng nhập số tiền hợp lệ (Tối thiểu 10,000đ)');
+        if (!amount || Number(amount) < currentMinAmount) {
+            const minLabel = currentUnit === 'usd' ? ('$' + currentMinAmount) : (currentMinAmount.toLocaleString('vi-VN') + 'đ');
+            alert('Vui lòng nhập số tiền hợp lệ (Tối thiểu ' + minLabel + ')');
             return;
         }
 

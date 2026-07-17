@@ -21,6 +21,9 @@ Route::prefix('admin')->group(function () {
         Route::post('/orders/{id}/release', [OrderController::class, 'release']);
         Route::post('/orders/{id}/fulfill-manual', [OrderController::class, 'fulfillManual']);
         Route::post('/orders/{id}/fulfill-api', [OrderController::class, 'fulfillViaApi']);
+        Route::post('/orders/{id}/refresh-smm-status', [OrderController::class, 'refreshSmmStatus']);
+        Route::post('/orders/{id}/send-smm-to-api', [OrderController::class, 'sendSmmToApi']);
+        Route::post('/orders/toggle-mode', [OrderController::class, 'toggleMode']);
 
         Route::post('/push/fcm-token', [PushController::class, 'fcmToken']);
 

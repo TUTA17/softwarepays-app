@@ -123,6 +123,63 @@
                             </div>
                         @endforeach
                     </div>
+
+                    @if($key === 'currency_tab')
+                        <div style="margin-top: 16px; padding: 16px; border-radius: var(--radius); background: var(--bg-body); border: 1px solid var(--border);">
+                            <div style="font-size: 12px; font-weight: 600; margin-bottom: 12px;">Ví dụ: sản phẩm giá 100.000đ, khách trả bằng ngoại tệ sẽ thấy giá:</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 24px;">
+                                <div>
+                                    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Trả bằng USD</div>
+                                    <div style="font-size: 18px; font-weight: 700;" id="currency-preview-usd">-</div>
+                                    <div style="font-size: 11px; color: var(--text-muted);">Không cộng %: <span id="currency-base-usd">-</span></div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Trả bằng EUR</div>
+                                    <div style="font-size: 18px; font-weight: 700;" id="currency-preview-eur">-</div>
+                                    <div style="font-size: 11px; color: var(--text-muted);">Không cộng %: <span id="currency-base-eur">-</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <script>
+                        (function () {
+                            // liveUsd/liveEur = tỷ giá thị trường thực, tính theo "1 đơn vị ngoại tệ = ? VNĐ".
+                            var liveUsd = {{ (float) ($liveRates['USD'] ?? 0) }};
+                            var liveEur = {{ (float) ($liveRates['EUR'] ?? 0) }};
+                            var SAMPLE_VND = 100000;
+                            var usdInput = document.querySelector('[name="currency_tab_margin_percent_usd"]');
+                            var eurInput = document.querySelector('[name="currency_tab_margin_percent_eur"]');
+                            var usdOut = document.getElementById('currency-preview-usd');
+                            var eurOut = document.getElementById('currency-preview-eur');
+                            var usdBase = document.getElementById('currency-base-usd');
+                            var eurBase = document.getElementById('currency-base-eur');
+
+                            function fmtMoney(n, symbol) {
+                                return symbol + n.toFixed(2);
+                            }
+
+                            function recalc() {
+                                // Margin dương -> khách trả bằng ngoại tệ phải trả NHIỀU $/€ hơn cho cùng
+                                // 1 sản phẩm giá VNĐ. Về mặt tỷ giá, tương đương chia liveRate cho (1+margin)
+                                // (site quy đổi 1 USD/EUR ra ÍT VNĐ hơn) — khớp đúng CurrencyHelper::rate().
+                                var pUsd = parseFloat(usdInput && usdInput.value) || 0;
+                                var pEur = parseFloat(eurInput && eurInput.value) || 0;
+
+                                if (usdOut && liveUsd > 0) {
+                                    usdOut.textContent = fmtMoney(SAMPLE_VND / (liveUsd / (1 + pUsd / 100)), '$');
+                                    usdBase.textContent = fmtMoney(SAMPLE_VND / liveUsd, '$');
+                                }
+                                if (eurOut && liveEur > 0) {
+                                    eurOut.textContent = fmtMoney(SAMPLE_VND / (liveEur / (1 + pEur / 100)), '€');
+                                    eurBase.textContent = fmtMoney(SAMPLE_VND / liveEur, '€');
+                                }
+                            }
+
+                            if (usdInput) usdInput.addEventListener('input', recalc);
+                            if (eurInput) eurInput.addEventListener('input', recalc);
+                            recalc();
+                        })();
+                        </script>
+                    @endif
                 </div>
             @endforeach
         </div>

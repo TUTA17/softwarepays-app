@@ -49,7 +49,7 @@ Route::get('/dev/reset-news', function () {
 
 
 // Bank/MoMo Top-up Webhook Route
-Route::post('/api/webhook/bank-transfer', [\App\Modules\Theme\Controllers\WalletController::class, 'webhook']);
+Route::post('/api/webhook/bank-transfer', [\App\Modules\Auth\Controllers\Theme\WalletController::class, 'webhook']);
 
 // Load Admin Routes
 

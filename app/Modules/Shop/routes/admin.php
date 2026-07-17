@@ -43,11 +43,7 @@ Route::prefix(config('app.admin_prefix', 'admin'))->name('admin.')->middleware([
     Route::post('/orders/{id}/release', [\App\Modules\Shop\Controllers\Admin\OrderController::class, 'release'])->name('orders.release');
     Route::post('/orders/toggle-mode', [\App\Modules\Shop\Controllers\Admin\OrderController::class, 'toggleMode'])->name('orders.toggle_mode');
 
-    // VPN & eSIM — quản lý riêng: tỉ lệ lợi nhuận + danh sách sản phẩm + upload ảnh
-    Route::get('/vpn', [\App\Modules\Shop\Controllers\Admin\VpnController::class, 'index'])->name('vpn');
-    Route::post('/vpn/margin', [\App\Modules\Shop\Controllers\Admin\VpnController::class, 'updateMargin'])->name('vpn.update_margin');
-    Route::post('/vpn/exchange-rate', [\App\Modules\Shop\Controllers\Admin\VpnController::class, 'updateExchangeRate'])->name('vpn.update_rate');
-    Route::post('/vpn/{id}/upload-image', [\App\Modules\Shop\Controllers\Admin\VpnController::class, 'uploadImage'])->name('vpn.upload_image');
+    // eSIM — quản lý riêng: tỉ lệ lợi nhuận + danh sách sản phẩm + upload ảnh
     Route::get('/esim', [\App\Modules\Shop\Controllers\Admin\EsimController::class, 'index'])->name('esim');
     Route::post('/esim/margin', [\App\Modules\Shop\Controllers\Admin\EsimController::class, 'updateMargin'])->name('esim.update_margin');
     Route::post('/esim/{id}/upload-image', [\App\Modules\Shop\Controllers\Admin\EsimController::class, 'uploadImage'])->name('esim.upload_image');

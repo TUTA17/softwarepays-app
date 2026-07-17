@@ -13,6 +13,59 @@ public function users()
         return view('auth::admin.users', compact('users'));
     }
 
+    // Cộng tiền thủ công vào ví khách hàng (dùng khi thanh toán tự động bị lỗi)
+    public function addBalance(Request $request, $id)
+    {
+        $currency = $request->input('currency', 'VND');
+        $minAmount = $currency === 'USD' ? 0.01 : 1000;
+
+        $request->validate([
+            'amount' => "required|numeric|min:{$minAmount}",
+            'currency' => 'nullable|in:VND,USD',
+            'note' => 'nullable|string|max:255',
+        ], [
+            'amount.required' => 'Vui lòng nhập số tiền.',
+            'amount.numeric' => 'Số tiền không hợp lệ.',
+            'amount.min' => $currency === 'USD' ? 'Số tiền phải lớn hơn 0.' : 'Số tiền tối thiểu là 1.000đ.',
+        ]);
+
+        $user = User::findOrFail($id);
+        $amount = (float) $request->amount;
+        $admin = \Illuminate\Support\Facades\Auth::guard('admin')->user();
+
+        if ($currency === 'USD') {
+            $user->increment('balance_usd', $amount);
+        } else {
+            $user->increment('balance', $amount);
+        }
+
+        $description = 'Admin cộng tiền thủ công (bù thanh toán tự động lỗi)'
+            . ($admin ? ' - Thực hiện bởi: ' . $admin->name : '')
+            . ($request->filled('note') ? ' - Ghi chú: ' . $request->note : '');
+
+        $transaction = \App\Modules\Theme\Models\Transaction::create([
+            'user_id' => $user->id,
+            'amount' => $amount,
+            'type' => 'deposit',
+            'status' => 'completed',
+            'description' => $description,
+            'reference_id' => 'MANUAL' . time() . $user->id,
+            'currency' => $currency,
+        ]);
+
+        if (\App\Modules\Core\Models\Setting::getValue('transaction_confirmation_email_enable', '1') == '1') {
+            try {
+                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\TransactionConfirmationMail($user, $transaction));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Gửi email xác nhận giao dịch (cộng tiền thủ công) thất bại: ' . $e->getMessage());
+            }
+        }
+
+        $displayAmount = $currency === 'USD' ? ('$' . number_format($amount, 2)) : (number_format($amount) . 'đ');
+
+        return back()->with('success', 'Đã cộng ' . $displayAmount . ' vào tài khoản của ' . $user->name . ' thành công!');
+    }
+
     // API thêm Game từ Steam
     public function storeProduct(Request $request)
     {

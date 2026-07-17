@@ -68,7 +68,11 @@
                             @endif
                         </td>
                         <td style="font-weight: 600; color: {{ $tx->amount > 0 ? '#16a34a' : '#dc2626' }};">
-                            {{ $tx->amount > 0 ? '+' : '' }}{{ number_format($tx->amount) }}đ
+                            @if(($tx->currency ?? 'VND') === 'USD')
+                                {{ $tx->amount > 0 ? '+' : '' }}${{ number_format($tx->amount, 2) }}
+                            @else
+                                {{ $tx->amount > 0 ? '+' : '' }}{{ number_format($tx->amount) }}đ
+                            @endif
                         </td>
                         <td style="font-size: 13px;">{{ $tx->description }}</td>
                         <td>

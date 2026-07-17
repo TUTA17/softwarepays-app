@@ -47,10 +47,40 @@ class PaymentGatewayController extends Controller
     // tính số tiền + tạo Transaction pending, KHÔNG gọi PayPal API (để 2 nơi tự chọn landing_page/flow riêng).
     protected function buildPaypalTransaction(Request $request): ?array
     {
+        $user = Auth::user();
+        $purpose = $request->query('purpose', 'topup');
+
+        // purpose=topup: ví USD riêng — khách nhập thẳng số USD, PayPal charge đúng số đó,
+        // KHÔNG quy đổi qua VNĐ ở bất kỳ bước nào (khác với purpose=checkout bên dưới).
+        if ($purpose === 'topup') {
+            $amountUsd = round((float) $request->query('amount', 0), 2);
+            if ($amountUsd < 1) return null;
+
+            $reference = 'PP' . $user->id . '_' . time();
+
+            $transaction = Transaction::create([
+                'user_id' => $user->id,
+                'amount' => $amountUsd,
+                'type' => 'deposit',
+                'status' => 'pending',
+                'description' => 'Nạp tiền qua PayPal (USD)',
+                'reference_id' => $reference,
+                'currency' => 'USD',
+                'metadata' => [
+                    'gateway' => 'paypal',
+                    'purpose' => 'topup',
+                    'amount_usd' => $amountUsd,
+                ],
+            ]);
+
+            return ['transaction' => $transaction, 'amountInCurrency' => $amountUsd, 'currency' => 'USD', 'reference' => $reference];
+        }
+
+        // purpose=checkout: trả bù thiếu hụt giỏ hàng — giữ nguyên hành vi cũ, quy đổi ra VNĐ
+        // để cộng thẳng vào ví VNĐ và tự động hoàn tất đơn hàng.
         $amountVnd = $this->resolveAmountVnd($request);
         if (!$amountVnd) return null;
 
-        $user = Auth::user();
         $usdRate = \App\Helpers\CurrencyHelper::usdRate();
         // Sàn tối thiểu $1 cho các cổng thanh toán quốc tế (PayPal, crypto)
         $amountUsd = max(1, round($amountVnd * $usdRate, 2));
@@ -78,9 +108,10 @@ class PaymentGatewayController extends Controller
             'status' => 'pending',
             'description' => 'Nạp tiền qua PayPal',
             'reference_id' => $reference,
+            'currency' => 'VND',
             'metadata' => [
                 'gateway' => 'paypal',
-                'purpose' => $request->query('purpose', 'topup'),
+                'purpose' => 'checkout',
                 'amount_usd' => $amountUsd,
                 'currency' => $currency,
                 'amount_in_currency' => $amountInCurrency,
@@ -217,16 +248,28 @@ class PaymentGatewayController extends Controller
             return response()->json(['success' => false, 'message' => 'Phương thức không hỗ trợ.'], 422);
         }
 
-        $amountVnd = $this->resolveAmountVnd($request);
-        if (!$amountVnd) {
-            return response()->json(['success' => false, 'message' => 'Không xác định được số tiền cần thanh toán.'], 422);
-        }
-
         $user = Auth::user();
-        $usdRate = \App\Helpers\CurrencyHelper::usdRate();
-        // Sàn tối thiểu $1 cho các cổng thanh toán quốc tế (PayPal, crypto)
-        $amountUsd = max(1, round($amountVnd * $usdRate, 2));
-        $orderAmountUsd = $amountUsd;
+        $purpose = $request->query('purpose', 'topup');
+        $isWalletTopup = $purpose === 'topup';
+
+        if ($isWalletTopup) {
+            // Ví USD riêng — khách nhập thẳng số USD, không quy đổi qua VNĐ ở bất kỳ bước nào.
+            $orderAmountUsd = round((float) $request->query('amount', 0), 2);
+            if ($orderAmountUsd < 1) {
+                return response()->json(['success' => false, 'message' => 'Không xác định được số tiền cần thanh toán.'], 422);
+            }
+            $amountUsd = $orderAmountUsd;
+        } else {
+            $amountVnd = $this->resolveAmountVnd($request);
+            if (!$amountVnd) {
+                return response()->json(['success' => false, 'message' => 'Không xác định được số tiền cần thanh toán.'], 422);
+            }
+
+            $usdRate = \App\Helpers\CurrencyHelper::usdRate();
+            // Sàn tối thiểu $1 cho các cổng thanh toán quốc tế (PayPal, crypto)
+            $amountUsd = max(1, round($amountVnd * $usdRate, 2));
+            $orderAmountUsd = $amountUsd;
+        }
 
         // NOWPayments tự áp mức tối thiểu riêng cho từng coin (biến động theo phí mạng, có lúc >$18)
         // -> phải nâng lên đúng mức đó trước khi tạo payment, nếu không sẽ bị từ chối AMOUNT_MINIMAL_ERROR.
@@ -238,25 +281,28 @@ class PaymentGatewayController extends Controller
         }
         $wasBumpedToMinimum = $amountUsd > $orderAmountUsd;
 
-        // Nếu sàn tối thiểu đẩy số tiền charge thực tế lên cao hơn $amountVnd ban đầu, phải quy đổi ngược lại
-        // để cộng đúng số tiền khách THỰC SỰ trả vào ví — nếu không khách trả nhiều hơn nhưng chỉ được cộng ít hơn.
-        if ($usdRate > 0) {
-            $amountVnd = max($amountVnd, round($amountUsd / $usdRate));
+        if (!$isWalletTopup) {
+            // purpose=checkout: nếu sàn tối thiểu đẩy số tiền charge thực tế lên cao hơn $amountVnd ban đầu,
+            // phải quy đổi ngược lại để cộng đúng số tiền khách THỰC SỰ trả vào ví VNĐ.
+            if ($usdRate > 0) {
+                $amountVnd = max($amountVnd, round($amountUsd / $usdRate));
+            }
         }
 
         $reference = 'CRYPTO' . $user->id . '_' . time();
 
         $transaction = Transaction::create([
             'user_id' => $user->id,
-            'amount' => $amountVnd,
+            'amount' => $isWalletTopup ? $amountUsd : $amountVnd,
             'type' => 'deposit',
             'status' => 'pending',
-            'description' => 'Nạp tiền qua ' . ucfirst($request->method),
+            'description' => 'Nạp tiền qua ' . ucfirst($request->method) . ($isWalletTopup ? ' (USD)' : ''),
             'reference_id' => $reference,
+            'currency' => $isWalletTopup ? 'USD' : 'VND',
             'metadata' => [
                 'gateway' => 'nowpayments',
                 'method' => $request->method,
-                'purpose' => $request->query('purpose', 'topup'),
+                'purpose' => $purpose,
                 'amount_usd' => $amountUsd,
             ],
         ]);
@@ -325,7 +371,19 @@ class PaymentGatewayController extends Controller
     {
         $transaction->update(['status' => 'completed']);
         $user = $transaction->user;
-        $user->balance += $transaction->amount;
+        if ($transaction->currency === 'USD') {
+            $user->balance_usd += $transaction->amount;
+        } else {
+            $user->balance += $transaction->amount;
+        }
         $user->save();
+
+        if (\App\Modules\Core\Models\Setting::getValue('transaction_confirmation_email_enable', '1') == '1') {
+            try {
+                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\TransactionConfirmationMail($user, $transaction));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Gửi email xác nhận giao dịch thất bại: ' . $e->getMessage());
+            }
+        }
     }
 }

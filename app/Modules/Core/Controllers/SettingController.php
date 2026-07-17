@@ -72,6 +72,16 @@ class SettingController extends Controller
                     ['name' => 'admin_emails', 'type' => 'textarea', 'label' => 'Email admin nhận thông báo', 'des' => 'Các mail cách nhau bởi dấu phẩy'],
                 ]
             ],
+            'email_notify_tab' => [
+                'label' => 'Email Tự Động',
+                'icon' => 'forward_to_inbox',
+                'td' => [
+                    ['name' => 'welcome_email_enable', 'type' => 'select', 'label' => 'Email chào mừng khi đăng ký', 'options' => ['1' => 'Bật', '0' => 'Tắt'], 'col' => 6],
+                    ['name' => 'verify_email_enable', 'type' => 'select', 'label' => 'Bắt buộc xác minh OTP khi đăng ký', 'options' => ['1' => 'Bật', '0' => 'Tắt'], 'col' => 6, 'des' => 'Khi bật: khách phải nhập mã OTP gửi qua email mới hoàn tất đăng ký (giống xác thực khi thanh toán), tài khoản chỉ được tạo sau khi xác minh đúng mã.'],
+                    ['name' => 'order_confirmation_email_enable', 'type' => 'select', 'label' => 'Email xác nhận đơn hàng', 'options' => ['1' => 'Bật', '0' => 'Tắt'], 'col' => 6],
+                    ['name' => 'transaction_confirmation_email_enable', 'type' => 'select', 'label' => 'Email xác nhận giao dịch nạp tiền', 'options' => ['1' => 'Bật', '0' => 'Tắt'], 'col' => 6],
+                ]
+            ],
             'seo_tab' => [
                 'label' => 'Cấu hình SEO',
                 'icon' => 'travel_explore',
@@ -101,11 +111,19 @@ class SettingController extends Controller
                 'icon' => 'smart_toy',
                 'td' => [
                     ['name' => 'auto_fetch_games', 'type' => 'select', 'label' => 'Tự động lấy Game (Steam)', 'options' => ['1' => 'Bật', '0' => 'Tắt'], 'col' => 6],
-                    ['name' => 'order_fulfillment_mode', 'type' => 'select', 'label' => 'Xử lý đơn hàng Game/Giftcard/Subscription/Software', 'options' => ['manual' => 'Thủ công (chờ Admin duyệt ở trang Đơn Hàng)', 'auto' => 'Tự động (gọi API mua Key ngay khi khách thanh toán)'], 'col' => 6, 'des' => 'Chỉ áp dụng khi kho Key trống — nếu đã có sẵn Key trong kho thì luôn giao ngay bất kể chế độ này.'],
+                    ['name' => 'order_fulfillment_mode', 'type' => 'select', 'label' => 'Xử lý đơn hàng (Game/Giftcard/Subscription/Software/Thẻ nạp/eSIM/MXH)', 'options' => ['manual' => 'Thủ công (chờ Admin duyệt ở trang Đơn Hàng)', 'auto' => 'Tự động (gọi API mua ngay khi khách thanh toán)'], 'col' => 6, 'des' => 'Với Game/Giftcard/Subscription/Software: chỉ áp dụng khi kho Key trống (đã có sẵn Key thì luôn giao ngay). Với Thẻ nạp/eSIM/MXH: áp dụng cho mọi đơn vì các loại này không có kho sẵn. Nếu API đối tác lỗi ở chế độ Tự động, đơn cũng tự chuyển sang "chờ xử lý" thay vì huỷ, Admin/Staff xử lý tay ở trang Đơn Hàng.'],
                     ['name' => 'wholesale_mock_mode', 'type' => 'select', 'label' => 'Chế độ giả lập lấy Key', 'options' => ['1' => 'Bật (Sinh key giả)', '0' => 'Tắt (Gọi API thật)'], 'col' => 6],
                     ['name' => 'wholesale_profit_margin', 'type' => 'text', 'label' => 'Tỉ lệ lợi nhuận Game/Key (%)', 'col' => 6, 'des' => 'Hệ thống tự động lấy giá gốc nhập Key từ API cộng thêm % này để làm giá bán.'],
                     ['name' => 'wholesale_api_endpoint', 'type' => 'text', 'label' => 'API Endpoint (Wholesale)'],
                     ['name' => 'wholesale_api_key', 'type' => 'text', 'label' => 'API Key (Wholesale)'],
+                ]
+            ],
+            'currency_tab' => [
+                'label' => 'Tỷ giá quy đổi',
+                'icon' => 'currency_exchange',
+                'td' => [
+                    ['name' => 'margin_percent_usd', 'type' => 'text', 'label' => 'Phần trăm cộng thêm khi quy đổi sang USD (%)', 'col' => 6, 'des' => 'Cộng thêm % vào tỷ giá thị trường thực khi khách xem giá/thanh toán bằng USD. Ví dụ nhập 5: khách trả bằng USD sẽ phải trả nhiều hơn 5% tương ứng cho cùng 1 sản phẩm giá VNĐ. Để trống hoặc 0 = dùng đúng tỷ giá thị trường, không cộng thêm.'],
+                    ['name' => 'margin_percent_eur', 'type' => 'text', 'label' => 'Phần trăm cộng thêm khi quy đổi sang EUR (%)', 'col' => 6, 'des' => 'Cộng thêm % vào tỷ giá thị trường thực khi khách xem giá/thanh toán bằng EUR. Ví dụ nhập 5: khách trả bằng EUR sẽ phải trả nhiều hơn 5% tương ứng cho cùng 1 sản phẩm giá VNĐ. Để trống hoặc 0 = dùng đúng tỷ giá thị trường, không cộng thêm.'],
                 ]
             ],
             'security_tab' => [
@@ -126,7 +144,15 @@ class SettingController extends Controller
     {
         $tabs = Setting::getAllGrouped();
 
+        // Tỷ giá thị trường thực (chưa cộng %) để trang Tỷ giá quy đổi hiển thị xem trước trực tiếp
+        // khi admin gõ %, giúp cân đối số % cho hợp lý trước khi lưu.
+        $liveRates = [
+            'USD' => round(1 / \App\Helpers\CurrencyHelper::rateWithoutMargin('USD')),
+            'EUR' => round(1 / \App\Helpers\CurrencyHelper::rateWithoutMargin('EUR')),
+        ];
+
         return view('core::settings.index', [
+            'liveRates' => $liveRates,
             'module' => $this->module,
             'tabs' => $tabs,
         ]);

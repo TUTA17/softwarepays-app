@@ -76,7 +76,7 @@
                                             <td class="p-4">
                                                 <div class="flex items-center gap-3">
                                                     @if($item->product && $item->product->header_image)
-                                                        <img src="{{ $item->product->header_image }}" alt="{{ __('dashboard.thumbnail_alt') }}" class="w-16 h-9 object-cover rounded shadow-sm">
+                                                        <img src="{{ $item->product->header_image }}" alt="{{ __('dashboard.thumbnail_alt') }}" class="w-16 h-9 object-contain bg-white rounded shadow-sm">
                                                     @else
                                                         <div class="w-16 h-9 bg-slate-200 dark:bg-slate-700 rounded flex items-center justify-center text-slate-400"><i class="fa-solid fa-image"></i></div>
                                                     @endif

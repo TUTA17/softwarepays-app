@@ -13,7 +13,8 @@ class Transaction extends Model
         'description',
         'status',
         'reference_id',
-        'metadata'
+        'metadata',
+        'currency'
     ];
 
     protected $casts = [

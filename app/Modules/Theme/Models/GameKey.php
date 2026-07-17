@@ -37,4 +37,9 @@ class GameKey extends Model
     {
         return $this->belongsTo(\App\Modules\Core\Models\Admin::class, 'assigned_admin_id');
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'sold_to_user_id');
+    }
 }

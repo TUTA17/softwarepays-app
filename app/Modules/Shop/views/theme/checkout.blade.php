@@ -57,7 +57,8 @@
                     $displayRate = \App\Helpers\CurrencyHelper::rate($displayCurrency);
                     $paypalClientId = config('services.paypal.mode') === 'live' ? config('services.paypal.live_client_id') : config('services.paypal.sandbox_client_id');
                     $domesticMethods = [
-                        'wallet' => ['label' => __('checkout.wallet_short_label'), 'desc' => __('wallet.balance_label') . ': ' . \App\Helpers\CurrencyHelper::formatWalletBalance(auth()->user()->balance)],
+                        'wallet' => ['label' => __('checkout.wallet_short_label') . ' (VNĐ)', 'desc' => __('wallet.balance_label') . ': ' . \App\Helpers\CurrencyHelper::formatWalletBalance(auth()->user()->balance)],
+                        'wallet_usd' => ['label' => __('checkout.wallet_short_label') . ' (USD)', 'desc' => __('wallet.balance_label') . ': ' . \App\Helpers\CurrencyHelper::formatWalletBalanceUsd(auth()->user()->balance_usd)],
                         'momo' => ['label' => __('checkout.momo_label'), 'desc' => __('checkout.vietqr_transfer_desc')],
                         'zalopay' => ['label' => __('checkout.zalopay_label'), 'desc' => __('checkout.vietqr_transfer_desc')],
                         'vnpay' => ['label' => __('checkout.vnpay_label'), 'desc' => __('checkout.vietqr_transfer_desc')],
@@ -89,9 +90,9 @@
                 <p class="text-xs font-bold uppercase text-slate-400 mb-2">{{ __('wallet.deposit_domestic_heading') }}</p>
                 <div class="space-y-3 mb-6">
                     @foreach($domesticMethods as $key => $m)
-                    @php $methodDisabled = $key !== 'wallet' && !$isVndCurrency; @endphp
+                    @php $methodDisabled = !in_array($key, ['wallet', 'wallet_usd']) && !$isVndCurrency; @endphp
                     <label class="payment-method-option relative flex rounded-lg border {{ $methodDisabled ? 'opacity-40 grayscale cursor-not-allowed' : ($key === 'wallet' ? 'cursor-pointer border-blue-500 bg-blue-50/50 dark:bg-blue-500/10' : 'cursor-pointer border-slate-200 dark:border-slate-700') }} p-4 shadow-sm focus:outline-none"
-                           data-method="{{ $key }}" data-fee-pct="{{ $feeConfig['fee_pct_'.$key] ?? 0 }}" data-fee-fixed="{{ $feeConfig['fee_fixed_vnd'] ?? 0 }}" data-intl="0" data-disabled="{{ $methodDisabled ? '1' : '0' }}">
+                           data-method="{{ $key }}" data-currency="{{ $key === 'wallet_usd' ? 'USD' : 'VND' }}" data-fee-pct="{{ $feeConfig['fee_pct_'.$key] ?? 0 }}" data-fee-fixed="{{ $feeConfig['fee_fixed_vnd'] ?? 0 }}" data-intl="0" data-disabled="{{ $methodDisabled ? '1' : '0' }}">
                         <input type="radio" name="payment_method" value="{{ $key }}" class="sr-only payment-method-radio" {{ $key === 'wallet' ? 'checked' : '' }} {{ $methodDisabled ? 'disabled' : '' }}>
                         <span class="flex flex-1">
                             <span class="flex flex-col">
@@ -140,8 +141,8 @@
                     <ul role="list" class="-my-4 divide-y divide-slate-200 dark:divide-slate-700">
                         @foreach($cart as $id => $details)
                         <li class="flex items-center py-4">
-                            <div class="h-16 w-24 flex-shrink-0 overflow-hidden rounded-md border border-slate-200 dark:border-slate-700">
-                                <img src="{{ $details['image'] }}" alt="{{ $details['name'] }}" class="h-full w-full object-cover object-center">
+                            <div class="h-16 w-24 flex-shrink-0 overflow-hidden rounded-md border border-slate-200 dark:border-slate-700 bg-white">
+                                <img src="{{ $details['image'] }}" alt="{{ $details['name'] }}" class="h-full w-full object-contain object-center">
                             </div>
                             <div class="ml-4 flex flex-1 flex-col">
                                 <div>
@@ -216,8 +217,12 @@
                 <form id="checkout-form" action="{{ route('cart.checkout.process') }}" method="POST" class="mt-6">
                     @csrf
                     <input type="hidden" name="payment_method" id="selected_payment_method" value="wallet">
-                    @php $userBalance = auth()->user()->balance; @endphp
-                    <div id="checkout-submit-area" data-user-balance="{{ $userBalance }}">
+                    @php
+                        $userBalance = auth()->user()->balance;
+                        $userBalanceUsd = auth()->user()->balance_usd;
+                        $finalTotalUsd = $final_total * \App\Helpers\CurrencyHelper::rate('USD');
+                    @endphp
+                    <div id="checkout-submit-area" data-user-balance="{{ $userBalance }}" data-user-balance-usd="{{ $userBalanceUsd }}" data-final-total-usd="{{ $finalTotalUsd }}">
                         @if($userBalance >= $final_total)
                             <button type="submit" id="checkout-submit-btn" class="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-4 rounded-xl text-lg font-bold shadow-lg shadow-blue-500/30 transition transform hover:-translate-y-1">
                                 <i class="fa-solid fa-credit-card"></i>
@@ -353,6 +358,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const baseTotal = parseFloat(finalTotalEl.dataset.baseTotal);
     const usdRate = {{ (float) $usdRate }};
     const userBalance = parseFloat(document.getElementById('checkout-submit-area').dataset.userBalance);
+    const userBalanceUsd = parseFloat(document.getElementById('checkout-submit-area').dataset.userBalanceUsd);
     const submitArea = document.getElementById('checkout-submit-area');
 
     const subtotalEl = document.getElementById('summary-subtotal');
@@ -360,10 +366,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const subtotalVnd = parseFloat(subtotalEl.dataset.baseVnd);
     const discountVnd = parseFloat(discountEl.dataset.baseVnd);
 
-    // Ví/momo/zalopay/vnpay/vietqr/napas trừ thẳng số dư ví (gốc VNĐ) nhưng hiển thị giá theo đúng tiền tệ
+    // Ví VNĐ và momo/zalopay/vnpay/vietqr/napas trừ thẳng số dư ví VNĐ nhưng hiển thị giá theo đúng tiền tệ
     // khách đang chọn ở đầu trang (giống hệt cách giá sản phẩm luôn hiển thị) — không có lý do gì bắt buộc
-    // phải xem bằng VNĐ chỉ vì đang chọn ví. Chỉ PayPal/crypto mới bắt buộc đổi vì đó là tiền tệ SẼ BỊ TRỪ THẬT
-    // qua cổng thanh toán bên ngoài (PayPal theo tiền tệ hỗ trợ, crypto luôn quy đổi ra USD).
+    // phải xem bằng VNĐ chỉ vì đang chọn các phương thức này. Ví USD là ví thật riêng biệt (balance_usd),
+    // nên LUÔN hiển thị/tính bằng USD thật, không đổi theo tiền tệ hiển thị đang chọn. PayPal/crypto cũng
+    // bắt buộc đổi vì đó là tiền tệ SẼ BỊ TRỪ THẬT qua cổng thanh toán bên ngoài.
     const displayCurrency = @json($displayCurrency);
     const displayRate = {{ (float) $displayRate }};
     const paypalCurrency = @json($paypalCurrency);
@@ -371,6 +378,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const currencySymbols = { VND: 'đ', USD: '$', EUR: '€', JPY: '¥', THB: '฿', CNY: '¥', KRW: '₩', RUB: '₽' };
 
     function resolveMethodCurrency(method, isIntl) {
+        if (method === 'wallet_usd') return { code: 'USD', rate: usdRate };
         if (!isIntl) return { code: displayCurrency, rate: displayRate };
         if (method === 'paypal' || method === 'card') return { code: paypalCurrency, rate: paypalRate };
         return { code: 'USD', rate: usdRate };
@@ -446,7 +454,10 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('intl-pay-btn').addEventListener('click', function () {
                 payWithCrypto(method);
             });
-        } else if (userBalance < newTotal) {
+        } else if (method === 'wallet_usd' && userBalanceUsd < (newTotal * usdRate)) {
+            submitArea.innerHTML = '<div class="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-lg mb-3"><p class="text-sm text-red-600 dark:text-red-400 text-center">' + @json(__('flash.wallet_insufficient')) + '</p></div>' +
+                '<a href="{{ route('wallet.show') }}" class="w-full flex justify-center items-center gap-2 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-6 py-4 rounded-xl text-lg font-bold transition"><i class="fa-solid fa-wallet"></i> ' + @json(__('wallet.deposit_button')) + '</a>';
+        } else if (method !== 'wallet_usd' && userBalance < newTotal) {
             submitArea.innerHTML = '<div class="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-lg mb-3"><p class="text-sm text-red-600 dark:text-red-400 text-center">' + @json(__('flash.wallet_insufficient')) + '</p></div>' +
                 '<a href="{{ route('wallet.show') }}" class="w-full flex justify-center items-center gap-2 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-6 py-4 rounded-xl text-lg font-bold transition"><i class="fa-solid fa-wallet"></i> ' + @json(__('wallet.deposit_button')) + '</a>';
         } else {

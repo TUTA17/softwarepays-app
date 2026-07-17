@@ -364,7 +364,6 @@
                                     <a href="{{ route('steam-wallet') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold {{ request()->routeIs('steam-wallet') ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-slate-700' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600' }} transition-colors"><i class="fa-brands fa-steam w-4"></i> {{ __('STEAM WALLET') }}</a>
                                     <a href="{{ route('catalog.simple', 'goi-dang-ky') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 transition-colors"><i class="fa-solid fa-clipboard-check w-4"></i> {{ __('home_categories.subscriptions') }}</a>
                                     <a href="{{ route('catalog.simple', 'phan-mem') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 transition-colors"><i class="fa-solid fa-desktop w-4"></i> {{ __('home_categories.software') }}</a>
-                                    <a href="{{ route('catalog.vpn') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 transition-colors"><i class="fa-solid fa-shield-alt w-4"></i> {{ __('home_categories.vpn') }}</a>
                                     <a href="{{ route('catalog.esim') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 transition-colors"><i class="fa-solid fa-sim-card w-4"></i> {{ __('home_categories.esim') }}</a>
                                 </div>
                             </div>
@@ -421,7 +420,7 @@
                             'id' => ['name' => 'Bahasa Indonesia', 'flag' => 'id'],
                             'ms' => ['name' => 'Bahasa Melayu', 'flag' => 'my'],
                         ];
-                    
+
                         $currencies = [
                             'VND' => 'Vietnamese Dong',
                             'USD' => 'US Dollar',
@@ -499,7 +498,7 @@
                                     @if(session()->has('cart') && count(session('cart')) > 0)
                                         @foreach(array_slice(session('cart'), 0, 3, true) as $id => $item)
                                             <a href="{{ route('cart.index') }}" class="flex items-center gap-3 p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors mb-1">
-                                                <img src="{{ $item['image'] }}" alt="Cover" class="w-12 h-12 object-cover rounded-md shadow-sm">
+                                                <img src="{{ $item['image'] }}" alt="Cover" class="w-12 h-12 object-contain bg-white rounded-md shadow-sm">
                                                 <div class="flex-1 min-w-0">
                                                     <h5 class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ $item['name'] }}</h5>
                                                     <div class="text-xs text-slate-500 mt-1">{{ __('header.quantity_label') }}: {{ $item['quantity'] }}</div>
@@ -851,7 +850,7 @@
     @if(session('purchase_toast'))
     <div id="purchase-toast" class="fixed bottom-6 left-6 z-50 transform translate-y-20 opacity-0 transition-all duration-500 w-full max-w-[320px]">
         <div class="bg-slate-800 border border-slate-700 rounded-lg shadow-2xl flex items-center p-3 cursor-pointer hover:bg-slate-700 transition-colors">
-            <img src="{{ session('purchase_toast')['image'] }}" alt="Game Cover" class="w-12 h-12 rounded bg-slate-900 object-cover border border-slate-700 shrink-0">
+            <img src="{{ session('purchase_toast')['image'] }}" alt="Game Cover" class="w-12 h-12 rounded bg-slate-900 object-contain border border-slate-700 shrink-0">
             <div class="ml-3 flex-1 text-white overflow-hidden">
                 <div class="flex items-center justify-between mb-0.5">
                     <h4 class="font-bold text-sm truncate mr-2">{{ session('purchase_toast')['title'] }}</h4>

@@ -254,9 +254,7 @@ Route::middleware(['web'])->group(function () {
     Route::get('/api/search', [ShopController::class, 'searchApi'])->name('api.search');
     Route::get('/game/{id}-{slug}', [ProductController::class, 'show'])->name('product.show');
 
-    // Danh mục mới: VPN, eSIM, Thẻ nạp/thẻ game, Gói đăng ký, Phần mềm, Thẻ quà tặng
-    Route::get('/vpn', [CatalogController::class, 'browseVpn'])->name('catalog.vpn');
-    Route::get('/vpn/{id}', [CatalogController::class, 'showVpn'])->name('catalog.vpn.show');
+    // Danh mục: eSIM, Thẻ nạp/thẻ game, Gói đăng ký, Phần mềm, Thẻ quà tặng
     Route::get('/esim-du-lich', [CatalogController::class, 'browseEsim'])->name('catalog.esim');
     Route::get('/esim-du-lich/{id}', [CatalogController::class, 'showEsim'])->name('catalog.esim.show');
     Route::get('/the-nap-va-the-game', [CatalogController::class, 'browseCard'])->name('catalog.card');

@@ -50,11 +50,6 @@ class HomeController extends Controller
             ->with('cardPackages')
             ->orderBy('name')->get();
 
-        $vpnProducts = Product::where('is_active', true)
-            ->where('product_type', Product::TYPE_VPN)
-            ->with('vpnPackages')
-            ->orderBy('name')->get();
-
         // eSIM: chọn vài điểm đến du lịch phổ biến với người Việt thay vì lấy ngẫu nhiên
         // trong 200+ nước hiện có, để section trên trang chủ thực sự hữu ích.
         $esimHighlights = collect(['Japan', 'Thailand', 'South Korea', 'Singapore'])
@@ -76,7 +71,7 @@ class HomeController extends Controller
 
         return view('theme::home', compact(
             'banners', 'products', 'giftcards', 'subscriptionProducts', 'softwareProducts',
-            'cardProducts', 'vpnProducts', 'esimHighlights'
+            'cardProducts', 'esimHighlights'
         ));
     }
 }

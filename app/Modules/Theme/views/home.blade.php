@@ -1,6 +1,6 @@
 @extends('theme::layouts.app')
 
-@section('title', 'SoftwarePays - Cửa Hàng Game Bản Quyền')
+@section('title', __('home.page_title'))
 
 @section('content')
     <!-- Main Hero Banner (Carousel Style) -->
@@ -110,7 +110,6 @@
                 ['label' => __('home_categories.software'), 'icon' => 'fa-solid fa-desktop', 'href' => route('catalog.simple', 'phan-mem')],
                 ['label' => __('home_categories.cards'), 'icon' => 'fa-solid fa-wallet', 'href' => route('catalog.card')],
                 ['label' => __('home_categories.giftcards'), 'icon' => 'fa-solid fa-gift', 'href' => route('catalog.simple', 'qua-tang')],
-                ['label' => __('home_categories.vpn'), 'icon' => 'fa-solid fa-shield-alt', 'href' => route('catalog.vpn')],
                 ['label' => __('home_categories.esim'), 'icon' => 'fa-solid fa-sim-card', 'href' => route('catalog.esim')],
             ];
         @endphp
@@ -216,7 +215,7 @@
         <div class="flex flex-col sm:flex-row justify-between items-end mb-10 border-b border-slate-200 dark:border-slate-800 pb-4">
             <div>
                 <h2 class="text-3xl font-display font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-3">
-                    <i class="fa-brands fa-steam text-blue-500"></i> {{ __('home.steamwallet_heading') }}
+                    <i class="fa-solid fa-gift text-blue-500"></i> {{ __('home.steamwallet_heading') }}
                 </h2>
                 <p class="text-slate-500 dark:text-slate-400">{{ __('home.steamwallet_subtitle') }}</p>
             </div>
@@ -447,7 +446,7 @@
                 </a>
             </div>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-4">
             @foreach($subscriptionProducts as $i => $p)
             @php [$icon] = $resolveBrandIcon($p->name, $subscriptionBrandIcons, 'fa-solid fa-clipboard-check', 'bg-indigo-500/10', 'text-indigo-500'); @endphp
             <a href="{{ route('product.show', ['id' => $p->id, 'slug' => \Illuminate\Support\Str::slug($p->name) ?: 'game']) }}" class="product-card group">
@@ -459,7 +458,7 @@
                         </span>
                     @endif
                     @if($p->header_image)
-                        <img src="{{ $p->header_image }}" alt="{{ $p->name }}" class="w-full h-full" style="object-fit: contain; background: #fff; padding: 20px; box-sizing: border-box;" loading="lazy">
+                        <img src="{{ $p->header_image }}" alt="{{ $p->name }}" class="w-full h-full" style="object-fit: contain; background: #fff; padding: 8px; box-sizing: border-box;" loading="lazy">
                     @else
                         <div class="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-slate-800">
                             <i class="{{ $icon }} text-3xl sm:text-5xl text-slate-400"></i>
@@ -511,7 +510,7 @@
                 </a>
             </div>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-4">
             @foreach($softwareProducts as $p)
             @php [$icon] = $resolveBrandIcon($p->name, $softwareBrandIcons, 'fa-solid fa-desktop', 'bg-blue-500/10', 'text-blue-500'); @endphp
             <a href="{{ route('product.show', ['id' => $p->id, 'slug' => \Illuminate\Support\Str::slug($p->name) ?: 'game']) }}" class="product-card group">
@@ -523,7 +522,7 @@
                         </span>
                     @endif
                     @if($p->header_image)
-                        <img src="{{ $p->header_image }}" alt="{{ $p->name }}" class="w-full h-full" style="object-fit: contain; background: #fff; padding: 20px; box-sizing: border-box;" loading="lazy">
+                        <img src="{{ $p->header_image }}" alt="{{ $p->name }}" class="w-full h-full" style="object-fit: contain; background: #fff; padding: 8px; box-sizing: border-box;" loading="lazy">
                     @else
                         <div class="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-slate-800">
                             <i class="{{ $icon }} text-3xl sm:text-5xl text-slate-400"></i>
@@ -575,7 +574,7 @@
                 </a>
             </div>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-4">
             @foreach($cardProducts as $p)
             @php
                 // Ưu tiên % Admin nhập ở /admin/card/{id}/packages, không gộp chung với chiết khấu vendor.
@@ -596,7 +595,7 @@
                         </span>
                     @endif
                     @if($p->header_image)
-                        <img src="{{ $p->header_image }}" alt="{{ $p->name }}" class="w-full h-full" style="object-fit: contain; background: #fff; padding: 20px; box-sizing: border-box;" loading="lazy">
+                        <img src="{{ $p->header_image }}" alt="{{ $p->name }}" class="w-full h-full" style="object-fit: contain; background: #fff; padding: 8px; box-sizing: border-box;" loading="lazy">
                     @else
                         <div class="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-slate-800">
                             <i class="fa-solid fa-wallet text-3xl sm:text-5xl text-slate-400"></i>
@@ -629,60 +628,6 @@
     </div>
     @endif
 
-    <!-- VPN -->
-    @if(isset($vpnProducts) && $vpnProducts->isNotEmpty())
-    <div id="vpn" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-24 relative">
-        <div class="flex flex-col sm:flex-row justify-between items-end mb-10 border-b border-slate-200 dark:border-slate-800 pb-4">
-            <div>
-                <h2 class="text-3xl font-display font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-3">
-                    <i class="fa-solid fa-shield-alt text-blue-500"></i> {{ __('home.vpn_heading') }}
-                </h2>
-                <p class="text-slate-500 dark:text-slate-400">{{ __('home.vpn_subtitle') }}</p>
-            </div>
-            <div class="mt-4 sm:mt-0">
-                <a href="{{ route('catalog.vpn') }}" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all shadow-sm hover:shadow-lg hover:shadow-blue-500/25">
-                    {{ __('home.vpn_cta') }} <i class="fa-solid fa-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
-            @foreach($vpnProducts as $p)
-            @php $vpnMinPrice = $p->vpnPackages->pluck('price')->min(); @endphp
-            <a href="{{ route('catalog.vpn.show', $p->id) }}" class="product-card group">
-                <div class="product-card-media bg-slate-100 dark:bg-slate-800 aspect-square relative overflow-hidden">
-                    @if($p->header_image)
-                        <img src="{{ $p->header_image }}" alt="{{ $p->name }}" class="w-full h-full" style="object-fit: contain; background: #fff; padding: 20px; box-sizing: border-box;" loading="lazy">
-                    @else
-                        <div class="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-slate-800">
-                            <i class="fa-solid fa-shield-alt text-3xl sm:text-5xl text-slate-400"></i>
-                        </div>
-                    @endif
-                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px] z-10 pointer-events-none">
-                        <span class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-xl flex items-center gap-2"><i class="fa-solid fa-eye"></i> {{ __('home.featured_quick_view') }}</span>
-                    </div>
-                </div>
-                <div class="p-4 flex flex-col flex-grow">
-                    <div class="mb-2 h-[48px]">
-                        <h3 class="font-display font-semibold text-[15px] text-slate-900 dark:text-white leading-snug group-hover:text-blue-500 transition-colors line-clamp-2" title="{{ $p->name }}">{{ $p->name }}</h3>
-                    </div>
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 uppercase"><i class="fa-solid fa-shield-alt"></i> {{ __('home_categories.vpn') }}</span>
-                        <span class="text-[10px] text-emerald-500 font-bold bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded"><i class="fa-solid fa-check"></i> {{ __('home.featured_ready_badge') }}</span>
-                    </div>
-                    <div class="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-end">
-                        @if($vpnMinPrice)
-                        <span class="text-lg font-bold text-blue-600 dark:text-blue-400">{!! \App\Helpers\CurrencyHelper::formatPrice($vpnMinPrice) !!}</span>
-                        @endif
-                        <span class="w-9 h-9 rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all flex items-center justify-center shadow-sm">
-                            <i class="fa-solid fa-cart-shopping text-sm"></i>
-                        </span>
-                    </div>
-                </div>
-            </a>
-            @endforeach
-        </div>
-    </div>
-    @endif
 
     <!-- eSIM Du Lịch -->
     @if(isset($esimHighlights) && $esimHighlights->isNotEmpty())
@@ -700,7 +645,7 @@
                 </a>
             </div>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-4">
             @foreach($esimHighlights as $p)
             @php $esimMinPrice = $p->esimPackages->pluck('price')->min(); @endphp
             <a href="{{ route('catalog.esim.show', $p->id) }}" class="product-card group">

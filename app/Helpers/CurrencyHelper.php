@@ -64,8 +64,34 @@ class CurrencyHelper
         return self::paypalCurrencyForLocale($locale);
     }
 
-    // Tỷ giá VND -> $currencyCode bất kỳ
+    // % margin admin tự đặt (Cài đặt > Tỷ giá quy đổi), cộng thêm vào tỷ giá thị trường thực khi
+    // BÁN cho khách (checkout/hiển thị giá) — tách biệt hoàn toàn với tỷ giá MUA (kinguin_eur_rate
+    // ở trang Quản lý Game, dùng để quy đổi giá nhập EUR/USD từ nhà cung cấp về VNĐ khi đồng bộ sản phẩm).
+    // Margin dương -> khách trả bằng ngoại tệ phải trả nhiều hơn tương ứng cho cùng 1 sản phẩm giá VNĐ.
+    protected const MARGIN_PERCENT_SETTINGS = [
+        'USD' => 'margin_percent_usd',
+        'EUR' => 'margin_percent_eur',
+    ];
+
+    // Tỷ giá VND -> $currencyCode bất kỳ, đã cộng thêm % margin (nếu USD/EUR có cấu hình) trên nền tỷ giá thị trường thực.
     public static function rate(string $currencyCode): float
+    {
+        $rates = self::loadRates();
+        $rate = $rates[$currencyCode] ?? (1/25000);
+
+        if (isset(self::MARGIN_PERCENT_SETTINGS[$currencyCode])) {
+            $marginPercent = (float) \App\Modules\Core\Models\Setting::getValue(self::MARGIN_PERCENT_SETTINGS[$currencyCode], 0);
+            if ($marginPercent != 0) {
+                $rate *= (1 + $marginPercent / 100);
+            }
+        }
+
+        return $rate;
+    }
+
+    // Tỷ giá thị trường thực, CHƯA cộng % margin — dùng để hiển thị xem trước ở trang Cài đặt
+    // (so sánh trước/sau khi cộng %), tách riêng khỏi rate() vốn luôn áp margin cho mọi nơi khác.
+    public static function rateWithoutMargin(string $currencyCode): float
     {
         $rates = self::loadRates();
         return $rates[$currencyCode] ?? (1/25000);
@@ -77,15 +103,21 @@ class CurrencyHelper
         return self::rate('USD');
     }
 
-    // Số dư Ví luôn hiển thị kèm VNĐ + $ (chỉ 2 loại này, không đổi theo tiền tệ site đang chọn) để khách
-    // dễ đối chiếu, vì nạp qua PayPal/crypto luôn quy đổi qua $ trước khi cộng vào ví (gốc VNĐ).
+    // Số dư ví VNĐ — hiển thị đúng số thực đã nạp qua chuyển khoản/MoMo/thẻ nạp, KHÔNG quy đổi
+    // sang USD nữa (ví VNĐ và ví USD là hai số dư độc lập, xem formatWalletBalanceUsd()).
     public static function formatWalletBalance($priceInVND): string
     {
         if (is_null($priceInVND) || $priceInVND === '') return '';
 
-        $usd = $priceInVND * self::rate('USD');
+        return number_format($priceInVND) . 'đ';
+    }
 
-        return number_format($priceInVND) . 'đ <span class="opacity-70 text-[0.85em]">(~$' . number_format($usd, 2) . ')</span>';
+    // Số dư ví USD — cộng thẳng từ PayPal/Crypto khi nạp tiền, độc lập hoàn toàn với ví VNĐ.
+    public static function formatWalletBalanceUsd($balanceUsd): string
+    {
+        if (is_null($balanceUsd) || $balanceUsd === '') return '$0.00';
+
+        return '$' . number_format($balanceUsd, 2);
     }
 
     public static function formatPrice($priceInVND)

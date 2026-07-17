@@ -17,7 +17,9 @@ class WalletController extends Controller
                                    ->orderBy('created_at', 'desc')
                                    ->take(20)
                                    ->get();
-        $paypalCurrency = \App\Helpers\CurrencyHelper::paypalCurrencyForSelection(session('currency', 'VND'), session('locale', 'vi'));
+        // Trang Nạp Tiền Vào Ví chỉ nạp vào ví USD riêng qua PayPal/Crypto (không quy đổi theo tiền tệ site
+        // đang chọn), nên luôn dùng USD cho SDK PayPal ở đây — khác với trang checkout dùng tiền tệ đã chọn.
+        $paypalCurrency = 'USD';
         return view('wallet.index', compact('transactions', 'paypalCurrency'));
     }
 
@@ -121,9 +123,10 @@ class WalletController extends Controller
                     $pendingTx->status = 'completed';
                     $pendingTx->reference_id = $reference; // Save actual bank ref
                     $pendingTx->save();
+                    $completedTx = $pendingTx;
                 } else {
                     // Create new if not found (maybe they didn't generate QR on site but manually sent)
-                    Transaction::create([
+                    $completedTx = Transaction::create([
                         'user_id' => $user->id,
                         'amount' => $amount,
                         'type' => 'deposit',
@@ -135,6 +138,14 @@ class WalletController extends Controller
 
                 $user->balance += $amount;
                 $user->save();
+
+                if (\App\Modules\Core\Models\Setting::getValue('transaction_confirmation_email_enable', '1') == '1') {
+                    try {
+                        \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\TransactionConfirmationMail($user, $completedTx));
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning('Gửi email xác nhận giao dịch thất bại: ' . $e->getMessage());
+                    }
+                }
 
                 return response()->json(['success' => true]);
             }

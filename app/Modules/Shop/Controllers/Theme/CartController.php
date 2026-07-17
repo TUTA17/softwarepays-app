@@ -171,7 +171,16 @@ class CartController extends Controller
             $final_total += round($final_total * $feePct / 100) + $feeFixed;
         }
 
-        if ($user->balance < $final_total) {
+        // Ví USD là số dư thật riêng biệt (balance_usd) — thanh toán bằng ví này phải trừ đúng USD thật,
+        // không quy đổi cosmetic qua VNĐ như các phương thức nội địa khác.
+        $isWalletUsd = $paymentMethod === 'wallet_usd';
+        $final_total_usd = $isWalletUsd ? round($final_total * \App\Helpers\CurrencyHelper::rate('USD'), 2) : null;
+
+        if ($isWalletUsd) {
+            if ($user->balance_usd < $final_total_usd) {
+                return back()->with('error', 'Số dư ví USD không đủ! Vui lòng nạp thêm tiền vào ví USD.');
+            }
+        } elseif ($user->balance < $final_total) {
             return back()->with('error', 'Số dư không đủ! Vui lòng nạp thêm tiền vào ví.');
         }
 
@@ -183,19 +192,28 @@ class CartController extends Controller
             
             // Send Email
             \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\CheckoutOtpMail($otp, $final_total));
-            
+
+            // Lưu lại đúng phương thức khách đã chọn (đặc biệt ví VNĐ/ví USD) để bước xác thực OTP
+            // gọi lại checkoutProcess() không bị rơi về mặc định 'wallet' (form OTP không có field payment_method).
+            session()->put('checkout_pending_payment_method', $paymentMethod);
+
             return redirect()->route('cart.checkout.verify');
         }
         // ---------------------------------
 
         \Illuminate\Support\Facades\DB::beginTransaction();
         try {
-            // Trừ tiền user 1 lần cho tổng bill
-            $user->balance -= $final_total;
+            // Trừ tiền user 1 lần cho tổng bill — đúng ví thật đang thanh toán (VNĐ hoặc USD).
+            if ($isWalletUsd) {
+                $user->balance_usd -= $final_total_usd;
+            } else {
+                $user->balance -= $final_total;
+            }
             $user->points += round($final_total / 1000);
             $user->save();
 
             $boughtItems = [];
+            $emailItems = [];
             $hasPending = false;
 
             foreach ($cart as $cartKey => $details) {
@@ -207,9 +225,14 @@ class CartController extends Controller
                     $gameKey = $this->fulfillCartItem($product, $details, $user);
 
                     if ($gameKey) {
+                        $itemAmount = $isWalletUsd
+                            ? round($details['price'] * \App\Helpers\CurrencyHelper::rate('USD'), 2)
+                            : $details['price'];
+
                         \App\Modules\Theme\Models\Transaction::create([
                             'user_id' => $user->id,
-                            'amount' => -$details['price'],
+                            'amount' => -$itemAmount,
+                            'currency' => $isWalletUsd ? 'USD' : 'VND',
                             'type' => 'purchase',
                             'description' => 'Mua ' . $product->name . ($details['variant_label'] ?? null ? ' (' . $details['variant_label'] . ')' : ''),
                             'status' => 'completed',
@@ -221,6 +244,7 @@ class CartController extends Controller
                         }
 
                         $boughtItems[] = $product->name;
+                        $emailItems[] = ['name' => $product->name . ($details['variant_label'] ?? null ? ' (' . $details['variant_label'] . ')' : ''), 'price' => $details['price']];
                     } else {
                         throw new \Exception('Giao dịch tự động thất bại (có thể do đối tác bảo trì hoặc hết số dư). Hệ thống đã hoàn tiền, bạn vui lòng thử lại sau.');
                     }
@@ -251,6 +275,14 @@ class CartController extends Controller
             }
 
             \Illuminate\Support\Facades\DB::commit();
+
+            if (\App\Modules\Core\Models\Setting::getValue('order_confirmation_email_enable', '1') == '1') {
+                try {
+                    \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\OrderConfirmationMail($user, $emailItems, $final_total));
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Gửi email xác nhận đơn hàng thất bại: ' . $e->getMessage());
+                }
+            }
 
             try {
                 (new \App\Modules\Core\Services\WebPushService())->notifyAllAdmins(
@@ -316,13 +348,43 @@ class CartController extends Controller
     {
         $variantId = $details['variant_id'] ?? null;
 
+        // Chế độ xử lý đơn áp dụng chung cho mọi loại sản phẩm cần gọi API đối tác ngoài
+        // (Game/Giftcard/Subscription/Software/Thẻ nạp/VPN/eSIM). Ở chế độ thủ công, không gọi
+        // API mà tạo thẳng đơn "chờ xử lý" để Admin/Staff tự nhập tay hoặc bấm lấy qua API riêng lẻ.
+        $fulfillmentMode = \App\Modules\Core\Models\Setting::getValue('order_fulfillment_mode', 'manual');
+
         switch ($product->product_type) {
             case Product::TYPE_VPN:
                 $variant = $product->vpnPackages()->find($variantId);
                 if (!$variant) return null;
 
+                // Lưu lại ngữ cảnh (server + gói) để Admin bấm "Lấy qua API" ở trang Đơn Hàng
+                // sau này biết chính xác cần mua lại gói nào.
+                $vpnRetryContext = ['retry_vpn_server_id' => $product->vpn_server_id, 'retry_package_key' => $variant->package_key];
+
+                if ($fulfillmentMode === 'manual') {
+                    return $product->keys()->create([
+                        'key_code' => '',
+                        'status' => 'pending_manual',
+                        'delivery_data' => $vpnRetryContext,
+                        'sold_to_user_id' => $user->id,
+                        'sold_at' => now(),
+                    ]);
+                }
+
                 $result = app(\App\Services\VpnPanelsService::class)->purchaseVpn($product->vpn_server_id, $variant->package_key);
-                if (!$result) return null;
+                if (!$result) {
+                    // Không huỷ cả đơn — chuyển sang "chờ xử lý" để Admin/Staff xử lý tay thay vì
+                    // hoàn tiền và làm khách mất đơn hàng chỉ vì API đối tác lỗi tạm thời.
+                    return $product->keys()->create([
+                        'key_code' => '',
+                        'status' => 'pending_manual',
+                        'error_message' => 'Không thể khởi tạo VPN qua API',
+                        'delivery_data' => $vpnRetryContext,
+                        'sold_to_user_id' => $user->id,
+                        'sold_at' => now(),
+                    ]);
+                }
 
                 return $product->keys()->create([
                     'key_code' => $result['subscription_link'] ?? $result['username'] ?? 'N/A',
@@ -336,18 +398,34 @@ class CartController extends Controller
                 $variant = $product->esimPackages()->find($variantId);
                 if (!$variant) return null;
 
+                // Lưu lại mã gói eSIM để Admin bấm "Lấy qua API" ở trang Đơn Hàng biết cần mua lại gói nào.
+                $esimRetryContext = ['retry_package_code' => $variant->package_code, 'package_name' => $variant->name];
+
+                if ($fulfillmentMode === 'manual') {
+                    return $product->keys()->create([
+                        'key_code' => $variant->package_code,
+                        'status' => 'pending_manual',
+                        'delivery_data' => $esimRetryContext,
+                        'sold_to_user_id' => $user->id,
+                        'sold_at' => now(),
+                    ]);
+                }
+
                 // Tạo record trước với status=processing để giữ chỗ, rồi gọi API tạo đơn.
                 $gameKey = $product->keys()->create([
                     'key_code' => $variant->package_code,
                     'status' => 'processing',
+                    'delivery_data' => $esimRetryContext,
                     'sold_to_user_id' => $user->id,
                     'sold_at' => now(),
                 ]);
 
                 $orderNo = app(\App\Services\EsimAccessService::class)->purchaseEsim($gameKey->id, $variant->package_code, 1);
                 if (!$orderNo) {
-                    $gameKey->update(['status' => 'failed', 'error_message' => 'Không thể khởi tạo đơn eSIM']);
-                    return null;
+                    // Chuyển sang "chờ xử lý" (thay vì "failed" + return null bị rollback mất) để
+                    // Admin/Staff xử lý tay thay vì làm khách mất cả đơn hàng khi API lỗi.
+                    $gameKey->update(['status' => 'pending_manual', 'error_message' => 'Không thể khởi tạo đơn eSIM qua API']);
+                    return $gameKey;
                 }
 
                 $gameKey->update(['delivery_data' => ['order_no' => $orderNo, 'package_name' => $variant->name]]);
@@ -360,6 +438,19 @@ class CartController extends Controller
                 if (!$variant) return null;
 
                 $telco = str_replace('card_', '', $product->wholesale_product_id);
+                // Lưu lại nhà mạng + mệnh giá để Admin bấm "Lấy qua API" ở trang Đơn Hàng biết cần mua lại thẻ nào.
+                $cardRetryContext = ['retry_telco' => $telco, 'retry_amount' => $variant->face_value];
+
+                if ($fulfillmentMode === 'manual') {
+                    return $product->keys()->create([
+                        'key_code' => '',
+                        'status' => 'pending_manual',
+                        'delivery_data' => $cardRetryContext,
+                        'sold_to_user_id' => $user->id,
+                        'sold_at' => now(),
+                    ]);
+                }
+
                 $partnerRid = 'kg' . $user->id . '_' . time() . rand(10, 99);
                 $santhecao = app(\App\Services\SanthecaoService::class);
 
@@ -370,7 +461,16 @@ class CartController extends Controller
 
                 if (!$result || (int) ($result['status'] ?? 0) !== 1) {
                     Log::error('Santhecao buyCardCode failed', ['telco' => $telco, 'result' => $result]);
-                    return null;
+                    // Không huỷ cả đơn — chuyển sang "chờ xử lý" để Admin/Staff xử lý tay thay vì
+                    // hoàn tiền và làm khách mất đơn hàng chỉ vì API đối tác lỗi tạm thời.
+                    return $product->keys()->create([
+                        'key_code' => '',
+                        'status' => 'pending_manual',
+                        'error_message' => $result['desc'] ?? 'Lỗi API Santhecao không xác định',
+                        'delivery_data' => $cardRetryContext,
+                        'sold_to_user_id' => $user->id,
+                        'sold_at' => now(),
+                    ]);
                 }
 
                 $cards = $result['cards'] ?? [];
@@ -390,8 +490,6 @@ class CartController extends Controller
                 $gameKey = $product->keys()->where('status', 'available')->first();
 
                 if (!$gameKey) {
-                    $fulfillmentMode = \App\Modules\Core\Models\Setting::getValue('order_fulfillment_mode', 'manual');
-
                     // Chế độ thủ công: KHÔNG tự gọi API mua key thật — tạo đơn "chờ xử lý" để Admin
                     // vào trang Đơn Hàng tự quyết định (nhập key tay hoặc bấm lấy qua API cho đơn đó).
                     if ($fulfillmentMode === 'manual') {
@@ -446,10 +544,13 @@ class CartController extends Controller
 
         // OTP is valid
         \Illuminate\Support\Facades\Cache::forget('checkout_otp_' . $user->id);
-        
+
         // Put a short-lived flag to bypass OTP check
         session()->put('checkout_otp_verified', true);
-        
+
+        // Khôi phục đúng phương thức thanh toán khách đã chọn trước khi qua bước OTP.
+        $request->merge(['payment_method' => session()->pull('checkout_pending_payment_method', 'wallet')]);
+
         // Retry checkout process
         return $this->checkoutProcess($request, $providerService);
     }

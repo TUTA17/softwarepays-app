@@ -33,7 +33,7 @@
                     <div class="lg:col-span-2 space-y-4">
                         @foreach($cart as $id => $item)
                             <div class="glass-card p-4 rounded-xl flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 relative group text-center sm:text-left">
-                                <img src="{{ $item['image'] }}" alt="{{ $item['name'] }}" class="w-full sm:w-32 h-40 sm:h-20 object-cover rounded-lg shadow-md">
+                                <img src="{{ $item['image'] }}" alt="{{ $item['name'] }}" class="w-full sm:w-32 h-40 sm:h-20 object-contain bg-white rounded-lg shadow-md">
                                 
                                 <div class="flex-1 w-full">
                                     <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1">{{ $item['name'] }}</h3>

@@ -27,9 +27,6 @@
         <a href="{{ route('admin.orders') }}" class="nav-item {{ request()->routeIs('admin.orders') ? 'active' : '' }}">
             <span class="material-symbols-outlined">receipt_long</span> Đơn Hàng
         </a>
-        <a href="{{ route('admin.vpn') }}" class="nav-item {{ request()->routeIs('admin.vpn') ? 'active' : '' }}">
-            <span class="material-symbols-outlined">vpn_lock</span> Quản lý VPN
-        </a>
         <a href="{{ route('admin.esim') }}" class="nav-item {{ request()->routeIs('admin.esim') ? 'active' : '' }}">
             <span class="material-symbols-outlined">sim_card</span> Quản lý eSIM
         </a>

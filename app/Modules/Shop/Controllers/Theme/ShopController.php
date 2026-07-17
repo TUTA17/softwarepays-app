@@ -142,7 +142,42 @@ class ShopController extends Controller
             ->orderBy('price', 'asc')
             ->get();
 
-        return view('shop::theme.steam-wallet', compact('products'));
+        // Danh mục nhiều trăm mệnh giá trải khắp hàng chục loại tiền tệ (IDR, TRY, ARS, HKD, INR...)
+        // khiến bộ lọc Vietnam/Global cũ gần như vô dụng (đa số rơi vào "Other"). Tự nhận diện mã
+        // tiền tệ từ tên sản phẩm để có bộ lọc dropdown hữu ích hơn, kèm ô tìm kiếm nhanh.
+        $currencyCounts = [];
+        foreach ($products as $product) {
+            $code = $this->extractGiftCardCurrency($product->name);
+            $product->currency_code = $code;
+            $currencyCounts[$code] = ($currencyCounts[$code] ?? 0) + 1;
+        }
+        ksort($currencyCounts);
+
+        return view('shop::theme.steam-wallet', compact('products', 'currencyCounts'));
+    }
+
+    // Nhận diện mã tiền tệ (IDR, TRY, USD...) từ tên sản phẩm thẻ Steam Wallet để phục vụ bộ lọc.
+    protected function extractGiftCardCurrency(string $name): string
+    {
+        static $knownCodes = ['IDR', 'TRY', 'ARS', 'HKD', 'INR', 'USD', 'EUR', 'GBP', 'VND', 'THB', 'PHP', 'MYR', 'PLN', 'MXN', 'SAR', 'QAR', 'ZAR', 'UAH', 'KRW', 'BRL', 'CNY', 'AUD', 'AED', 'SGD', 'KWD', 'PEN', 'CAD', 'COP', 'TWD', 'CLP', 'NGN', 'OMR'];
+        foreach ($knownCodes as $code) {
+            if (preg_match('/\b' . $code . '\b/i', $name)) {
+                return $code;
+            }
+        }
+
+        static $symbolMap = ['€' => 'EUR', '£' => 'GBP', '₹' => 'INR', '₺' => 'TRY', '₴' => 'UAH', '₱' => 'PHP', '₩' => 'KRW', '฿' => 'THB'];
+        foreach ($symbolMap as $symbol => $code) {
+            if (str_contains($name, $symbol)) {
+                return $code;
+            }
+        }
+
+        if (str_contains($name, '$')) {
+            return 'USD';
+        }
+
+        return 'Khác';
     }
 
     public function searchApi(Request $request)

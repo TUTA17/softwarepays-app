@@ -15,6 +15,9 @@ Route::middleware(['web'])->group(function () {
     Route::post('/sign-in', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+    Route::get('/register/verify', [AuthController::class, 'registerVerifyForm'])->name('register.verify.form');
+    Route::post('/register/verify', [AuthController::class, 'registerVerifyProcess'])->name('register.verify.verify');
+    Route::post('/register/verify/resend', [AuthController::class, 'registerVerifyResend'])->name('register.verify.resend');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Social Login
@@ -44,6 +47,11 @@ Route::middleware(['web'])->group(function () {
         Route::get('/profile/settings', [UserController::class, 'settings'])->name('profile.settings');
         Route::post('/profile/settings', [UserController::class, 'updateSettings'])->name('profile.settings.update');
         Route::get('/profile/referrals', [UserController::class, 'referrals'])->name('referrals.index');
+
+        // Email verification
+        Route::get('/verify-email', [AuthController::class, 'verifyEmailForm'])->name('verify.email.form');
+        Route::post('/verify-email', [AuthController::class, 'verifyEmailProcess'])->name('verify.email.verify');
+        Route::post('/verify-email/resend', [AuthController::class, 'verifyEmailResend'])->name('verify.email.resend');
         
         // Wallet
         Route::get('/wallet', [WalletController::class, 'show'])->name('wallet.show');
