@@ -30,6 +30,20 @@
     referral_bonus: 'Thưởng giới thiệu',
   };
 
+  var TX_STATUS_LABELS = {
+    completed: 'Thành công',
+    pending: 'Chờ xử lý',
+    failed: 'Thất bại',
+    cancelled: 'Đã huỷ',
+  };
+
+  var TX_STATUS_CLASSES = {
+    completed: 'badge-completed',
+    pending: 'badge-pending',
+    failed: 'badge-failed',
+    cancelled: 'badge-failed',
+  };
+
   var state = {
     token: null,
     adminId: null,
@@ -697,7 +711,7 @@
           '</div>' +
           '<span class="badge" style="' + (isDeposit ? 'background:#dcfce7;color:#15803d;' : 'background:#fee2e2;color:#b91c1c;') + '">' + (TX_TYPE_LABELS[t.type] || t.type) + '</span>' +
         '</div>' +
-        '<div class="order-time">' + formatTime(t.created_at) + ' &middot; ' + t.status + '</div>' +
+        '<div class="order-time">' + formatTime(t.created_at) + ' &middot; <span class="badge ' + (TX_STATUS_CLASSES[t.status] || 'badge-failed') + '">' + (TX_STATUS_LABELS[t.status] || escapeHtml(t.status)) + '</span></div>' +
         '<div class="order-actions"><div class="mini-row"><span></span><span class="mini-row-right">' + sign + formatMoneyByCurrency(Math.abs(t.amount), t.currency) + '</span></div></div>';
       els.transactionsList.appendChild(card);
     });

@@ -94,6 +94,7 @@ input[type="text"], input[type="password"] {
 .header-actions { display: flex; gap: 8px; }
 .icon-btn {
   width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--surface);
@@ -157,6 +158,8 @@ input[type="text"], input[type="password"] {
 .badge-sold { background: var(--green-bg); color: var(--green-text); }
 .badge-processing { background: var(--blue-bg); color: var(--blue-text); }
 .badge-failed { background: var(--red-bg); color: var(--red-text); }
+.badge-completed { background: var(--green-bg); color: var(--green-text); }
+.badge-pending { background: var(--amber-bg); color: var(--amber-text); }
 
 .order-actions { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
 .order-actions input {
