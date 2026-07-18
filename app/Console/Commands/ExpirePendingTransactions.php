@@ -16,7 +16,7 @@ class ExpirePendingTransactions extends Command
 
     protected $signature = 'transactions:expire-pending';
 
-    protected $description = 'Đánh dấu các giao dịch nạp tiền đang "Chờ xử lý" quá lâu (khách bỏ ngang PayPal/Crypto/chuyển khoản) thành "Thất bại"';
+    protected $description = 'Đánh dấu các giao dịch nạp tiền đang "Chờ xử lý" quá lâu (khách bỏ ngang Crypto/chuyển khoản) thành "Thất bại"';
 
     public function handle(): int
     {

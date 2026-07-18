@@ -17,10 +17,7 @@ class WalletController extends Controller
                                    ->orderBy('created_at', 'desc')
                                    ->take(20)
                                    ->get();
-        // Trang Nạp Tiền Vào Ví chỉ nạp vào ví USD riêng qua PayPal/Crypto (không quy đổi theo tiền tệ site
-        // đang chọn), nên luôn dùng USD cho SDK PayPal ở đây — khác với trang checkout dùng tiền tệ đã chọn.
-        $paypalCurrency = 'USD';
-        return view('wallet.index', compact('transactions', 'paypalCurrency'));
+        return view('wallet.index', compact('transactions'));
     }
 
     public function createInvoice(Request $request)

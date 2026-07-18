@@ -52,14 +52,6 @@ return [
         'secret_key' => env('SANTHECAO_SECKEY'),
     ],
 
-    'paypal' => [
-        'mode' => env('PAYPAL_MODE', 'sandbox'),
-        'sandbox_client_id' => env('PAYPAL_SANDBOX_CLIENT_ID'),
-        'sandbox_secret' => env('PAYPAL_SANDBOX_SECRET'),
-        'live_client_id' => env('PAYPAL_LIVE_CLIENT_ID'),
-        'live_secret' => env('PAYPAL_LIVE_SECRET'),
-    ],
-
     'nowpayments' => [
         'api_key' => env('NOWPAYMENTS_API_KEY'),
         'ipn_secret' => env('NOWPAYMENTS_IPN_SECRET_KEY'),

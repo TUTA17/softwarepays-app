@@ -8,7 +8,6 @@
     $accountName = $bankConfig['account_name'] ?? 'TÊN CHỦ TK';
     $paymentNotice = $bankConfig['payment_notice'] ?? '';
     $isVndCurrency = session('currency', 'VND') === 'VND';
-    $paypalClientId = config('services.paypal.mode') === 'live' ? config('services.paypal.live_client_id') : config('services.paypal.sandbox_client_id');
 @endphp
 
 @section('title', 'Nạp Tiền Vào Ví - SoftwarePays')
@@ -65,7 +64,7 @@
                             <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
                                 <i class="fa-solid fa-credit-card text-blue-400"></i> {{ __('wallet.deposit_choose_method') }}
                             </label>
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="grid grid-cols-2 gap-3">
                                 @if($isVndCurrency)
                                 <button type="button" id="method-bank" class="deposit-method-btn active bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-500 text-blue-700 dark:text-blue-400 rounded-xl py-3 text-center font-bold text-sm" onclick="setDepositMethod('bank', this)">
                                     <i class="fa-solid fa-building-columns block text-lg mb-1"></i> {{ __('wallet.deposit_bank_qr_label') }}
@@ -75,13 +74,7 @@
                                     <i class="fa-solid fa-building-columns block text-lg mb-1"></i> {{ __('wallet.deposit_bank_qr_label') }}
                                 </button>
                                 @endif
-                                <button type="button" id="method-paypal" class="deposit-method-btn {{ $isVndCurrency ? 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300' : 'active bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-500 text-blue-700 dark:text-blue-400' }} rounded-xl py-3 text-center font-bold text-sm" onclick="setDepositMethod('paypal', this)">
-                                    <i class="fa-brands fa-paypal block text-lg mb-1"></i> PayPal <span class="text-[10px] opacity-70">({{ $paypalCurrency }})</span>
-                                </button>
-                                <button type="button" id="method-card" class="deposit-method-btn bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center font-bold text-sm" onclick="setDepositMethod('card', this)">
-                                    <i class="fa-solid fa-credit-card block text-lg mb-1"></i> {{ __('checkout.card_short_label') }} <span class="text-[10px] opacity-70">({{ $paypalCurrency }})</span>
-                                </button>
-                                <button type="button" id="method-crypto" class="deposit-method-btn bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center font-bold text-sm" onclick="setDepositMethod('crypto', this)">
+                                <button type="button" id="method-crypto" class="deposit-method-btn {{ $isVndCurrency ? 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300' : 'active bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-500 text-blue-700 dark:text-blue-400' }} rounded-xl py-3 text-center font-bold text-sm" onclick="setDepositMethod('crypto', this)">
                                     <i class="fa-brands fa-bitcoin block text-lg mb-1"></i> Crypto
                                 </button>
                             </div>
@@ -136,9 +129,8 @@
                         </div>
 
                         <button type="button" id="btnGenerate" onclick="handleDepositSubmit()" class="w-full btn-primary-glow text-slate-900 dark:text-white font-bold py-4 rounded-xl text-lg flex items-center justify-center gap-3 group">
-                            <span id="btnGenerateLabel">{{ $isVndCurrency ? __('wallet.generate_qr_button') : 'PayPal' }}</span> <i class="fa-solid fa-qrcode"></i>
+                            <span id="btnGenerateLabel">{{ $isVndCurrency ? __('wallet.generate_qr_button') : 'NẠP TIỀN QUA CRYPTO' }}</span> <i class="fa-solid fa-qrcode"></i>
                         </button>
-                        <div id="wallet-paypal-button-container" class="hidden"></div>
                     </div>
 
                     <!-- Crypto Payment Waiting Area -->
@@ -334,16 +326,13 @@
         </div>
     </div>
 
-    @if($paypalClientId)
-    <script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency={{ $paypalCurrency }}&intent=capture&enable-funding=card"></script>
-    @endif
 @endsection
 
 @push('scripts')
 <script>
-    let depositMethod = {!! $isVndCurrency ? "'bank'" : "'paypal'" !!};
+    let depositMethod = {!! $isVndCurrency ? "'bank'" : "'crypto'" !!};
     let cryptoMethod = 'bitcoin';
-    // Ngân hàng (QR) = ví VNĐ; PayPal/Thẻ/Crypto = ví USD riêng, không quy đổi.
+    // Ngân hàng (QR) = ví VNĐ; Crypto = ví USD riêng, không quy đổi.
     let currentUnit = depositMethod === 'bank' ? 'vnd' : 'usd';
     let currentMinAmount = currentUnit === 'vnd' ? 10000 : 1;
 
@@ -358,7 +347,7 @@
 
         document.getElementById('cryptoCurrencyPicker').classList.toggle('hidden', method !== 'crypto');
 
-        // PayPal/Thẻ/Crypto nạp thẳng vào ví USD riêng (không quy đổi VNĐ); chỉ Ngân hàng (QR) dùng VNĐ.
+        // Crypto nạp thẳng vào ví USD riêng (không quy đổi VNĐ); chỉ Ngân hàng (QR) dùng VNĐ.
         currentUnit = method === 'bank' ? 'vnd' : 'usd';
         currentMinAmount = currentUnit === 'vnd' ? 10000 : 1;
 
@@ -389,80 +378,7 @@
 
         const label = document.getElementById('btnGenerateLabel');
         if (method === 'bank') label.textContent = 'TẠO MÃ QR NẠP TIỀN';
-        else if (method === 'paypal') label.textContent = 'NẠP TIỀN QUA PAYPAL';
-        else if (method === 'card') label.textContent = 'NẠP TIỀN QUA THẺ';
         else label.textContent = 'NẠP TIỀN QUA CRYPTO';
-
-        // PayPal/Thẻ: ẩn nút thường, mở popup PayPal ngay trên trang (JS SDK) thay vì chuyển hướng trang.
-        const btnGenerate = document.getElementById('btnGenerate');
-        const paypalContainer = document.getElementById('wallet-paypal-button-container');
-        if (method === 'paypal' || method === 'card') {
-            btnGenerate.classList.add('hidden');
-            paypalContainer.classList.remove('hidden');
-            renderWalletPaypalButtons(method);
-        } else {
-            btnGenerate.classList.remove('hidden');
-            paypalContainer.classList.add('hidden');
-            paypalContainer.innerHTML = '';
-        }
-    }
-
-    function renderWalletPaypalButtons(method) {
-        const container = document.getElementById('wallet-paypal-button-container');
-        container.innerHTML = '';
-
-        if (typeof paypal === 'undefined') {
-            container.innerHTML = '<p class="text-sm text-red-600 dark:text-red-400 text-center">' + @json(__('checkout.generic_error')) + '</p>';
-            return;
-        }
-
-        let currentTx = null;
-        const buttons = paypal.Buttons({
-            fundingSource: method === 'card' ? paypal.FUNDING.CARD : paypal.FUNDING.PAYPAL,
-            style: { layout: 'horizontal', height: 55, tagline: false },
-            createOrder: function () {
-                const amount = document.getElementById('customAmount').value;
-                if (!amount || Number(amount) < currentMinAmount) {
-                    alert('Vui lòng nhập số tiền hợp lệ (Tối thiểu $' + currentMinAmount + ')');
-                    return Promise.reject(new Error('invalid amount'));
-                }
-                return fetch('{{ route('payments.paypal.create_order') }}?amount=' + amount, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (!data.success) throw new Error(data.message || 'error');
-                    currentTx = data.tx;
-                    return data.id;
-                });
-            },
-            onApprove: function (data) {
-                return fetch('{{ route('payments.paypal.capture_order') }}', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                    body: JSON.stringify({ orderID: data.orderID, tx: currentTx }),
-                })
-                .then(r => r.json())
-                .then(result => {
-                    if (result.success) {
-                        alert(@json(__('checkout.paypal_success_note')));
-                        window.location.reload();
-                    } else {
-                        alert(result.message || @json(__('checkout.generic_error')));
-                    }
-                });
-            },
-            onError: function () {
-                alert(@json(__('checkout.generic_error')));
-            },
-        });
-
-        if (buttons.isEligible()) {
-            buttons.render('#wallet-paypal-button-container');
-        } else {
-            container.innerHTML = '<p class="text-sm text-amber-600 dark:text-amber-400 text-center">' + @json(__('checkout.generic_error')) + '</p>';
-        }
     }
 
     function setCryptoMethod(method, btn) {
@@ -725,7 +641,7 @@
         }
     }
 
-    // Đồng bộ nút/PayPal popup theo đúng phương thức đang chọn sẵn (Ngân hàng hoặc PayPal, tuỳ tiền tệ site).
+    // Đồng bộ nút theo đúng phương thức đang chọn sẵn (Ngân hàng hoặc Crypto, tuỳ tiền tệ site).
     document.addEventListener('DOMContentLoaded', function () {
         const activeBtn = document.getElementById('method-' + depositMethod);
         if (activeBtn) setDepositMethod(depositMethod, activeBtn);

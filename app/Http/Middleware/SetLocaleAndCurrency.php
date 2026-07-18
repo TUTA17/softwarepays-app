@@ -32,7 +32,7 @@ class SetLocaleAndCurrency
 
         // Quốc gia thực tế theo IP (khác với locale/currency ở trên vì khách có thể tự đổi tay) —
         // dùng riêng để tách hiển thị phương thức thanh toán ở trang checkout: Việt Nam thấy
-        // nội địa + crypto, các nước khác chỉ thấy quốc tế (PayPal/Thẻ).
+        // nội địa + crypto, các nước khác chỉ thấy crypto.
         if (!session()->has('geo_country')) {
             session(['geo_country' => app(\App\Services\GeoLocaleService::class)->detectCountryCode($request->ip()) ?? 'XX']);
         }

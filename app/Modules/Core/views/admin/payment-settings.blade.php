@@ -122,7 +122,7 @@
             'vnpay' => 'VNPay', 'vietqr' => 'VietQR', 'napas' => 'Napas 247',
         ];
         $intlMethodLabels = [
-            'paypal' => 'PayPal (Visa/Mastercard, Apple Pay)', 'bitcoin' => 'Bitcoin', 'ethereum' => 'Ethereum',
+            'bitcoin' => 'Bitcoin', 'ethereum' => 'Ethereum',
             'litecoin' => 'Litecoin', 'usdt' => 'Tether (USDT)', 'solana' => 'Solana',
         ];
     @endphp

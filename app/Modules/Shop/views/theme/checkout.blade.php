@@ -55,9 +55,8 @@
                     $isVndCurrency = session('currency', 'VND') === 'VND';
                     $displayCurrency = session('currency', 'VND');
                     $displayRate = \App\Helpers\CurrencyHelper::rate($displayCurrency);
-                    $paypalClientId = config('services.paypal.mode') === 'live' ? config('services.paypal.live_client_id') : config('services.paypal.sandbox_client_id');
 
-                    // Khách Việt Nam chỉ thấy nội địa + crypto; các nước khác chỉ thấy quốc tế (PayPal/Thẻ) —
+                    // Khách Việt Nam thấy nội địa + crypto; các nước khác chỉ thấy crypto —
                     // tách theo quốc gia thực (session('geo_country'), độc lập với tiền tệ/ngôn ngữ khách tự đổi tay).
                     $isVietnam = session('geo_country') === 'VN';
 
@@ -78,21 +77,12 @@
                         'solana' => 'Solana',
                     ];
 
-                    $gatewayMethods = [
-                        'paypal' => 'PayPal · ' . $paypalCurrency,
-                        'card' => __('checkout.card_label') . ' · ' . $paypalCurrency,
-                    ];
-                    // Nhãn ngắn gọn dùng riêng cho nút "Thanh toán với ..." — nhãn đầy đủ (liệt kê Visa/Mastercard/Apple Pay)
-                    // quá dài khi ghép vào nút, làm nút bị vỡ dòng xấu.
-                    $gatewayShortLabels = [
-                        'paypal' => 'PayPal · ' . $paypalCurrency,
-                        'card' => __('checkout.card_short_label') . ' · ' . $paypalCurrency,
-                    ];
+                    // Không còn cổng thanh toán quốc tế nào khác ngoài crypto -> mọi khách (VN hay không)
+                    // đều thấy cùng danh sách phương thức quốc tế này.
+                    $intlMethods = $cryptoMethods;
+                    $intlShortLabels = $cryptoMethods;
 
-                    $intlMethods = $isVietnam ? $cryptoMethods : $gatewayMethods;
-                    $intlShortLabels = $isVietnam ? $cryptoMethods : $gatewayShortLabels;
-
-                    $defaultMethod = $isVietnam ? 'wallet' : 'paypal';
+                    $defaultMethod = $isVietnam ? 'wallet' : 'bitcoin';
                 @endphp
 
                 @if($isVietnam)
@@ -116,7 +106,7 @@
                 </div>
                 @endif
 
-                <p class="text-xs font-bold uppercase text-slate-400 mb-2">{{ $isVietnam ? __('checkout.crypto_payment_heading') : __('checkout.intl_payment_heading') }}</p>
+                <p class="text-xs font-bold uppercase text-slate-400 mb-2">{{ __('checkout.crypto_payment_heading') }}</p>
                 <div class="space-y-3">
                     @foreach($intlMethods as $key => $label)
                     @php
@@ -132,7 +122,7 @@
                         <span class="flex flex-1">
                             <span class="flex flex-col">
                                 <span class="block text-sm font-medium text-slate-900 dark:text-white">{{ $label }}</span>
-                                <span class="mt-1 flex items-center text-sm text-slate-500 dark:text-slate-400">{{ $key === 'card' ? __('checkout.card_desc_note') : __('checkout.intl_pay_ready_note') }}</span>
+                                <span class="mt-1 flex items-center text-sm text-slate-500 dark:text-slate-400">{{ __('checkout.intl_pay_ready_note') }}</span>
                             </span>
                         </span>
                         <i class="fa-solid fa-circle-check payment-check-icon text-blue-600 dark:text-blue-400 text-xl {{ $isDefault ? '' : 'opacity-0' }}"></i>
@@ -251,7 +241,7 @@
                                 </a>
                             @endif
                         @else
-                            <div id="paypal-button-container"></div>
+                            <div id="intl-pay-btn-placeholder"></div>
                         @endif
                     </div>
                 </form>
@@ -361,9 +351,6 @@
     </div>
 </div>
 
-@if($paypalClientId)
-<script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency={{ $paypalCurrency }}&intent=capture&enable-funding=card"></script>
-@endif
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const options = document.querySelectorAll('.payment-method-option');
@@ -384,18 +371,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // Momo/zalopay/vnpay/vietqr/napas trừ thẳng từ ví USD duy nhất nhưng hiển thị giá theo đúng tiền tệ
     // khách đang chọn ở đầu trang (giống hệt cách giá sản phẩm luôn hiển thị) — không có lý do gì bắt buộc
     // phải xem bằng VNĐ chỉ vì đang chọn các phương thức này. Ví (wallet) là số dư USD thật, nên LUÔN
-    // hiển thị/tính bằng USD thật, không đổi theo tiền tệ hiển thị đang chọn. PayPal/crypto cũng bắt buộc
+    // hiển thị/tính bằng USD thật, không đổi theo tiền tệ hiển thị đang chọn. Crypto cũng bắt buộc
     // đổi vì đó là tiền tệ SẼ BỊ TRỪ THẬT qua cổng thanh toán bên ngoài.
     const displayCurrency = @json($displayCurrency);
     const displayRate = {{ (float) $displayRate }};
-    const paypalCurrency = @json($paypalCurrency);
-    const paypalRate = {{ (float) \App\Helpers\CurrencyHelper::rate($paypalCurrency) }};
     const currencySymbols = { VND: 'đ', USD: '$', EUR: '€', JPY: '¥', THB: '฿', CNY: '¥', KRW: '₩', RUB: '₽' };
 
     function resolveMethodCurrency(method, isIntl) {
         if (method === 'wallet') return { code: 'USD', rate: usdRate };
         if (!isIntl) return { code: displayCurrency, rate: displayRate };
-        if (method === 'paypal' || method === 'card') return { code: paypalCurrency, rate: paypalRate };
         return { code: 'USD', rate: usdRate };
     }
 
@@ -458,11 +442,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const newTotal = baseTotal + fee;
         finalTotalEl.textContent = formatByCurrency(newTotal, methodCurrency, methodRate);
 
-        // Cập nhật nút Đặt hàng theo phương thức quốc tế: PayPal/Thẻ mở popup PayPal ngay trên trang,
-        // crypto mở modal chờ thanh toán thật.
-        if (isIntl && (method === 'paypal' || method === 'card')) {
-            renderPaypalButtons(method);
-        } else if (isIntl) {
+        // Cập nhật nút Đặt hàng theo phương thức quốc tế: crypto mở modal chờ thanh toán thật.
+        if (isIntl) {
             const label = el.dataset.shortLabel || el.querySelector('.block.text-sm').textContent.trim();
             const payWithText = @json(__('checkout.pay_with', ['method' => '%METHOD%'])).replace('%METHOD%', label);
             submitArea.innerHTML = '<button type="button" id="intl-pay-btn" class="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-4 rounded-xl text-lg font-bold shadow-lg transition transform hover:-translate-y-1"><i class="fa-solid fa-credit-card"></i> ' + payWithText + '</button>';
@@ -475,59 +456,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 '<a href="{{ route('wallet.show') }}" class="w-full flex justify-center items-center gap-2 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-6 py-4 rounded-xl text-lg font-bold transition"><i class="fa-solid fa-wallet"></i> ' + @json(__('wallet.deposit_button')) + '</a>';
         } else {
             submitArea.innerHTML = '<button type="submit" class="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-4 rounded-xl text-lg font-bold shadow-lg shadow-blue-500/30 transition transform hover:-translate-y-1"><i class="fa-solid fa-credit-card"></i> ' + @json(__('checkout.title')) + '</button>';
-        }
-    }
-
-    // PayPal/Thẻ: mở popup PayPal ngay trên trang (JS SDK), không rời trang, không cần đăng nhập cho nút Thẻ.
-    function renderPaypalButtons(method) {
-        submitArea.innerHTML = '<div id="paypal-button-container"></div>';
-
-        if (typeof paypal === 'undefined') {
-            submitArea.innerHTML = '<div class="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-lg"><p class="text-sm text-red-600 dark:text-red-400 text-center">' + @json(__('checkout.generic_error')) + '</p></div>';
-            return;
-        }
-
-        let currentTx = null;
-        const buttons = paypal.Buttons({
-            fundingSource: method === 'card' ? paypal.FUNDING.CARD : paypal.FUNDING.PAYPAL,
-            style: { layout: 'horizontal', height: 55, tagline: false },
-            createOrder: function () {
-                return fetch('{{ route('payments.paypal.create_order') }}?purpose=checkout', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (!data.success) throw new Error(data.message || 'error');
-                    currentTx = data.tx;
-                    return data.id;
-                });
-            },
-            onApprove: function (data) {
-                return fetch('{{ route('payments.paypal.capture_order') }}', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                    body: JSON.stringify({ orderID: data.orderID, tx: currentTx }),
-                })
-                .then(r => r.json())
-                .then(result => {
-                    if (result.success) {
-                        alert(@json(__('checkout.paypal_success_note')));
-                        window.location.reload();
-                    } else {
-                        alert(result.message || @json(__('checkout.generic_error')));
-                    }
-                });
-            },
-            onError: function () {
-                alert(@json(__('checkout.generic_error')));
-            },
-        });
-
-        if (buttons.isEligible()) {
-            buttons.render('#paypal-button-container');
-        } else {
-            submitArea.innerHTML = '<div class="p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-lg"><p class="text-sm text-amber-600 dark:text-amber-400 text-center">' + @json(__('checkout.generic_error')) + '</p></div>';
         }
     }
 
@@ -647,7 +575,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // Tự động hoàn tất đơn hàng nếu vừa nạp ví qua PayPal xong quay lại trang này
+    // Tự động hoàn tất đơn hàng nếu vừa nạp ví xong quay lại trang này
     @if(session('auto_checkout'))
         document.getElementById('checkout-form').submit();
     @endif

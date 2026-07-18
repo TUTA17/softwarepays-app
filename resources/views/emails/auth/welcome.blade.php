@@ -29,7 +29,7 @@
 
             <div class="box">
                 <ul>
-                    <li>Nạp tiền vào ví qua MoMo, chuyển khoản, PayPal hoặc Crypto</li>
+                    <li>Nạp tiền vào ví qua MoMo, chuyển khoản hoặc Crypto</li>
                     <li>Mua game bản quyền, phần mềm, thẻ quà tặng và nhiều dịch vụ khác</li>
                     <li>Nhận điểm thưởng cho mỗi đơn hàng</li>
                 </ul>

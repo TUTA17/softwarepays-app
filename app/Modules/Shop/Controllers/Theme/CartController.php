@@ -125,9 +125,8 @@ class CartController extends Controller
 
         $feeConfig = \App\Modules\Core\Models\Setting::getAllGrouped()['payment_fee_tab'] ?? [];
         $usdRate = \App\Helpers\CurrencyHelper::usdRate();
-        $paypalCurrency = \App\Helpers\CurrencyHelper::paypalCurrencyForSelection(session('currency', 'VND'), session('locale', 'vi'));
 
-        return view('shop::theme.checkout', compact('cart', 'total', 'discount_amount', 'final_total', 'applied_coupon', 'saved_coupons', 'feeConfig', 'usdRate', 'paypalCurrency'));
+        return view('shop::theme.checkout', compact('cart', 'total', 'discount_amount', 'final_total', 'applied_coupon', 'saved_coupons', 'feeConfig', 'usdRate'));
     }
 
     public function checkoutProcess(Request $request, \App\Services\WholesaleProviderService $providerService)

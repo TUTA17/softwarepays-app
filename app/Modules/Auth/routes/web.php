@@ -58,13 +58,6 @@ Route::middleware(['web'])->group(function () {
         Route::post('/wallet/deposit/create', [WalletController::class, 'createInvoice'])->name('wallet.deposit.create');
         Route::post('/wallet/transaction/{id}/cancel', [WalletController::class, 'cancelTransaction'])->name('wallet.transaction.cancel');
 
-        // PayPal
-        Route::get('/payments/paypal/pay', [PaymentGatewayController::class, 'paypalPay'])->name('payments.paypal.pay');
-        Route::get('/payments/paypal/return', [PaymentGatewayController::class, 'paypalReturn'])->name('payments.paypal.return');
-        Route::get('/payments/paypal/cancel', [PaymentGatewayController::class, 'paypalCancel'])->name('payments.paypal.cancel');
-        Route::post('/payments/paypal/create-order', [PaymentGatewayController::class, 'paypalCreateOrderApi'])->name('payments.paypal.create_order');
-        Route::post('/payments/paypal/capture-order', [PaymentGatewayController::class, 'paypalCaptureOrderApi'])->name('payments.paypal.capture_order');
-
         // NOWPayments (crypto)
         Route::post('/payments/nowpayments/pay', [PaymentGatewayController::class, 'nowpaymentsPay'])->name('payments.nowpayments.pay');
         Route::get('/payments/nowpayments/status/{transaction}', [PaymentGatewayController::class, 'nowpaymentsStatus'])->name('payments.nowpayments.status');

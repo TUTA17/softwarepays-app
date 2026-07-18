@@ -36,34 +36,6 @@ class CurrencyHelper
         return self::$cachedRates;
     }
 
-    // Danh sách các locale được thanh toán qua PayPal bằng tiền tệ địa phương (PayPal hỗ trợ);
-    // các locale còn lại (VND không phải tiền PayPal, RUB bị PayPal chặn từ 2022, v.v.) mặc định về USD.
-    // MYR đã thử trực tiếp qua API PayPal live và bị từ chối (CURRENCY_NOT_SUPPORTED) -> không đưa vào danh sách.
-    public const PAYPAL_LOCALE_CURRENCY = [
-        'de' => 'EUR', 'fr' => 'EUR', 'it' => 'EUR', 'es' => 'EUR', 'pt' => 'EUR',
-        'ja' => 'JPY', 'th' => 'THB',
-    ];
-
-    // Các tiền tệ trong bộ đổi tiền tệ của site (VND/USD/CNY/JPY/KRW/THB/RUB) mà merchant PayPal này
-    // THỰC SỰ chấp nhận — đã kiểm tra trực tiếp qua API live: CNY/KRW/VND bị từ chối (CURRENCY_NOT_SUPPORTED),
-    // RUB tuy được chấp nhận tạo đơn nhưng chủ động không bật do lệnh cấm vận Nga từ PayPal (2022), rủi ro capture thất bại.
-    public const PAYPAL_SUPPORTED_CURRENCIES = ['USD', 'JPY', 'THB', 'EUR'];
-
-    public static function paypalCurrencyForLocale(string $locale): string
-    {
-        return self::PAYPAL_LOCALE_CURRENCY[$locale] ?? 'USD';
-    }
-
-    // Ưu tiên đúng tiền tệ khách đang chọn ở bộ đổi tiền tệ của site (session('currency')) nếu PayPal hỗ trợ;
-    // nếu không hỗ trợ (CNY/KRW/RUB/VND) thì rơi về ánh xạ theo ngôn ngữ, cuối cùng mặc định USD.
-    public static function paypalCurrencyForSelection(string $sessionCurrency, string $locale): string
-    {
-        if (in_array($sessionCurrency, self::PAYPAL_SUPPORTED_CURRENCIES, true)) {
-            return $sessionCurrency;
-        }
-        return self::paypalCurrencyForLocale($locale);
-    }
-
     // % margin admin tự đặt (Cài đặt > Tỷ giá quy đổi), cộng thêm vào tỷ giá thị trường thực khi
     // BÁN cho khách (checkout/hiển thị giá) — tách biệt hoàn toàn với tỷ giá MUA (kinguin_eur_rate
     // ở trang Quản lý Game, dùng để quy đổi giá nhập EUR/USD từ nhà cung cấp về VNĐ khi đồng bộ sản phẩm).
