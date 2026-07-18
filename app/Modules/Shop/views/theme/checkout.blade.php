@@ -103,14 +103,24 @@
                     $intlShortLabels = $cryptoMethods + $paylioShortLabels;
 
                     $defaultMethod = $isVietnam ? 'wallet' : 'usdt';
+
+                    // Khách VN thấy đủ mọi kênh nội địa (ví + momo/zalopay/vnpay/vietqr/napas, tuỳ tiền tệ
+                    // đang hiển thị). Khách nước ngoài tự đổi tiền tệ sang VNĐ không cài được app ngân hàng
+                    // VN nên không hiện momo/zalopay/vnpay/napas, nhưng vẫn cho quét QR chuyển khoản
+                    // (vietqr) vì QR không đòi hỏi phải có tài khoản ngân hàng Việt Nam để xem/quét.
+                    if ($isVietnam) {
+                        $visibleDomesticMethods = collect($domesticMethods)->filter(fn ($m, $key) => $key === 'wallet' || $isVndCurrency);
+                    } elseif ($isVndCurrency) {
+                        $visibleDomesticMethods = collect($domesticMethods)->only(['vietqr']);
+                    } else {
+                        $visibleDomesticMethods = collect();
+                    }
                 @endphp
 
-                @if($isVietnam)
+                @if($visibleDomesticMethods->isNotEmpty())
                 <p class="text-xs font-bold uppercase text-slate-400 mb-2">{{ __('wallet.deposit_domestic_heading') }}</p>
                 <div class="space-y-3 mb-6">
-                    @foreach($domesticMethods as $key => $m)
-                    @php $methodDisabled = $key !== 'wallet' && !$isVndCurrency; @endphp
-                    @continue($methodDisabled)
+                    @foreach($visibleDomesticMethods as $key => $m)
                     <label class="payment-method-option relative flex rounded-lg border {{ $key === $defaultMethod ? 'cursor-pointer border-blue-500 bg-blue-50/50 dark:bg-blue-500/10' : 'cursor-pointer border-slate-200 dark:border-slate-700' }} p-4 shadow-sm focus:outline-none"
                            data-method="{{ $key }}" data-currency="{{ $key === 'wallet' ? 'USD' : 'VND' }}" data-fee-pct="{{ $feeConfig['fee_pct_'.$key] ?? 0 }}" data-fee-fixed="{{ $feeConfig['fee_fixed_vnd'] ?? 0 }}" data-intl="0" data-disabled="0">
                         <input type="radio" name="payment_method" value="{{ $key }}" class="sr-only payment-method-radio" {{ $key === $defaultMethod ? 'checked' : '' }}>
