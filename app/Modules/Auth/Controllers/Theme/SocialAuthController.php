@@ -73,7 +73,10 @@ class SocialAuthController extends Controller
             // Thực hiện đăng nhập, hỗ trợ "Nhớ mật khẩu" (Remember me)
             Auth::login($user, true);
 
-            return redirect()->route('home')->with('success', 'Đăng nhập thành công qua ' . ucfirst($provider));
+            // redirect()->intended() lấy đúng trang khách đang xem trước khi bấm "Đăng nhập để mua"
+            // (được lưu ở AuthController::rememberIntendedRedirect() lúc render trang /login), rơi về
+            // trang chủ nếu không có (VD: khách đăng nhập trực tiếp từ nav, không qua trang sản phẩm).
+            return redirect()->intended(route('home'))->with('success', 'Đăng nhập thành công qua ' . ucfirst($provider));
         } catch (Exception $e) {
             return redirect()->route('login')->with('error', 'Đăng nhập thất bại: ' . $e->getMessage());
         }

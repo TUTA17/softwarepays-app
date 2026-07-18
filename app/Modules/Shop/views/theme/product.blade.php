@@ -381,7 +381,7 @@
                                     </button>
                                 </form>
                             @else
-                                <a href="{{ route('login') }}" class="flex items-center justify-center gap-3 w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-lg text-lg font-bold transition-colors">
+                                <a href="{{ route('login', ['redirect' => url()->current()]) }}" class="flex items-center justify-center gap-3 w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-lg text-lg font-bold transition-colors">
                                     <i class="fa-solid fa-right-to-bracket"></i> {{ __('product.login_to_buy') }}
                                 </a>
                             @endauth
@@ -485,7 +485,7 @@
                     </button>
                 </form>
             @else
-                <a href="{{ route('login') }}" class="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-blue-500/30">
+                <a href="{{ route('login', ['redirect' => url()->current()]) }}" class="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-blue-500/30">
                     <i class="fa-solid fa-right-to-bracket"></i> {{ __('product.login_to_buy') }}
                 </a>
             @endauth

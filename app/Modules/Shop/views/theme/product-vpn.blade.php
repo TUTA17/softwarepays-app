@@ -64,7 +64,7 @@
                         <i class="fa-solid fa-cart-plus mr-2"></i> {{ __('product.add_to_cart_full') }}
                     </button>
                 @else
-                    <a href="{{ route('login') }}" class="block text-center w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition">
+                    <a href="{{ route('login', ['redirect' => url()->current()]) }}" class="block text-center w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition">
                         {{ __('product.login_to_buy') }}
                     </a>
                 @endauth

@@ -12,8 +12,26 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    public function showLogin()
+    // Ghi nhớ trang khách đang đứng (VD: trang sản phẩm) khi họ bấm "Đăng nhập để mua" — để
+    // redirect()->intended() ở cuối flow login/register/social/2FA đưa họ về ĐÚNG chỗ cũ thay vì
+    // luôn về /dashboard. Chỉ chấp nhận đường dẫn nội bộ (không phải URL tuyệt đối tới domain khác)
+    // để tránh open-redirect.
+    protected function rememberIntendedRedirect(Request $request): void
     {
+        $redirect = $request->query('redirect');
+        if (!$redirect) {
+            return;
+        }
+
+        $isLocalPath = str_starts_with($redirect, '/') && !str_starts_with($redirect, '//');
+        if ($isLocalPath) {
+            $request->session()->put('url.intended', $redirect);
+        }
+    }
+
+    public function showLogin(Request $request)
+    {
+        $this->rememberIntendedRedirect($request);
         return view('auth::theme.login');
     }
 
@@ -60,6 +78,7 @@ class AuthController extends Controller
 
     public function showRegister(Request $request)
     {
+        $this->rememberIntendedRedirect($request);
         $ref = $request->query('ref');
         return view('auth::theme.register', compact('ref'));
     }
@@ -125,7 +144,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect('/dashboard');
+        return redirect()->intended('dashboard');
     }
 
     public function registerVerifyForm(Request $request)
@@ -164,7 +183,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect('/dashboard')->with('success', 'Xác minh email thành công! Tài khoản của bạn đã được tạo.');
+        return redirect()->intended('dashboard')->with('success', 'Xác minh email thành công! Tài khoản của bạn đã được tạo.');
     }
 
     public function registerVerifyResend(Request $request)
