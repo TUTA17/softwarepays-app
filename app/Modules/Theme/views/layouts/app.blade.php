@@ -808,10 +808,10 @@
                 <div>
                     <h3 class="font-display font-semibold text-slate-900 dark:text-white text-lg mb-6">{{ __('footer.products_title') }}</h3>
                     <ul class="space-y-3">
-                        <li><a href="/" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_game_steam') }}</a></li>
-                        <li><a href="/" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_origin_ea') }}</a></li>
-                        <li><a href="/" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_battlenet') }}</a></li>
-                        <li><a href="/" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_epic_games') }}</a></li>
+                        <li><a href="{{ route('shop', ['platforms' => ['Steam']]) }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_game_steam') }}</a></li>
+                        <li><a href="{{ route('shop', ['platforms' => ['EA App']]) }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_origin_ea') }}</a></li>
+                        <li><a href="{{ route('shop', ['platforms' => ['Battle.net']]) }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_battlenet') }}</a></li>
+                        <li><a href="{{ route('shop', ['platforms' => ['Epic Games']]) }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_epic_games') }}</a></li>
                     </ul>
                 </div>
 
