@@ -108,10 +108,10 @@
                                 <i class="fa-solid fa-coins text-blue-400"></i> {{ __('wallet.choose_crypto_label') }}
                             </label>
                             <div class="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                                <button type="button" class="crypto-method-btn active border-blue-500 bg-blue-50 dark:bg-blue-500/10 text-blue-700 rounded-xl py-3 text-center font-bold text-xs" data-crypto="usdt" onclick="setCryptoMethod('usdt', this)">USDT</button>
                                 <button type="button" class="crypto-method-btn bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3 text-center font-bold text-xs" data-crypto="bitcoin" onclick="setCryptoMethod('bitcoin', this)">Bitcoin</button>
                                 <button type="button" class="crypto-method-btn bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3 text-center font-bold text-xs" data-crypto="ethereum" onclick="setCryptoMethod('ethereum', this)">Ethereum</button>
                                 <button type="button" class="crypto-method-btn bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3 text-center font-bold text-xs" data-crypto="litecoin" onclick="setCryptoMethod('litecoin', this)">Litecoin</button>
-                                <button type="button" class="crypto-method-btn bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3 text-center font-bold text-xs" data-crypto="usdt" onclick="setCryptoMethod('usdt', this)">USDT</button>
                                 <button type="button" class="crypto-method-btn bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3 text-center font-bold text-xs" data-crypto="solana" onclick="setCryptoMethod('solana', this)">Solana</button>
                             </div>
                         </div>
@@ -354,7 +354,7 @@
 @push('scripts')
 <script>
     let depositMethod = {!! $isVndCurrency ? "'bank'" : "'crypto'" !!};
-    let cryptoMethod = 'bitcoin';
+    let cryptoMethod = 'usdt';
     let paylioProvider = 'stripe';
     // Sàn tối thiểu USD riêng của từng provider Paylio — khớp với PaymentGatewayController::PAYLIO_MIN_USD.
     const PAYLIO_MIN = { stripe: 2, paypal: 5, binance: 15, banxa: 20 };

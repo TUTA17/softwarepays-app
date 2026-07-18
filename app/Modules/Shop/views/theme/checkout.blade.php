@@ -70,10 +70,10 @@
                     ];
 
                     $cryptoMethods = [
+                        'usdt' => __('checkout.usdt_label'),
                         'bitcoin' => __('checkout.btc_label'),
                         'ethereum' => 'Ethereum',
                         'litecoin' => 'Litecoin',
-                        'usdt' => __('checkout.usdt_label'),
                         'solana' => 'Solana',
                     ];
 
@@ -102,7 +102,7 @@
                     $intlMethods = $cryptoMethods + $paylioMethods;
                     $intlShortLabels = $cryptoMethods + $paylioShortLabels;
 
-                    $defaultMethod = $isVietnam ? 'wallet' : 'bitcoin';
+                    $defaultMethod = $isVietnam ? 'wallet' : 'usdt';
                 @endphp
 
                 @if($isVietnam)
