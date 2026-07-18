@@ -61,4 +61,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(\App\Modules\Theme\Models\Transaction::class);
     }
+
+    // Ngược lại với Coupon::users() — thiếu quan hệ này khiến checkout (CartController::checkoutView())
+    // luôn crash "Call to undefined method coupons()" cho MỌI khách đã đăng nhập.
+    public function coupons()
+    {
+        return $this->belongsToMany(\App\Modules\Theme\Models\Coupon::class, 'user_coupons')
+            ->withPivot('status', 'used_at')
+            ->withTimestamps();
+    }
 }
