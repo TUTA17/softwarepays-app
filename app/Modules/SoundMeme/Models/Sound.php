@@ -32,6 +32,24 @@ class Sound extends Model
         'download_count' => 'integer',
     ];
 
+    // Số lượt nghe/thích/tải khởi điểm luôn random trên 1 triệu (không tròn) để tránh cảm giác
+    // "mới toanh, 0 lượt" khi khách vào xem — lượt thật (increment() ở SoundController) cộng dồn
+    // tiếp lên trên nền random này như bình thường.
+    protected static function booted(): void
+    {
+        static::creating(function (Sound $sound) {
+            if (!$sound->play_count) {
+                $sound->play_count = random_int(1_000_000, 3_000_000);
+            }
+            if (!$sound->like_count) {
+                $sound->like_count = random_int(1_000_000, 3_000_000);
+            }
+            if (!$sound->download_count) {
+                $sound->download_count = random_int(1_000_000, 3_000_000);
+            }
+        });
+    }
+
     public function category()
     {
         return $this->belongsTo(SoundCategory::class, 'category_id');
