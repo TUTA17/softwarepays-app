@@ -50,9 +50,13 @@ class HomeController extends Controller
             ->with('cardPackages')
             ->orderBy('name')->get();
 
-        // eSIM: chọn vài điểm đến du lịch phổ biến với người Việt thay vì lấy ngẫu nhiên
-        // trong 200+ nước hiện có, để section trên trang chủ thực sự hữu ích.
-        $esimHighlights = collect(['Japan', 'Thailand', 'South Korea', 'Singapore'])
+        // eSIM: chọn các điểm đến du lịch phổ biến toàn cầu thay vì lấy ngẫu nhiên trong 200+ nước
+        // hiện có, để section trên trang chủ thực sự hữu ích (đủ 12 nước lấp 2 hàng ở màn lớn).
+        $esimHighlights = collect([
+            'Japan', 'Thailand', 'South Korea', 'Singapore',
+            'United States', 'United Kingdom', 'France', 'Italy',
+            'Spain', 'Australia', 'Vietnam', 'United Arab Emirates',
+        ])
             ->map(fn ($country) => Product::where('is_active', true)
                 ->where('product_type', Product::TYPE_ESIM)
                 ->where('name', 'like', $country . ' - %')
