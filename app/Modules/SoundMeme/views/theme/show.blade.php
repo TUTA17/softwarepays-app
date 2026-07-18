@@ -28,7 +28,7 @@
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center">
 
     <div class="text-sm text-slate-500 dark:text-slate-400 mb-8 font-medium">
-        <a href="{{ route('sounds.index') }}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Trang chủ</a>
+        <a href="{{ route('sounds.index') }}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">{{ __('soundshow.breadcrumb_home') }}</a>
         <span class="mx-2">></span>
         <span class="text-slate-800 dark:text-slate-200">{{ $sound->title }}</span>
     </div>
@@ -67,38 +67,38 @@
     <div class="text-slate-600 dark:text-slate-400 mb-10">
         <div class="flex items-center justify-center gap-2 mb-3 text-lg md:text-xl">
             <i class="fa-solid fa-heart text-red-500 animate-pulse"></i> 
-            <span class="font-bold text-slate-900 dark:text-white like-count">{{ number_format($sound->like_count) }}</span> 
-            người đã thích âm thanh này
+            <span class="font-bold text-slate-900 dark:text-white like-count">{{ number_format($sound->like_count) }}</span>
+            {{ __('soundshow.like_suffix') }}
         </div>
         <div class="text-sm font-medium">
-            Tải lên bởi SoftwarePays &bull; {{ number_format($sound->play_count) }} lượt nghe &bull; {{ number_format($sound->download_count) }} lượt tải
+            {{ __('soundshow.uploaded_by') }} SoftwarePays &bull; {{ number_format($sound->play_count) }} {{ __('soundshow.plays_suffix') }} &bull; {{ number_format($sound->download_count) }} {{ __('soundshow.downloads_suffix') }}
         </div>
     </div>
 
     <!-- Actions (Like Myinstants style) -->
     <div class="flex flex-wrap justify-center gap-3 mb-12 max-w-3xl mx-auto">
         <button onclick="likeSound('{{ $sound->slug }}', this)" class="like-btn flex-1 min-w-[150px] flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all shadow-md active:scale-95">
-            <i class="fa-regular fa-heart text-lg"></i> Thích
+            <i class="fa-regular fa-heart text-lg"></i> {{ __('soundshow.like_button') }}
         </button>
         <button onclick="shareSound('{{ $sound->slug }}'); window.open('https://www.facebook.com/sharer/sharer.php?u={{ urlencode(route('sounds.show', $sound->slug)) }}', '_blank')" class="flex-1 min-w-[150px] flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all shadow-md active:scale-95">
-            <i class="fa-brands fa-facebook-f text-lg"></i> Chia sẻ
+            <i class="fa-brands fa-facebook-f text-lg"></i> {{ __('soundshow.share_button') }}
         </button>
         <button onclick="copySoundLink('{{ route('sounds.show', $sound->slug) }}', this)" class="flex-1 min-w-[150px] flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all shadow-md active:scale-95">
-            <i class="fa-solid fa-link text-lg"></i> Sao chép Link
+            <i class="fa-solid fa-link text-lg"></i> {{ __('soundshow.copy_link_button') }}
         </button>
         <a href="{{ route('sounds.download', $sound->slug) }}" class="flex-1 min-w-[150px] flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all shadow-md active:scale-95">
-            <i class="fa-solid fa-download text-lg"></i> Tải xuống MP3
+            <i class="fa-solid fa-download text-lg"></i> {{ __('soundshow.download_button') }}
         </a>
     </div>
 
     <!-- Embed Code -->
     <div class="max-w-xl mx-auto mb-12">
-        <p class="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mb-2">Nhúng vào website của bạn</p>
+        <p class="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mb-2">{{ __('soundshow.embed_title') }}</p>
         <textarea readonly class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-600 dark:text-slate-300 font-mono text-center focus:outline-none focus:border-blue-500 cursor-text" rows="2" onclick="this.select()"><iframe width="110" height="200" src="{{ route('sounds.show', $sound->slug) }}" frameborder="0"></iframe></textarea>
     </div>
 
         <div>
-            <h3 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-4">Sound liên quan</h3>
+            <h3 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-4">{{ __('soundshow.related_title') }}</h3>
             <div class="flex flex-col gap-3">
                 @forelse($related as $r)
                     <a href="{{ route('sounds.show', $r->slug) }}" class="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow">
@@ -115,7 +115,7 @@
                         </div>
                     </a>
                 @empty
-                    <p class="text-sm text-slate-500 dark:text-slate-400">Chưa có sound liên quan.</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">{{ __('soundshow.no_related') }}</p>
                 @endforelse
             </div>
         </div>

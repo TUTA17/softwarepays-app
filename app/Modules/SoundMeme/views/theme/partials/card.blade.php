@@ -48,13 +48,13 @@
 
     <!-- Action Icons -->
     <div class="flex items-center justify-center gap-2.5 text-slate-400 dark:text-slate-500 text-[11px]">
-        <button type="button" onclick="likeSound('{{ $sound->slug }}', this)" class="hover:text-red-500 transition-colors" title="Thích">
+        <button type="button" onclick="likeSound('{{ $sound->slug }}', this)" class="hover:text-red-500 transition-colors" title="{{ __('soundshow.like_button') }}">
             <i class="fa-solid fa-heart"></i>
         </button>
-        <button type="button" onclick="copySoundLink('{{ route('sounds.show', $sound->slug) }}', this)" class="hover:text-blue-500 transition-colors" title="Chia sẻ">
+        <button type="button" onclick="copySoundLink('{{ route('sounds.show', $sound->slug) }}', this)" class="hover:text-blue-500 transition-colors" title="{{ __('soundshow.share_button') }}">
             <i class="fa-solid fa-share-nodes"></i>
         </button>
-        <a href="{{ route('sounds.download', $sound->slug) }}" class="hover:text-indigo-500 transition-colors" title="Tải xuống">
+        <a href="{{ route('sounds.download', $sound->slug) }}" class="hover:text-indigo-500 transition-colors" title="{{ __('soundshow.download_button') }}">
             <i class="fa-solid fa-download"></i>
         </a>
     </div>
