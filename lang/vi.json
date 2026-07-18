@@ -824,7 +824,7 @@
     "product.js.server_prefix": "SV",
     "product.js.video_intro_alt": "Video giới thiệu",
     "product.js.play_video": "Phát video",
-    "wallet.deposit_domestic_heading": "Thanh toán trong nước",
+    "wallet.deposit_domestic_heading": "Thanh toán Việt Nam",
     "wallet.deposit_crypto_heading": "Tiền điện tử",
     "wallet.deposit_intl_heading": "Thanh toán quốc tế",
     "flash.paypal_deposit_retry_unsupported": "Giao dịch PayPal đã bị huỷ hoặc chưa hoàn tất. Vui lòng tạo giao dịch nạp tiền mới.",
