@@ -64,13 +64,9 @@
                             <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
                                 <i class="fa-solid fa-credit-card text-blue-400"></i> {{ __('wallet.deposit_choose_method') }}
                             </label>
-                            <div class="grid grid-cols-3 gap-3">
+                            <div class="grid {{ $isVndCurrency ? 'grid-cols-3' : 'grid-cols-2' }} gap-3">
                                 @if($isVndCurrency)
                                 <button type="button" id="method-bank" class="deposit-method-btn active bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-500 text-blue-700 dark:text-blue-400 rounded-xl py-3 text-center font-bold text-sm" onclick="setDepositMethod('bank', this)">
-                                    <i class="fa-solid fa-building-columns block text-lg mb-1"></i> {{ __('wallet.deposit_bank_qr_label') }}
-                                </button>
-                                @else
-                                <button type="button" id="method-bank" disabled title="{{ __('checkout.vnd_only_note') }}" class="deposit-method-btn opacity-40 grayscale cursor-not-allowed bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600 rounded-xl py-3 text-center font-bold text-sm">
                                     <i class="fa-solid fa-building-columns block text-lg mb-1"></i> {{ __('wallet.deposit_bank_qr_label') }}
                                 </button>
                                 @endif
@@ -78,7 +74,7 @@
                                     <i class="fa-brands fa-bitcoin block text-lg mb-1"></i> Crypto
                                 </button>
                                 <button type="button" id="method-paylio" class="deposit-method-btn bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center font-bold text-sm" onclick="setDepositMethod('paylio', this)">
-                                    <i class="fa-solid fa-credit-card block text-lg mb-1"></i> Paylio
+                                    <span class="flex items-center justify-center gap-1.5 text-xl mb-1"><i class="fa-brands fa-cc-visa"></i><i class="fa-brands fa-cc-mastercard"></i><i class="fa-brands fa-paypal"></i></span> Card / PayPal
                                 </button>
                             </div>
                         </div>
