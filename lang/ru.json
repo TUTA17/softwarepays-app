@@ -480,6 +480,7 @@
     "checkout.pay_button": "Оплатить через MoMo",
     "checkout.pay_with": "Оплатить через :method",
     "checkout.intl_payment_heading": "Международные способы оплаты",
+    "checkout.crypto_payment_heading": "Оплата криптовалютой",
     "checkout.show_vnd_methods": "Показать способы оплаты в VND",
     "wallet.title": "Мой кошелёк",
     "wallet.balance_label": "Текущий баланс",

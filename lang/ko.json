@@ -480,6 +480,7 @@
     "checkout.pay_button": "MoMo로 결제하기",
     "checkout.pay_with": ":method로 결제",
     "checkout.intl_payment_heading": "해외 결제 수단",
+    "checkout.crypto_payment_heading": "암호화폐 결제",
     "checkout.show_vnd_methods": "VND 결제 수단 표시",
     "wallet.title": "내 지갑",
     "wallet.balance_label": "현재 잔액",

@@ -433,6 +433,7 @@
     "terms.contact_button": "Contact Support",
     "checkout.discount_amount": "Discount",
     "checkout.intl_payment_heading": "International methods",
+    "checkout.crypto_payment_heading": "Crypto payment",
     "checkout.show_vnd_methods": "Show VND payment methods",
     "wallet.title": "My Wallet",
     "wallet.balance_label": "Current balance",

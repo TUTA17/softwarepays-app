@@ -465,6 +465,7 @@
     "terms.contact_button": "Liên Hệ Hỗ Trợ",
     "checkout.discount_amount": "Giảm giá",
     "checkout.intl_payment_heading": "Phương thức quốc tế",
+    "checkout.crypto_payment_heading": "Thanh toán bằng Crypto",
     "checkout.show_vnd_methods": "Hiện phương thức thanh toán VNĐ",
     "wallet.title": "Ví của tôi",
     "wallet.balance_label": "Số dư hiện tại",

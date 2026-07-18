@@ -56,6 +56,11 @@
                     $displayCurrency = session('currency', 'VND');
                     $displayRate = \App\Helpers\CurrencyHelper::rate($displayCurrency);
                     $paypalClientId = config('services.paypal.mode') === 'live' ? config('services.paypal.live_client_id') : config('services.paypal.sandbox_client_id');
+
+                    // Khách Việt Nam chỉ thấy nội địa + crypto; các nước khác chỉ thấy quốc tế (PayPal/Thẻ) —
+                    // tách theo quốc gia thực (session('geo_country'), độc lập với tiền tệ/ngôn ngữ khách tự đổi tay).
+                    $isVietnam = session('geo_country') === 'VN';
+
                     $domesticMethods = [
                         'wallet' => ['label' => __('checkout.wallet_short_label') . ' (VNĐ)', 'desc' => __('wallet.balance_label') . ': ' . \App\Helpers\CurrencyHelper::formatWalletBalance(auth()->user()->balance)],
                         'wallet_usd' => ['label' => __('checkout.wallet_short_label') . ' (USD)', 'desc' => __('wallet.balance_label') . ': ' . \App\Helpers\CurrencyHelper::formatWalletBalanceUsd(auth()->user()->balance_usd)],
@@ -65,47 +70,53 @@
                         'vietqr' => ['label' => __('checkout.vietqr_label'), 'desc' => __('checkout.vietqr_transfer_desc')],
                         'napas' => ['label' => __('checkout.napas_label'), 'desc' => __('checkout.vietqr_transfer_desc')],
                     ];
-                    $intlMethods = [
-                        'paypal' => 'PayPal · ' . $paypalCurrency,
-                        'card' => __('checkout.card_label') . ' · ' . $paypalCurrency,
+
+                    $cryptoMethods = [
                         'bitcoin' => __('checkout.btc_label'),
                         'ethereum' => 'Ethereum',
                         'litecoin' => 'Litecoin',
                         'usdt' => __('checkout.usdt_label'),
                         'solana' => 'Solana',
+                    ];
+
+                    $gatewayMethods = [
+                        'paypal' => 'PayPal · ' . $paypalCurrency,
+                        'card' => __('checkout.card_label') . ' · ' . $paypalCurrency,
                     ];
                     // Nhãn ngắn gọn dùng riêng cho nút "Thanh toán với ..." — nhãn đầy đủ (liệt kê Visa/Mastercard/Apple Pay)
                     // quá dài khi ghép vào nút, làm nút bị vỡ dòng xấu.
-                    $intlShortLabels = [
+                    $gatewayShortLabels = [
                         'paypal' => 'PayPal · ' . $paypalCurrency,
                         'card' => __('checkout.card_short_label') . ' · ' . $paypalCurrency,
-                        'bitcoin' => __('checkout.btc_label'),
-                        'ethereum' => 'Ethereum',
-                        'litecoin' => 'Litecoin',
-                        'usdt' => __('checkout.usdt_label'),
-                        'solana' => 'Solana',
                     ];
+
+                    $intlMethods = $isVietnam ? $cryptoMethods : $gatewayMethods;
+                    $intlShortLabels = $isVietnam ? $cryptoMethods : $gatewayShortLabels;
+
+                    $defaultMethod = $isVietnam ? 'wallet' : 'paypal';
                 @endphp
 
+                @if($isVietnam)
                 <p class="text-xs font-bold uppercase text-slate-400 mb-2">{{ __('wallet.deposit_domestic_heading') }}</p>
                 <div class="space-y-3 mb-6">
                     @foreach($domesticMethods as $key => $m)
                     @php $methodDisabled = !in_array($key, ['wallet', 'wallet_usd']) && !$isVndCurrency; @endphp
-                    <label class="payment-method-option relative flex rounded-lg border {{ $methodDisabled ? 'opacity-40 grayscale cursor-not-allowed' : ($key === 'wallet' ? 'cursor-pointer border-blue-500 bg-blue-50/50 dark:bg-blue-500/10' : 'cursor-pointer border-slate-200 dark:border-slate-700') }} p-4 shadow-sm focus:outline-none"
+                    <label class="payment-method-option relative flex rounded-lg border {{ $methodDisabled ? 'opacity-40 grayscale cursor-not-allowed' : ($key === $defaultMethod ? 'cursor-pointer border-blue-500 bg-blue-50/50 dark:bg-blue-500/10' : 'cursor-pointer border-slate-200 dark:border-slate-700') }} p-4 shadow-sm focus:outline-none"
                            data-method="{{ $key }}" data-currency="{{ $key === 'wallet_usd' ? 'USD' : 'VND' }}" data-fee-pct="{{ $feeConfig['fee_pct_'.$key] ?? 0 }}" data-fee-fixed="{{ $feeConfig['fee_fixed_vnd'] ?? 0 }}" data-intl="0" data-disabled="{{ $methodDisabled ? '1' : '0' }}">
-                        <input type="radio" name="payment_method" value="{{ $key }}" class="sr-only payment-method-radio" {{ $key === 'wallet' ? 'checked' : '' }} {{ $methodDisabled ? 'disabled' : '' }}>
+                        <input type="radio" name="payment_method" value="{{ $key }}" class="sr-only payment-method-radio" {{ $key === $defaultMethod ? 'checked' : '' }} {{ $methodDisabled ? 'disabled' : '' }}>
                         <span class="flex flex-1">
                             <span class="flex flex-col">
                                 <span class="block text-sm font-medium text-slate-900 dark:text-white">{{ $m['label'] }}</span>
                                 <span class="mt-1 flex items-center text-sm text-slate-500 dark:text-slate-400">{!! $methodDisabled ? __('checkout.vnd_only_note') : $m['desc'] !!}</span>
                             </span>
                         </span>
-                        <i class="fa-solid fa-circle-check payment-check-icon text-blue-600 dark:text-blue-400 text-xl {{ $key === 'wallet' ? '' : 'opacity-0' }}"></i>
+                        <i class="fa-solid fa-circle-check payment-check-icon text-blue-600 dark:text-blue-400 text-xl {{ $key === $defaultMethod ? '' : 'opacity-0' }}"></i>
                     </label>
                     @endforeach
                 </div>
+                @endif
 
-                <p class="text-xs font-bold uppercase text-slate-400 mb-2">{{ __('checkout.intl_payment_heading') }}</p>
+                <p class="text-xs font-bold uppercase text-slate-400 mb-2">{{ $isVietnam ? __('checkout.crypto_payment_heading') : __('checkout.intl_payment_heading') }}</p>
                 <div class="space-y-3">
                     @foreach($intlMethods as $key => $label)
                     @php
@@ -113,17 +124,18 @@
                         $intlPct = (float) ($feeConfig['intl_'.$key.'_intl_pct'] ?? 0);
                         $fxPct = (float) ($feeConfig['intl_'.$key.'_fx_pct'] ?? 0);
                         $fixedUsd = (float) ($feeConfig['intl_'.$key.'_fixed_usd'] ?? 0);
+                        $isDefault = $key === $defaultMethod;
                     @endphp
-                    <label class="payment-method-option relative flex cursor-pointer rounded-lg border border-slate-200 dark:border-slate-700 p-4 shadow-sm"
+                    <label class="payment-method-option relative flex cursor-pointer rounded-lg border {{ $isDefault ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-500/10' : 'border-slate-200 dark:border-slate-700' }} p-4 shadow-sm"
                            data-method="{{ $key }}" data-short-label="{{ $intlShortLabels[$key] }}" data-basic-pct="{{ $basic }}" data-intl-pct="{{ $intlPct }}" data-fx-pct="{{ $fxPct }}" data-fixed-usd="{{ $fixedUsd }}" data-intl="1" data-disabled="0">
-                        <input type="radio" name="payment_method" value="{{ $key }}" class="sr-only payment-method-radio">
+                        <input type="radio" name="payment_method" value="{{ $key }}" class="sr-only payment-method-radio" {{ $isDefault ? 'checked' : '' }}>
                         <span class="flex flex-1">
                             <span class="flex flex-col">
                                 <span class="block text-sm font-medium text-slate-900 dark:text-white">{{ $label }}</span>
                                 <span class="mt-1 flex items-center text-sm text-slate-500 dark:text-slate-400">{{ $key === 'card' ? __('checkout.card_desc_note') : __('checkout.intl_pay_ready_note') }}</span>
                             </span>
                         </span>
-                        <i class="fa-solid fa-circle-check payment-check-icon text-blue-600 dark:text-blue-400 text-xl opacity-0"></i>
+                        <i class="fa-solid fa-circle-check payment-check-icon text-blue-600 dark:text-blue-400 text-xl {{ $isDefault ? '' : 'opacity-0' }}"></i>
                     </label>
                     @endforeach
                 </div>
@@ -216,26 +228,30 @@
                 <!-- Nút Đặt Hàng -->
                 <form id="checkout-form" action="{{ route('cart.checkout.process') }}" method="POST" class="mt-6">
                     @csrf
-                    <input type="hidden" name="payment_method" id="selected_payment_method" value="wallet">
+                    <input type="hidden" name="payment_method" id="selected_payment_method" value="{{ $defaultMethod }}">
                     @php
                         $userBalance = auth()->user()->balance;
                         $userBalanceUsd = auth()->user()->balance_usd;
                         $finalTotalUsd = $final_total * \App\Helpers\CurrencyHelper::rate('USD');
                     @endphp
                     <div id="checkout-submit-area" data-user-balance="{{ $userBalance }}" data-user-balance-usd="{{ $userBalanceUsd }}" data-final-total-usd="{{ $finalTotalUsd }}">
-                        @if($userBalance >= $final_total)
-                            <button type="submit" id="checkout-submit-btn" class="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-4 rounded-xl text-lg font-bold shadow-lg shadow-blue-500/30 transition transform hover:-translate-y-1">
-                                <i class="fa-solid fa-credit-card"></i>
-                                <span id="checkout-submit-label">{{ __('checkout.pay_with', ['method' => __('checkout.wallet_short_label')]) }}</span>
-                            </button>
+                        @if($isVietnam)
+                            @if($userBalance >= $final_total)
+                                <button type="submit" id="checkout-submit-btn" class="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-4 rounded-xl text-lg font-bold shadow-lg shadow-blue-500/30 transition transform hover:-translate-y-1">
+                                    <i class="fa-solid fa-credit-card"></i>
+                                    <span id="checkout-submit-label">{{ __('checkout.pay_with', ['method' => __('checkout.wallet_short_label')]) }}</span>
+                                </button>
+                            @else
+                                <div class="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-lg mb-3">
+                                    <p class="text-sm text-red-600 dark:text-red-400 text-center">{{ __('flash.wallet_insufficient') }}</p>
+                                </div>
+                                <a href="{{ route('wallet.show') }}" class="w-full flex justify-center items-center gap-2 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-6 py-4 rounded-xl text-lg font-bold transition">
+                                    <i class="fa-solid fa-wallet"></i>
+                                    {{ __('wallet.deposit_button') }}
+                                </a>
+                            @endif
                         @else
-                            <div class="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-lg mb-3">
-                                <p class="text-sm text-red-600 dark:text-red-400 text-center">{{ __('flash.wallet_insufficient') }}</p>
-                            </div>
-                            <a href="{{ route('wallet.show') }}" class="w-full flex justify-center items-center gap-2 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-6 py-4 rounded-xl text-lg font-bold transition">
-                                <i class="fa-solid fa-wallet"></i>
-                                {{ __('wallet.deposit_button') }}
-                            </a>
+                            <div id="paypal-button-container"></div>
                         @endif
                     </div>
                 </form>

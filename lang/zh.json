@@ -480,6 +480,7 @@
     "checkout.pay_button": "使用MoMo支付",
     "checkout.pay_with": "使用:method支付",
     "checkout.intl_payment_heading": "国际支付方式",
+    "checkout.crypto_payment_heading": "加密货币支付",
     "checkout.show_vnd_methods": "显示越南盾支付方式",
     "wallet.title": "我的钱包",
     "wallet.balance_label": "当前余额",

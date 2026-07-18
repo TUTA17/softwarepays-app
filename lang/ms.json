@@ -480,6 +480,7 @@
     "checkout.pay_button": "Bayar dengan MoMo",
     "checkout.pay_with": "Bayar dengan :method",
     "checkout.intl_payment_heading": "Kaedah antarabangsa",
+    "checkout.crypto_payment_heading": "Pembayaran kripto",
     "checkout.show_vnd_methods": "Papar kaedah pembayaran VND",
     "wallet.title": "Dompet Saya",
     "wallet.balance_label": "Baki semasa",

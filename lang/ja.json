@@ -480,6 +480,7 @@
     "checkout.pay_button": "MoMoで支払う",
     "checkout.pay_with": ":methodで支払う",
     "checkout.intl_payment_heading": "海外決済方法",
+    "checkout.crypto_payment_heading": "暗号資産決済",
     "checkout.show_vnd_methods": "VND決済方法を表示",
     "wallet.title": "マイウォレット",
     "wallet.balance_label": "現在の残高",

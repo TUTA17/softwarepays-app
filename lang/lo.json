@@ -480,6 +480,7 @@
     "checkout.pay_button": "ຊຳລະດ້ວຍ MoMo",
     "checkout.pay_with": "ຊຳລະດ້ວຍ :method",
     "checkout.intl_payment_heading": "ວິທີການສາກົນ",
+    "checkout.crypto_payment_heading": "ຊຳລະດ້ວຍ Crypto",
     "checkout.show_vnd_methods": "ສະແດງວິທີການຊຳລະເງິນ VND",
     "wallet.title": "ກະເປົາເງິນຂອງຂ້ອຍ",
     "wallet.balance_label": "ຍອດເງິນປັດຈຸບັນ",

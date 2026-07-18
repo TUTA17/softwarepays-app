@@ -480,6 +480,7 @@
     "checkout.pay_button": "ชำระเงินด้วย MoMo",
     "checkout.pay_with": "ชำระด้วย :method",
     "checkout.intl_payment_heading": "ช่องทางชำระเงินระหว่างประเทศ",
+    "checkout.crypto_payment_heading": "ชำระด้วยคริปโต",
     "checkout.show_vnd_methods": "แสดงวิธีชำระเงินสกุล VND",
     "wallet.title": "กระเป๋าเงินของฉัน",
     "wallet.balance_label": "ยอดคงเหลือปัจจุบัน",

@@ -480,6 +480,7 @@
     "checkout.pay_button": "ទូទាត់ជាមួយ MoMo",
     "checkout.pay_with": "ទូទាត់ជាមួយ :method",
     "checkout.intl_payment_heading": "វិធីទូទាត់អន្តរជាតិ",
+    "checkout.crypto_payment_heading": "ការទូទាត់ Crypto",
     "checkout.show_vnd_methods": "បង្ហាញវិធីទូទាត់ជា VND",
     "wallet.title": "កាបូបលុយរបស់ខ្ញុំ",
     "wallet.balance_label": "សមតុល្យបច្ចុប្បន្ន",

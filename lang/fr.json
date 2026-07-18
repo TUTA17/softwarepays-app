@@ -480,6 +480,7 @@
     "checkout.pay_button": "Payer avec MoMo",
     "checkout.pay_with": "Payer avec :method",
     "checkout.intl_payment_heading": "Moyens internationaux",
+    "checkout.crypto_payment_heading": "Paiement en crypto",
     "checkout.show_vnd_methods": "Afficher les moyens de paiement en VND",
     "wallet.title": "Mon portefeuille",
     "wallet.balance_label": "Solde actuel",

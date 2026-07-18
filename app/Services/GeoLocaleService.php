@@ -37,6 +37,13 @@ class GeoLocaleService
         return self::COUNTRY_MAP[$countryCode] ?? [self::DEFAULT_LOCALE, self::DEFAULT_CURRENCY];
     }
 
+    // Mã quốc gia thô theo IP (VD: "VN", "US"), dùng để tách hiển thị phương thức thanh toán
+    // (nội địa+crypto cho VN, quốc tế cho các nước khác) — độc lập với locale/currency khách tự đổi tay.
+    public function detectCountryCode(?string $ip): ?string
+    {
+        return $this->lookupCountryCode($ip);
+    }
+
     protected function lookupCountryCode(?string $ip): ?string
     {
         if (!$ip || $this->isPrivateOrLocal($ip)) {
