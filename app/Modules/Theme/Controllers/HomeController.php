@@ -51,8 +51,13 @@ class HomeController extends Controller
             ->where('product_type', Product::TYPE_SOFTWARE)
             ->orderBy('price')->orderBy('id')->get();
 
+        // Thẻ cào nhà mạng (Viettel/Mobifone/Vinaphone/Vietnamobile) chỉ nạp được ở VN -> ẩn
+        // hẳn khỏi khách xem site bằng ngôn ngữ khác tiếng Việt, không chỉ làm mờ.
         $cardProducts = Product::where('is_active', true)
             ->where('product_type', Product::TYPE_CARD)
+            ->when(app()->getLocale() !== 'vi', fn ($q) => $q->whereNotIn('name', [
+                'Thẻ cào Viettel', 'Thẻ cào Mobifone', 'Thẻ cào Vinaphone', 'Thẻ cào Vietnamobile',
+            ]))
             ->with('cardPackages')
             ->orderBy('name')->orderBy('id')->get();
 

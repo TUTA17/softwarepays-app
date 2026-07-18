@@ -111,7 +111,12 @@ class CatalogController extends Controller
 
     public function browseCard()
     {
+        // Thẻ cào nhà mạng (Viettel/Mobifone/Vinaphone/Vietnamobile) chỉ nạp được ở VN -> ẩn
+        // hẳn khỏi khách xem site bằng ngôn ngữ khác tiếng Việt, không chỉ làm mờ.
         $products = Product::where('product_type', Product::TYPE_CARD)->where('is_active', true)
+            ->when(app()->getLocale() !== 'vi', fn ($q) => $q->whereNotIn('name', [
+                'Thẻ cào Viettel', 'Thẻ cào Mobifone', 'Thẻ cào Vinaphone', 'Thẻ cào Vietnamobile',
+            ]))
             ->with(['cardPackages' => fn ($q) => $q->where('is_active', true)->orderBy('face_value')])
             ->get();
 
