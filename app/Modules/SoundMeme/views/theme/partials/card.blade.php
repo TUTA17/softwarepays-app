@@ -47,14 +47,14 @@
     </a>
 
     <!-- Action Icons -->
-    <div class="flex items-center justify-center gap-4 text-slate-400 dark:text-slate-500 text-lg">
-        <button type="button" onclick="likeSound('{{ $sound->slug }}', this)" class="hover:text-red-500 hover:scale-110 transition-all" title="{{ __('soundshow.like_button') }}">
+    <div class="flex items-center justify-center gap-4 text-lg">
+        <button type="button" onclick="likeSound('{{ $sound->slug }}', this)" class="text-red-500 hover:scale-125 transition-transform" title="{{ __('soundshow.like_button') }}">
             <i class="fa-solid fa-heart"></i>
         </button>
-        <button type="button" onclick="copySoundLink('{{ route('sounds.show', $sound->slug) }}', this)" class="hover:text-blue-500 hover:scale-110 transition-all" title="{{ __('soundshow.share_button') }}">
+        <button type="button" onclick="copySoundLink('{{ route('sounds.show', $sound->slug) }}', this)" class="text-blue-500 hover:scale-125 transition-transform" title="{{ __('soundshow.share_button') }}">
             <i class="fa-solid fa-share-nodes"></i>
         </button>
-        <a href="{{ route('sounds.download', $sound->slug) }}" class="hover:text-indigo-500 hover:scale-110 transition-all" title="{{ __('soundshow.download_button') }}">
+        <a href="{{ route('sounds.download', $sound->slug) }}" class="text-indigo-500 hover:scale-125 transition-transform" title="{{ __('soundshow.download_button') }}">
             <i class="fa-solid fa-download"></i>
         </a>
     </div>
