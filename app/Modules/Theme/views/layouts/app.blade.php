@@ -829,10 +829,10 @@
                     <h3 class="font-display font-semibold text-slate-900 dark:text-white text-lg mb-6">{{ __('footer.payment_title') }}</h3>
                     <p class="text-slate-500 dark:text-slate-400 text-sm mb-4">{{ __('footer.payment_desc') }}</p>
                     <div class="flex flex-wrap gap-2">
-                        <div class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300">MoMo</div>
-                        <div class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300">VNPay</div>
-                        <div class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300">Bank Transfer</div>
-                        <div class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300">Crypto (BTC, ETH, USDT...)</div>
+                        <div class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5"><i class="fa-solid fa-qrcode"></i> Bank Transfer (QR)</div>
+                        <div class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5"><i class="fa-brands fa-cc-visa"></i><i class="fa-brands fa-cc-mastercard"></i> Visa / Mastercard</div>
+                        <div class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5"><i class="fa-brands fa-paypal"></i> PayPal</div>
+                        <div class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5"><i class="fa-brands fa-bitcoin"></i> Crypto (BTC, ETH, USDT...)</div>
                     </div>
                 </div>
             </div>
