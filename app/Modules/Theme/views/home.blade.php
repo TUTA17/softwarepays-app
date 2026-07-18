@@ -717,4 +717,88 @@
         </div>
     </div>
     @endif
+
+    <!-- Sound Meme -->
+    @if(isset($homeSounds) && $homeSounds->isNotEmpty())
+    <div id="sound-meme" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-24 relative">
+        <div class="flex flex-col sm:flex-row justify-between items-end mb-10 border-b border-slate-200 dark:border-slate-800 pb-4">
+            <div>
+                <h2 class="text-3xl font-display font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-3">
+                    <i class="fa-solid fa-music text-fuchsia-500"></i> {{ __('home.soundmeme_heading') }}
+                </h2>
+                <p class="text-slate-500 dark:text-slate-400">{{ __('home.soundmeme_subtitle') }}</p>
+            </div>
+            <div class="mt-4 sm:mt-0">
+                <a href="{{ route('sounds.index') }}" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-semibold transition-all shadow-sm hover:shadow-lg hover:shadow-fuchsia-500/25">
+                    {{ __('home.soundmeme_cta') }} <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-4">
+            @foreach($homeSounds as $s)
+            <a href="{{ route('sounds.show', $s->slug) }}" class="product-card group">
+                <div class="product-card-media bg-slate-100 dark:bg-slate-800 aspect-square relative overflow-hidden">
+                    @if($s->thumbnail_url)
+                        <img src="{{ $s->thumbnail_url }}" alt="{{ $s->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy">
+                    @else
+                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-fuchsia-500/10 to-indigo-500/10">
+                            <i class="fa-solid fa-music text-3xl sm:text-5xl text-fuchsia-400"></i>
+                        </div>
+                    @endif
+                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px] z-10 pointer-events-none">
+                        <span class="bg-fuchsia-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-xl flex items-center gap-2"><i class="fa-solid fa-play"></i> {{ __('home.soundmeme_play') }}</span>
+                    </div>
+                </div>
+                <div class="p-4 flex flex-col flex-grow">
+                    <div class="mb-2 h-[48px]">
+                        <h3 class="font-display font-semibold text-[15px] text-slate-900 dark:text-white leading-snug group-hover:text-fuchsia-500 transition-colors line-clamp-2" title="{{ $s->title }}">{{ $s->title }}</h3>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 uppercase"><i class="fa-solid fa-headphones"></i> {{ number_format($s->play_count) }}</span>
+                    </div>
+                </div>
+            </a>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    <!-- GIF Meme -->
+    @if(isset($homeGifs) && $homeGifs->isNotEmpty())
+    <div id="gif-meme" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-24 relative">
+        <div class="flex flex-col sm:flex-row justify-between items-end mb-10 border-b border-slate-200 dark:border-slate-800 pb-4">
+            <div>
+                <h2 class="text-3xl font-display font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-3">
+                    <i class="fa-solid fa-images text-teal-500"></i> {{ __('home.gifmeme_heading') }}
+                </h2>
+                <p class="text-slate-500 dark:text-slate-400">{{ __('home.gifmeme_subtitle') }}</p>
+            </div>
+            <div class="mt-4 sm:mt-0">
+                <a href="{{ route('Gifs.index') }}" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold transition-all shadow-sm hover:shadow-lg hover:shadow-teal-500/25">
+                    {{ __('home.gifmeme_cta') }} <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-4">
+            @foreach($homeGifs as $g)
+            <a href="{{ route('Gifs.show', $g->slug) }}" class="product-card group">
+                <div class="product-card-media bg-slate-100 dark:bg-slate-800 aspect-square relative overflow-hidden">
+                    <img src="{{ $g->play_url }}" alt="{{ $g->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy">
+                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px] z-10 pointer-events-none">
+                        <span class="bg-teal-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-xl flex items-center gap-2"><i class="fa-solid fa-eye"></i> {{ __('home.featured_quick_view') }}</span>
+                    </div>
+                </div>
+                <div class="p-4 flex flex-col flex-grow">
+                    <div class="mb-2 h-[48px]">
+                        <h3 class="font-display font-semibold text-[15px] text-slate-900 dark:text-white leading-snug group-hover:text-teal-500 transition-colors line-clamp-2" title="{{ $g->title }}">{{ $g->title }}</h3>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 uppercase"><i class="fa-solid fa-download"></i> {{ number_format($g->download_count) }}</span>
+                    </div>
+                </div>
+            </a>
+            @endforeach
+        </div>
+    </div>
+    @endif
 @endsection

@@ -7,11 +7,15 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Modules\Theme\Models\Banner;
 use App\Modules\Theme\Models\Product;
+use App\Modules\SoundMeme\Models\Sound;
+use App\Modules\SoundMeme\Services\R2StorageService as SoundR2StorageService;
+use App\Modules\GifMeme\Models\Gif;
+use App\Modules\GifMeme\Services\R2StorageService as GifR2StorageService;
 use App\Services\SteamApiService;
 
 class HomeController extends Controller
 {
-    public function index(SteamApiService $steamApi)
+    public function index(SteamApiService $steamApi, SoundR2StorageService $soundR2, GifR2StorageService $gifR2)
     {
         $banners = Banner::where('is_active', true)->orderBy('sort_order')->orderBy('id')->get();
 
@@ -73,9 +77,29 @@ class HomeController extends Controller
             }
         }
 
+        // Sound Meme & GIF Meme: lấy top thịnh hành để giới thiệu ở trang chủ, giống các section
+        // danh mục sản phẩm khác — link ra trang riêng của từng module để xem/nghe/tải đầy đủ.
+        $homeSounds = Sound::where('status', Sound::STATUS_PUBLISHED)
+            ->orderBy('play_count', 'desc')
+            ->take(12)
+            ->get()
+            ->map(function ($s) use ($soundR2) {
+                $s->thumbnail_url = $s->thumbnail_key ? $soundR2->getSignedDownloadUrl($s->thumbnail_key, 30) : null;
+                return $s;
+            });
+
+        $homeGifs = Gif::where('status', Gif::STATUS_PUBLISHED)
+            ->orderBy('play_count', 'desc')
+            ->take(12)
+            ->get()
+            ->map(function ($g) use ($gifR2) {
+                $g->play_url = $gifR2->getSignedDownloadUrl($g->object_key, 30);
+                return $g;
+            });
+
         return view('theme::home', compact(
             'banners', 'products', 'giftcards', 'subscriptionProducts', 'softwareProducts',
-            'cardProducts', 'esimHighlights'
+            'cardProducts', 'esimHighlights', 'homeSounds', 'homeGifs'
         ));
     }
 }
