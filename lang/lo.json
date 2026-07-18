@@ -1,4 +1,9 @@
 {
+    "human_verify.heading": "ການຢືນຢັນຄວາມປອດໄພ",
+    "human_verify.description": "ກະລຸນາຢືນຢັນວ່າທ່ານບໍ່ແມ່ນຫຸ່ນຍົນ ເພື່ອສືບຕໍ່ເຂົ້າໃຊ້ SoftwarePays.",
+    "human_verify.continue_button": "ດຳເນີນການຕໍ່",
+    "human_verify.failed_error": "ການຢືນຢັນລົ້ມເຫລວ, ກະລຸນາລອງໃໝ່.",
+    "human_verify.required_error": "ກະລຸນາຢືນຢັນວ່າທ່ານບໍ່ແມ່ນຫຸ່ນຍົນ ແລ້ວລອງໃໝ່ອີກຄັ້ງ.",
     "nav.home": "ໜ້າຫຼັກ",
     "nav.shop": "ຮ້ານຄ້າ",
     "nav.categories": "ໝວດໝູ່",

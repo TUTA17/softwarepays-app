@@ -1,4 +1,9 @@
 {
+    "human_verify.heading": "安全验证",
+    "human_verify.description": "请验证您不是机器人以继续访问 SoftwarePays。",
+    "human_verify.continue_button": "继续",
+    "human_verify.failed_error": "验证失败，请重试。",
+    "human_verify.required_error": "请验证您不是机器人后重试。",
     "nav.home": "首页",
     "nav.shop": "商城",
     "nav.categories": "分类",

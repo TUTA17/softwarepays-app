@@ -1,4 +1,9 @@
 {
+    "human_verify.heading": "Verifikasi Keamanan",
+    "human_verify.description": "Harap verifikasi bahwa Anda bukan robot untuk melanjutkan mengakses SoftwarePays.",
+    "human_verify.continue_button": "Lanjutkan",
+    "human_verify.failed_error": "Verifikasi gagal, silakan coba lagi.",
+    "human_verify.required_error": "Harap verifikasi bahwa Anda bukan robot, lalu coba lagi.",
     "nav.home": "Beranda",
     "nav.shop": "Belanja",
     "nav.categories": "Kategori",

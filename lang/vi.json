@@ -1,4 +1,9 @@
 {
+    "human_verify.heading": "Xác minh bảo mật",
+    "human_verify.description": "Vui lòng xác minh bạn không phải robot để tiếp tục truy cập SoftwarePays.",
+    "human_verify.continue_button": "Tiếp tục",
+    "human_verify.failed_error": "Xác minh thất bại, vui lòng thử lại.",
+    "human_verify.required_error": "Vui lòng xác minh bạn không phải robot rồi thử lại.",
     "nav.home": "Trang Chủ",
     "nav.shop": "Cửa Hàng",
     "nav.categories": "Danh Mục",

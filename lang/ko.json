@@ -1,4 +1,9 @@
 {
+    "human_verify.heading": "보안 확인",
+    "human_verify.description": "SoftwarePays에 계속 접속하려면 로봇이 아님을 확인해 주세요.",
+    "human_verify.continue_button": "계속하기",
+    "human_verify.failed_error": "확인에 실패했습니다. 다시 시도해 주세요.",
+    "human_verify.required_error": "로봇이 아님을 확인한 후 다시 시도해 주세요.",
     "nav.home": "홈",
     "nav.shop": "쇼핑",
     "nav.categories": "카테고리",

@@ -59,7 +59,7 @@ class VerifyHuman
             return response()->json([
                 'success' => false,
                 'human_verify_required' => true,
-                'message' => 'Vui lòng xác minh bạn không phải robot rồi thử lại.',
+                'message' => __('human_verify.required_error'),
             ], 403);
         }
 

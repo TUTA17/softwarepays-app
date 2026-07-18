@@ -1,4 +1,9 @@
 {
+    "human_verify.heading": "セキュリティ確認",
+    "human_verify.description": "SoftwarePaysへのアクセスを続けるには、ロボットではないことを確認してください。",
+    "human_verify.continue_button": "続ける",
+    "human_verify.failed_error": "確認に失敗しました。もう一度お試しください。",
+    "human_verify.required_error": "ロボットではないことを確認してから、もう一度お試しください。",
     "nav.home": "ホーム",
     "nav.shop": "ショップ",
     "nav.categories": "カテゴリー",

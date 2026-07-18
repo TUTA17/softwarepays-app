@@ -1,6 +1,6 @@
 @extends('theme::layouts.app')
 
-@section('title', 'Xác minh bảo mật - SoftwarePays')
+@section('title', __('human_verify.heading') . ' - SoftwarePays')
 
 @section('content')
     <div class="min-h-[75vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -11,8 +11,8 @@
                 </svg>
             </div>
 
-            <h2 class="text-2xl font-display font-bold text-slate-900 dark:text-white mb-2">Xác minh bảo mật</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-8">Vui lòng xác minh bạn không phải robot để tiếp tục truy cập SoftwarePays.</p>
+            <h2 class="text-2xl font-display font-bold text-slate-900 dark:text-white mb-2">{{ __('human_verify.heading') }}</h2>
+            <p class="text-slate-500 dark:text-slate-400 mb-8">{{ __('human_verify.description') }}</p>
 
             @if(session('error'))
                 <div class="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 px-4 py-3 rounded-xl mb-6 text-sm font-medium">
@@ -29,7 +29,7 @@
                 </div>
 
                 <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5">
-                    Tiếp tục
+                    {{ __('human_verify.continue_button') }}
                 </button>
             </form>
         </div>

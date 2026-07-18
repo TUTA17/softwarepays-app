@@ -18,7 +18,7 @@ class HumanVerifyController extends Controller
         $request->validate(['g-recaptcha-response' => 'required']);
 
         if (!$recaptcha->verify($request->input('g-recaptcha-response'), $request->ip())) {
-            return back()->with('error', 'Xác minh thất bại, vui lòng thử lại.');
+            return back()->with('error', __('human_verify.failed_error'));
         }
 
         $request->session()->put('human_verified', true);

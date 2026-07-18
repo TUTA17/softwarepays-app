@@ -1,4 +1,9 @@
 {
+    "human_verify.heading": "Vérification de sécurité",
+    "human_verify.description": "Veuillez vérifier que vous n'êtes pas un robot pour continuer à accéder à SoftwarePays.",
+    "human_verify.continue_button": "Continuer",
+    "human_verify.failed_error": "Échec de la vérification, veuillez réessayer.",
+    "human_verify.required_error": "Veuillez vérifier que vous n'êtes pas un robot, puis réessayez.",
     "nav.home": "Accueil",
     "nav.shop": "Boutique",
     "nav.categories": "Catégories",

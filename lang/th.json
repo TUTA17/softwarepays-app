@@ -1,4 +1,9 @@
 {
+    "human_verify.heading": "การยืนยันความปลอดภัย",
+    "human_verify.description": "กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติเพื่อเข้าถึง SoftwarePays ต่อไป",
+    "human_verify.continue_button": "ดำเนินการต่อ",
+    "human_verify.failed_error": "การยืนยันล้มเหลว กรุณาลองใหม่อีกครั้ง",
+    "human_verify.required_error": "กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติแล้วลองใหม่อีกครั้ง",
     "nav.home": "หน้าแรก",
     "nav.shop": "ร้านค้า",
     "nav.categories": "หมวดหมู่",

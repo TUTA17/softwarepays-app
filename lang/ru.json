@@ -1,4 +1,9 @@
 {
+    "human_verify.heading": "Проверка безопасности",
+    "human_verify.description": "Пожалуйста, подтвердите, что вы не робот, чтобы продолжить доступ к SoftwarePays.",
+    "human_verify.continue_button": "Продолжить",
+    "human_verify.failed_error": "Проверка не пройдена, попробуйте снова.",
+    "human_verify.required_error": "Пожалуйста, подтвердите, что вы не робот, и попробуйте снова.",
     "nav.home": "Главная",
     "nav.shop": "Магазин",
     "nav.categories": "Категории",
