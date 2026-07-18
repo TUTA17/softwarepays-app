@@ -12,19 +12,20 @@ use Illuminate\Support\Facades\Log;
 
 class CrawlGifs extends Command
 {
-    protected $signature = 'gifmeme:crawl {--limit=10}';
+    protected $signature = 'gifmeme:crawl {--limit=10} {--query=meme-gifs}';
     protected $description = 'Crawl GIFs from Tenor (Meme Search)';
 
     public function handle(R2StorageService $r2)
     {
         $limit = (int) $this->option('limit');
+        $query = (string) $this->option('query');
 
-        $this->info("Bắt đầu lấy tối đa {$limit} GIF mới từ Tenor...");
-        
+        $this->info("Bắt đầu lấy tối đa {$limit} GIF mới từ Tenor (query: {$query})...");
+
         $category = GifCategory::firstOrCreate(['slug' => 'meme'], ['name' => 'Meme']);
-        
+
         // Cào trang Tenor search meme
-        $url = "https://tenor.com/search/meme-gifs";
+        $url = "https://tenor.com/search/" . $query;
         
         $response = Http::withHeaders([
             'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
