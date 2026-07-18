@@ -818,10 +818,10 @@
                 <div>
                     <h3 class="font-display font-semibold text-slate-900 dark:text-white text-lg mb-6">{{ __('footer.support_title') }}</h3>
                     <ul class="space-y-3">
-                        <li><a href="/" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_buying_guide') }}</a></li>
-                        <li><a href="/" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_activation_guide') }}</a></li>
-                        <li><a href="/" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_warranty_policy') }}</a></li>
-                        <li><a href="/" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_faq') }}</a></li>
+                        <li><a href="{{ route('blog.show.guide', 'how-to-buy-on-softwarepays') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_buying_guide') }}</a></li>
+                        <li><a href="{{ route('blog.show.guide', 'how-to-activate-your-purchase') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_activation_guide') }}</a></li>
+                        <li><a href="{{ route('pages.warranty') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_warranty_policy') }}</a></li>
+                        <li><a href="{{ route('pages.support') }}#faq" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_faq') }}</a></li>
                     </ul>
                 </div>
 

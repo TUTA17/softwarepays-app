@@ -116,7 +116,7 @@
     </div>
 
     <!-- FAQ Section -->
-    <div class="mt-20">
+    <div id="faq" class="mt-20 scroll-mt-28">
         <div class="text-center mb-12">
             <h2 class="text-3xl font-bold text-slate-900 dark:text-white mb-4">{{ __('support.faq_heading') }}</h2>
             <p class="text-slate-500 dark:text-slate-400">{{ __('support.faq_subtitle') }}</p>

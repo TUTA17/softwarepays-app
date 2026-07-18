@@ -31,4 +31,9 @@ class PageController extends Controller
     {
         return view('theme::pages.terms');
     }
+
+    public function warrantyPolicy()
+    {
+        return view('theme::pages.warranty');
+    }
 }
