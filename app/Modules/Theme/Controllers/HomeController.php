@@ -27,6 +27,7 @@ class HomeController extends Controller
                 $q->whereNull('product_type')->orWhere('product_type', Product::TYPE_GAME);
             })
             ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
             ->take(10)
             ->get();
 
@@ -36,6 +37,7 @@ class HomeController extends Controller
         $giftcards = Product::where('is_active', true)
             ->where('product_type', Product::TYPE_GIFTCARD)
             ->orderBy('price', 'asc')
+            ->orderBy('id')
             ->get();
 
         // Dữ liệu cho các section "Danh mục" còn lại trên trang chủ (Gói đăng ký, Phần mềm,
@@ -43,16 +45,16 @@ class HomeController extends Controller
         // nên lấy TOÀN BỘ, không giới hạn take() để không bỏ sót sản phẩm thật đang bán.
         $subscriptionProducts = Product::where('is_active', true)
             ->where('product_type', Product::TYPE_SUBSCRIPTION)
-            ->orderBy('price')->get();
+            ->orderBy('price')->orderBy('id')->get();
 
         $softwareProducts = Product::where('is_active', true)
             ->where('product_type', Product::TYPE_SOFTWARE)
-            ->orderBy('price')->get();
+            ->orderBy('price')->orderBy('id')->get();
 
         $cardProducts = Product::where('is_active', true)
             ->where('product_type', Product::TYPE_CARD)
             ->with('cardPackages')
-            ->orderBy('name')->get();
+            ->orderBy('name')->orderBy('id')->get();
 
         // eSIM: chọn các điểm đến du lịch phổ biến toàn cầu thay vì lấy ngẫu nhiên trong 200+ nước
         // hiện có, để section trên trang chủ thực sự hữu ích (đủ 12 nước lấp 2 hàng ở màn lớn).
@@ -81,6 +83,7 @@ class HomeController extends Controller
         // danh mục sản phẩm khác — link ra trang riêng của từng module để xem/nghe/tải đầy đủ.
         $homeSounds = Sound::where('status', Sound::STATUS_PUBLISHED)
             ->orderBy('play_count', 'desc')
+            ->orderBy('id', 'desc')
             ->take(12)
             ->get()
             ->map(function ($s) use ($soundR2) {
@@ -90,6 +93,7 @@ class HomeController extends Controller
 
         $homeGifs = Gif::where('status', Gif::STATUS_PUBLISHED)
             ->orderBy('play_count', 'desc')
+            ->orderBy('id', 'desc')
             ->take(12)
             ->get()
             ->map(function ($g) use ($gifR2) {
