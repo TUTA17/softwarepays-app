@@ -84,7 +84,7 @@ class HomeController extends Controller
             ->take(12)
             ->get()
             ->map(function ($s) use ($soundR2) {
-                $s->thumbnail_url = $s->thumbnail_key ? $soundR2->getSignedDownloadUrl($s->thumbnail_key, 30) : null;
+                $s->play_url = $soundR2->getSignedDownloadUrl($s->object_key, 30);
                 return $s;
             });
 

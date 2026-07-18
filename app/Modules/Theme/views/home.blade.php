@@ -734,30 +734,11 @@
                 </a>
             </div>
         </div>
-        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-4">
+        <div class="flex gap-3 sm:gap-5 overflow-x-auto pb-2" style="scrollbar-width: thin;">
             @foreach($homeSounds as $s)
-            <a href="{{ route('sounds.show', $s->slug) }}" class="product-card group">
-                <div class="product-card-media bg-slate-100 dark:bg-slate-800 aspect-square relative overflow-hidden">
-                    @if($s->thumbnail_url)
-                        <img src="{{ $s->thumbnail_url }}" alt="{{ $s->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy">
-                    @else
-                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-fuchsia-500/10 to-indigo-500/10">
-                            <i class="fa-solid fa-music text-3xl sm:text-5xl text-fuchsia-400"></i>
-                        </div>
-                    @endif
-                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px] z-10 pointer-events-none">
-                        <span class="bg-fuchsia-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-xl flex items-center gap-2"><i class="fa-solid fa-play"></i> {{ __('home.soundmeme_play') }}</span>
-                    </div>
+                <div class="shrink-0 w-[100px]">
+                    @include('soundmeme::theme.partials.card', ['sound' => $s])
                 </div>
-                <div class="p-4 flex flex-col flex-grow">
-                    <div class="mb-2 h-[48px]">
-                        <h3 class="font-display font-semibold text-[15px] text-slate-900 dark:text-white leading-snug group-hover:text-fuchsia-500 transition-colors line-clamp-2" title="{{ $s->title }}">{{ $s->title }}</h3>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 uppercase"><i class="fa-solid fa-headphones"></i> {{ number_format($s->play_count) }}</span>
-                    </div>
-                </div>
-            </a>
             @endforeach
         </div>
     </div>
@@ -800,5 +781,13 @@
             @endforeach
         </div>
     </div>
+    @endif
+
+    @if(isset($homeSounds) && $homeSounds->isNotEmpty())
+    <audio id="global-player" class="hidden"></audio>
+    <script>
+        window.SOUND_CSRF_TOKEN = '{{ csrf_token() }}';
+    </script>
+    <script src="{{ asset('js/sound-player.js?v=' . time()) }}"></script>
     @endif
 @endsection
