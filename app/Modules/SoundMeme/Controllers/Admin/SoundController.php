@@ -12,6 +12,8 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Artisan;
+use App\Modules\Core\Models\Setting;
 
 class SoundController extends Controller
 {
@@ -33,8 +35,14 @@ class SoundController extends Controller
         }
 
         $sounds = $query->paginate(20)->withQueryString();
+        $sounds->getCollection()->transform(function($s) {
+            $s->play_url = $this->r2->getSignedDownloadUrl($s->object_key, 30);
+            return $s;
+        });
 
-        return view('soundmeme::admin.sounds.index', compact('sounds'));
+        $publishRate = Setting::getValue('soundmeme_autopublish_rate', 1);
+
+        return view('soundmeme::admin.sounds.index', compact('sounds', 'publishRate'));
     }
 
     public function create()
@@ -138,6 +146,30 @@ class SoundController extends Controller
         $sound->update($data);
 
         return redirect()->route('admin.soundmeme.sounds')->with('success', 'Đã cập nhật sound!');
+    }
+
+    public function crawl()
+    {
+        try {
+            Artisan::call('soundmeme:crawl');
+            return back()->with('success', 'Đã chạy lệnh Crawl thành công. Hãy kiểm tra danh sách bài Nháp (Draft).');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Lỗi khi Crawl: ' . $e->getMessage());
+        }
+    }
+
+    public function approve($id)
+    {
+        $sound = Sound::findOrFail($id);
+        $sound->update(['status' => Sound::STATUS_APPROVED]);
+        return back()->with('success', 'Đã duyệt bài! Bài này sẽ được Cronjob tự động đăng trong thời gian tới.');
+    }
+
+    public function saveSettings(Request $request)
+    {
+        $request->validate(['publish_rate' => 'required|integer|min:0']);
+        Setting::setValue('soundmeme_autopublish_rate', $request->publish_rate);
+        return back()->with('success', 'Đã lưu cấu hình tự động đăng.');
     }
 
     public function destroy($id)

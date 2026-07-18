@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 class Sound extends Model
 {
     const STATUS_DRAFT = 'draft';
+    const STATUS_APPROVED = 'approved';
     const STATUS_PUBLISHED = 'published';
     const STATUS_HIDDEN = 'hidden';
 

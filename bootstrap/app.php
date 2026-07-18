@@ -11,6 +11,13 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    // Artisan tự động quét class Command trong app/Console/Commands mặc định, nhưng module
+    // SoundMeme đặt Command trong thư mục riêng (app/Modules/SoundMeme/Console/Commands) nên
+    // phải đăng ký thủ công ở đây thì `php artisan soundmeme:...` mới nhận diện được.
+    ->withCommands([
+        \App\Modules\SoundMeme\Console\Commands\CrawlMyinstants::class,
+        \App\Modules\SoundMeme\Console\Commands\AutoPublishSounds::class,
+    ])
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'is_admin' => \App\Http\Middleware\IsAdmin::class,

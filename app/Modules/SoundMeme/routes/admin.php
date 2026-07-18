@@ -10,6 +10,9 @@ Route::prefix(config('app.admin_prefix', 'admin') . '/soundmeme')->name('admin.s
     Route::get('/sounds', [SoundController::class, 'index'])->name('sounds');
     Route::get('/sounds/create', [SoundController::class, 'create'])->name('sounds.create');
     Route::post('/sounds', [SoundController::class, 'store'])->name('sounds.store')->middleware('throttle:sound-upload');
+    Route::post('/sounds/crawl', [SoundController::class, 'crawl'])->name('sounds.crawl');
+    Route::post('/sounds/settings', [SoundController::class, 'saveSettings'])->name('sounds.settings');
+    Route::put('/sounds/{id}/approve', [SoundController::class, 'approve'])->name('sounds.approve');
     Route::get('/sounds/{id}/edit', [SoundController::class, 'edit'])->name('sounds.edit');
     Route::put('/sounds/{id}', [SoundController::class, 'update'])->name('sounds.update')->middleware('throttle:sound-upload');
     Route::delete('/sounds/{id}', [SoundController::class, 'destroy'])->name('sounds.destroy');
