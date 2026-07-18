@@ -18,11 +18,9 @@
             <h2 class="text-xl font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                 <i class="fa-solid fa-star text-amber-500"></i> {{ __('soundindex.editors_picks') }}
             </h2>
-            <div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width: thin;">
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-2 gap-y-6">
                 @foreach($editorsPicks as $sound)
-                    <div class="shrink-0 w-[100px]">
-                        @include('soundmeme::theme.partials.card', ['sound' => $sound])
-                    </div>
+                    @include('soundmeme::theme.partials.card', ['sound' => $sound])
                 @endforeach
             </div>
         </div>
@@ -33,11 +31,9 @@
             <h2 class="text-xl font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                 <i class="fa-solid fa-fire text-red-500"></i> Top Meme
             </h2>
-            <div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width: thin;">
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-2 gap-y-6">
                 @foreach($topMeme as $sound)
-                    <div class="shrink-0 w-[100px]">
-                        @include('soundmeme::theme.partials.card', ['sound' => $sound])
-                    </div>
+                    @include('soundmeme::theme.partials.card', ['sound' => $sound])
                 @endforeach
             </div>
         </div>
@@ -48,11 +44,9 @@
             <h2 class="text-xl font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                 <i class="fa-solid fa-clock text-blue-500"></i> {{ __('soundindex.sort_newest') }}
             </h2>
-            <div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width: thin;">
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-2 gap-y-6">
                 @foreach($latest as $sound)
-                    <div class="shrink-0 w-[100px]">
-                        @include('soundmeme::theme.partials.card', ['sound' => $sound])
-                    </div>
+                    @include('soundmeme::theme.partials.card', ['sound' => $sound])
                 @endforeach
             </div>
         </div>

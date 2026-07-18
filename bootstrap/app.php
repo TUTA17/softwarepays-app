@@ -11,12 +11,13 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    // Artisan tự động quét class Command trong app/Console/Commands mặc định, nhưng module
-    // SoundMeme đặt Command trong thư mục riêng (app/Modules/SoundMeme/Console/Commands) nên
-    // phải đăng ký thủ công ở đây thì `php artisan soundmeme:...` mới nhận diện được.
+    // Artisan tự động quét class Command trong app/Console/Commands mặc định, nhưng các module
+    // SoundMeme/GifMeme đặt Command trong thư mục riêng nên phải đăng ký thủ công ở đây thì
+    // `php artisan soundmeme:...`/`gifmeme:...` mới nhận diện được. Truyền thẳng đường dẫn thư
+    // mục (thay vì liệt kê từng class) để Laravel tự quét mọi Command mới thêm trong thư mục đó.
     ->withCommands([
-        \App\Modules\SoundMeme\Console\Commands\CrawlMyinstants::class,
-        \App\Modules\SoundMeme\Console\Commands\AutoPublishSounds::class,
+        __DIR__.'/../app/Modules/SoundMeme/Console/Commands',
+        __DIR__.'/../app/Modules/GifMeme/Console/Commands',
     ])
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
@@ -42,7 +43,15 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/webhook/*',
             'payments/nowpayments/ipn',
             '*logout',
-            '*logout*'
+            '*logout*',
+            'sounds/*/play',
+            'sounds/*/like',
+            'sounds/*/share',
+            'sounds/*/download',
+            'Gifs/*/play',
+            'Gifs/*/like',
+            'Gifs/*/share',
+            'Gifs/*/download',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

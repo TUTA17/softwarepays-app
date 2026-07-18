@@ -734,11 +734,9 @@
                 </a>
             </div>
         </div>
-        <div class="flex gap-3 sm:gap-5 overflow-x-auto pb-2" style="scrollbar-width: thin;">
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-4">
             @foreach($homeSounds as $s)
-                <div class="shrink-0 w-[100px]">
-                    @include('soundmeme::theme.partials.card', ['sound' => $s])
-                </div>
+                @include('soundmeme::theme.partials.card', ['sound' => $s])
             @endforeach
         </div>
     </div>

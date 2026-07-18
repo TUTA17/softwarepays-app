@@ -22,13 +22,16 @@
   function resetCard(card) {
     if (!card) return;
     setIcon(card, false);
+    card.classList.remove('playing');
     var bar = card.querySelector('.progress-fill');
     if (bar) bar.style.width = '0%';
+    var ring = card.querySelector('.progress-ring');
+    if (ring) ring.style.strokeDashoffset = '264';
     var timeEl = card.querySelector('.time-current');
     if (timeEl) timeEl.textContent = '0:00';
   }
 
-  document.querySelectorAll('.sound-card').forEach(function (card) {
+  document.querySelectorAll('.sound-card, .sound-button-wrapper').forEach(function (card) {
     var btn = card.querySelector('.play-btn');
     var progressWrap = card.querySelector('.progress-wrap');
 
@@ -53,6 +56,7 @@
 
         audio.play().catch(function () {});
         setIcon(card, true);
+        card.classList.add('playing');
       });
     }
 
@@ -69,9 +73,13 @@
   audio.addEventListener('timeupdate', function () {
     if (!activeCard || !audio.duration) return;
 
-    var pct = (audio.currentTime / audio.duration) * 100;
+    var pct = (audio.currentTime / audio.duration);
+    
     var bar = activeCard.querySelector('.progress-fill');
-    if (bar) bar.style.width = pct + '%';
+    if (bar) bar.style.width = (pct * 100) + '%';
+
+    var ring = activeCard.querySelector('.progress-ring');
+    if (ring) ring.style.strokeDashoffset = 264 - (pct * 264);
 
     var timeEl = activeCard.querySelector('.time-current');
     if (timeEl) timeEl.textContent = formatTime(audio.currentTime);
@@ -102,5 +110,35 @@
         btn.innerHTML = old;
       }, 1500);
     });
+  };
+
+  window.likeSound = function (slug, btn) {
+    fetch('/sounds/' + slug + '/like', {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': window.SOUND_CSRF_TOKEN || '' },
+    }).then(r => r.json()).then(data => {
+      if(data.success) {
+        var countEl = btn.querySelector('.like-count');
+        if(countEl) countEl.textContent = new Intl.NumberFormat().format(data.like_count);
+        btn.classList.add('text-red-500', 'bg-red-50', 'dark:bg-red-500/10');
+        var icon = btn.querySelector('.fa-heart');
+        if(icon) {
+            icon.classList.remove('fa-regular');
+            icon.classList.add('fa-solid');
+        }
+      }
+    }).catch(console.error);
+  };
+
+  window.shareSound = function (slug) {
+    fetch('/sounds/' + slug + '/share', {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': window.SOUND_CSRF_TOKEN || '' },
+    }).then(r => r.json()).then(data => {
+      if(data.success) {
+        var countEls = document.querySelectorAll('.share-count');
+        countEls.forEach(el => el.textContent = new Intl.NumberFormat().format(data.share_count));
+      }
+    }).catch(console.error);
   };
 })();

@@ -31,21 +31,21 @@
             </div>
         </a>
 
-        <!-- GIF Meme (Coming soon) -->
-        <div class="glass-card rounded-2xl overflow-hidden relative opacity-70 cursor-not-allowed select-none">
-            <div class="absolute top-3 right-3 z-10 px-3 py-1 rounded-full bg-slate-900/80 text-white text-xs font-bold uppercase tracking-wide">
-                {{ __('pages_other.coming_soon') }}
-            </div>
+        <!-- GIF Meme -->
+        <a href="{{ route('Gifs.index') }}" class="glass-card rounded-2xl overflow-hidden group hover:-translate-y-1 hover:shadow-xl transition-all">
             <div class="h-40 bg-gradient-to-br from-indigo-500 to-purple-600 relative overflow-hidden flex items-center justify-center">
-                <i class="fa-solid fa-image text-6xl text-white/90"></i>
+                <i class="fa-solid fa-images text-6xl text-white/90"></i>
             </div>
             <div class="p-6">
                 <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">{{ __('pages_other.gif_title') }}</h3>
-                <p class="text-slate-500 dark:text-slate-400 text-sm">
+                <p class="text-slate-500 dark:text-slate-400 text-sm mb-4">
                     {{ __('pages_other.gif_desc') }}
                 </p>
+                <div class="flex items-center text-sm font-semibold text-indigo-500">
+                    {{ __('pages_other.explore_now') }} <i class="fa-solid fa-arrow-right ml-2"></i>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 @endsection
