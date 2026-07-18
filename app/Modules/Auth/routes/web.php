@@ -62,6 +62,7 @@ Route::middleware(['web'])->group(function () {
         // NOWPayments (crypto)
         Route::post('/payments/nowpayments/pay', [PaymentGatewayController::class, 'nowpaymentsPay'])->name('payments.nowpayments.pay');
         Route::get('/payments/nowpayments/status/{transaction}', [PaymentGatewayController::class, 'nowpaymentsStatus'])->name('payments.nowpayments.status');
+        Route::get('/payments/nowpayments/min-amount/{method}', [PaymentGatewayController::class, 'nowpaymentsMinAmount'])->name('payments.nowpayments.min_amount');
 
         // Paylio (thẻ/PayPal/Stripe/Klarna... qua on-ramp, tiền về ví USDC Polygon)
         Route::post('/payments/paylio/pay', [PaymentGatewayController::class, 'paylioPay'])->name('payments.paylio.pay');

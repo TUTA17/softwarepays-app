@@ -376,6 +376,13 @@
         // $1 chung của crypto -> phải cập nhật đúng ngay khi đổi phương thức/provider.
         currentMinAmount = currentUnit === 'vnd' ? 10000 : (method === 'paylio' ? (PAYLIO_MIN[paylioProvider] || 1) : 1);
 
+        // Vừa chuyển sang Crypto -> hỏi ngay sàn tối thiểu thật của coin đang chọn sẵn (mặc định USDT),
+        // thay vì để hiện $1 chung chung cho tới khi khách tự bấm chọn lại 1 coin khác.
+        if (method === 'crypto') {
+            const activeCryptoBtn = document.querySelector('.crypto-method-btn[data-crypto="' + cryptoMethod + '"]');
+            if (activeCryptoBtn) setCryptoMethod(cryptoMethod, activeCryptoBtn);
+        }
+
         const amountInput = document.getElementById('customAmount');
         const prefixEl = document.getElementById('customAmountPrefix');
         const labelEl = document.getElementById('customAmountLabel');
@@ -407,12 +414,32 @@
         else label.textContent = 'NẠP TIỀN QUA CRYPTO';
     }
 
+    // Mỗi coin có sàn tối thiểu thật khác nhau (NOWPayments) — hỏi API thay vì hiện cứng $1 chung
+    // chung như trước, để số hiện ra khớp đúng số sẽ thực sự bị yêu cầu sau khi bấm nạp.
     function setCryptoMethod(method, btn) {
         cryptoMethod = method;
         document.querySelectorAll('.crypto-method-btn').forEach(b => {
             b.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-blue-500/10', 'text-blue-700');
         });
         btn.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-blue-500/10', 'text-blue-700');
+
+        const amountInput = document.getElementById('customAmount');
+        amountInput.placeholder = 'Đang kiểm tra mức tối thiểu...';
+
+        fetch('{{ url('/payments/nowpayments/min-amount') }}/' + method, { headers: { 'Accept': 'application/json' } })
+            .then(r => r.json())
+            .then(data => {
+                if (depositMethod !== 'crypto' || cryptoMethod !== method) return; // khách đã đổi lựa chọn khác trong lúc chờ
+                currentMinAmount = (data.success && data.min_usd) ? data.min_usd : 1;
+                amountInput.min = String(currentMinAmount);
+                amountInput.placeholder = 'Tối thiểu $' + currentMinAmount;
+            })
+            .catch(() => {
+                if (depositMethod !== 'crypto' || cryptoMethod !== method) return;
+                currentMinAmount = 1;
+                amountInput.min = '1';
+                amountInput.placeholder = 'Tối thiểu $1';
+            });
     }
 
     function setPaylioProvider(provider, btn) {

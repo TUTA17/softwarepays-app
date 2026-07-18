@@ -277,6 +277,24 @@ class PaymentGatewayController extends Controller
         ]);
     }
 
+    // Trả mức tối thiểu THẬT (theo coin) để hiển thị đúng ngay trên form trước khi khách bấm nạp —
+    // trước đây form chỉ hiện sàn $1 chung chung, còn số thật (theo NOWPayments) chỉ áp lặng lẽ ở
+    // backend sau khi submit, khiến số tiền thực nạp khác với số khách thấy lúc nhập.
+    public function nowpaymentsMinAmount(Request $request, string $method, NowPaymentsService $nowPayments)
+    {
+        $payCurrency = NowPaymentsService::CURRENCY_MAP[$method] ?? null;
+        if (!$payCurrency) {
+            return response()->json(['success' => false, 'message' => 'Loại tiền không hợp lệ.'], 422);
+        }
+
+        $minUsd = $nowPayments->getMinAmountUsd($payCurrency);
+
+        return response()->json([
+            'success' => true,
+            'min_usd' => $minUsd ? round($minUsd * 1.05, 2) : 1,
+        ]);
+    }
+
     public function nowpaymentsStatus(Request $request, $transactionId)
     {
         $transaction = Transaction::where('id', $transactionId)->where('user_id', Auth::id())->first();
