@@ -81,6 +81,14 @@
                                     <i class="fa-solid fa-credit-card block text-lg mb-1"></i> Paylio
                                 </button>
                             </div>
+                            <div id="paylioIconsRow" class="hidden mt-3 flex items-center gap-2 text-slate-400 dark:text-slate-500">
+                                <i class="fa-brands fa-cc-visa text-lg" title="Visa"></i>
+                                <i class="fa-brands fa-cc-mastercard text-lg" title="Mastercard"></i>
+                                <i class="fa-brands fa-apple-pay text-xl" title="Apple Pay"></i>
+                                <i class="fa-brands fa-google-pay text-xl" title="Google Pay"></i>
+                                <i class="fa-solid fa-building-columns text-lg" title="{{ __('wallet.deposit_bank_qr_label') }}"></i>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400">Binance Pay</span>
+                            </div>
                         </div>
 
                         <div id="cryptoCurrencyPicker" class="hidden mb-8">
@@ -349,6 +357,7 @@
         btn.classList.remove('bg-white', 'dark:bg-slate-900', 'border-slate-200', 'dark:border-slate-700', 'text-slate-700', 'dark:text-slate-300');
 
         document.getElementById('cryptoCurrencyPicker').classList.toggle('hidden', method !== 'crypto');
+        document.getElementById('paylioIconsRow').classList.toggle('hidden', method !== 'paylio');
 
         // Crypto/Paylio nạp thẳng vào ví USD riêng (không quy đổi VNĐ); chỉ Ngân hàng (QR) dùng VNĐ.
         currentUnit = method === 'bank' ? 'vnd' : 'usd';
@@ -410,13 +419,27 @@
         }
     }
 
-    // Paylio không có QR/địa chỉ để hiển thị tại chỗ — chuyển thẳng trình duyệt sang trang
-    // checkout hosted của họ, họ tự redirect khách về lại route callback sau khi thanh toán xong.
+    // Paylio mở trong POPUP (giống các cách nạp khác) thay vì rời hẳn trang — trang callback của
+    // Paylio (cùng domain với mình) tự gọi lại window.opener.paylioPaymentCompleted() rồi tự đóng.
+    // Mở popup TRỐNG ngay lập tức (đồng bộ, trong sự kiện click) trước khi gọi fetch — nếu đợi fetch
+    // xong mới window.open() thì trình duyệt sẽ chặn vì không còn coi là hành động trực tiếp của người dùng.
     function depositWithPaylio(amount) {
         const btn = document.getElementById('btnGenerate');
         const originalHtml = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ' + @json(__('checkout.processing_label'));
+
+        const popup = window.open('about:blank', 'paylio_checkout', 'width=480,height=720');
+
+        window.paylioPaymentCompleted = function (success, message) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            if (success) {
+                window.location.reload();
+            } else {
+                alert(message || @json(__('checkout.generic_error')));
+            }
+        };
 
         fetch('{{ route('payments.paylio.pay') }}?purpose=topup&amount=' + amount, {
             method: 'POST',
@@ -429,14 +452,20 @@
         .then(r => r.json())
         .then(data => {
             if (!data.success || !data.checkout_url) {
+                if (popup) popup.close();
                 alert(data.message || @json(__('checkout.generic_error')));
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
                 return;
             }
-            window.location.href = data.checkout_url;
+            if (popup) {
+                popup.location.href = data.checkout_url;
+            } else {
+                window.location.href = data.checkout_url;
+            }
         })
         .catch(() => {
+            if (popup) popup.close();
             alert(@json(__('checkout.crypto_connection_error')));
             btn.disabled = false;
             btn.innerHTML = originalHtml;

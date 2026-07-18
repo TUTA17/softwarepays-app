@@ -202,13 +202,29 @@ class PaymentGatewayController extends Controller
     // Paylio GET-redirect khách về đây sau khi hoàn tất (hoặc hủy) thanh toán trên trang hosted của họ.
     // Tài liệu API nói rõ query string đi kèm (ipn_token/status) chỉ là gợi ý, KHÔNG có chữ ký xác thực
     // -> tuyệt đối không tin trực tiếp, luôn gọi lại GET /payment-status để lấy trạng thái thật.
+    // Trang này được mở trong POPUP (cùng domain với trang checkout/ví) -> tự gọi lại
+    // window.opener.paylioPaymentCompleted() rồi đóng chính nó, xem resources/views/payments/paylio-return.blade.php.
     public function paylioCallback(Request $request, int $transaction, PaylioService $paylio)
     {
-        $tx = Transaction::where('id', $transaction)->where('status', 'pending')->first();
+        $tx = Transaction::where('id', $transaction)->first();
 
         if (!$tx) {
-            // Không còn pending nữa (đã xử lý trước đó) hoặc không tồn tại -> vẫn đưa khách về nơi hợp lý.
-            return redirect()->route('wallet.show');
+            return view('payments.paylio-return', [
+                'success' => false,
+                'message' => 'Giao dịch không tồn tại.',
+                'fallbackUrl' => route('wallet.show'),
+            ]);
+        }
+
+        $fallbackUrl = ($tx->metadata['purpose'] ?? null) === 'checkout' ? route('cart.checkout') : route('wallet.show');
+
+        // Đã xử lý xong trước đó (VD: khách bấm lại nút back rồi mở lại trang callback cũ).
+        if ($tx->status !== 'pending') {
+            return view('payments.paylio-return', [
+                'success' => $tx->status === 'completed',
+                'message' => $tx->status === 'completed' ? 'Giao dịch đã được xử lý trước đó.' : 'Giao dịch đã bị hủy hoặc thất bại.',
+                'fallbackUrl' => $fallbackUrl,
+            ]);
         }
 
         $ipnToken = $tx->metadata['paylio_ipn_token'] ?? null;
@@ -219,17 +235,26 @@ class PaymentGatewayController extends Controller
             if (($status['status'] ?? null) === 'canceled') {
                 $tx->update(['status' => 'cancelled']);
             }
-            $redirectRoute = ($tx->metadata['purpose'] ?? null) === 'checkout' ? 'cart.checkout' : 'wallet.show';
-            return redirect()->route($redirectRoute)->with('error', 'Thanh toán Paylio chưa hoàn tất hoặc đã bị hủy.');
+            return view('payments.paylio-return', [
+                'success' => false,
+                'message' => 'Thanh toán Paylio chưa hoàn tất hoặc đã bị hủy.',
+                'fallbackUrl' => $fallbackUrl,
+            ]);
         }
 
         $this->completeDeposit($tx);
 
+        // Chỉ dùng khi popup bị chặn (fallback không có window.opener) -> trang callback tự
+        // điều hướng sang $fallbackUrl; cờ này để checkout.blade.php tự bấm nốt nút Thanh Toán Bằng Ví.
         if (($tx->metadata['purpose'] ?? null) === 'checkout') {
-            return redirect()->route('cart.checkout')->with('success', 'Nạp tiền qua Paylio thành công! Vui lòng bấm Thanh Toán Bằng Ví để hoàn tất đơn hàng.')->with('auto_checkout', true);
+            session()->flash('auto_checkout', true);
         }
 
-        return redirect()->route('wallet.show')->with('success', 'Nạp tiền qua Paylio thành công!');
+        return view('payments.paylio-return', [
+            'success' => true,
+            'message' => 'Nạp tiền qua Paylio thành công!',
+            'fallbackUrl' => $fallbackUrl,
+        ]);
     }
 
     public function nowpaymentsStatus(Request $request, $transactionId)

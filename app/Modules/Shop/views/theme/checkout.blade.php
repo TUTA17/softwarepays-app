@@ -124,6 +124,16 @@
                             <span class="flex flex-col">
                                 <span class="block text-sm font-medium text-slate-900 dark:text-white">{{ $label }}</span>
                                 <span class="mt-1 flex items-center text-sm text-slate-500 dark:text-slate-400">{{ __('checkout.intl_pay_ready_note') }}</span>
+                                @if($key === 'paylio')
+                                <span class="mt-2 flex items-center gap-2 text-slate-400 dark:text-slate-500">
+                                    <i class="fa-brands fa-cc-visa text-lg" title="Visa"></i>
+                                    <i class="fa-brands fa-cc-mastercard text-lg" title="Mastercard"></i>
+                                    <i class="fa-brands fa-apple-pay text-xl" title="Apple Pay"></i>
+                                    <i class="fa-brands fa-google-pay text-xl" title="Google Pay"></i>
+                                    <i class="fa-solid fa-building-columns text-lg" title="{{ __('wallet.deposit_bank_qr_label') }}"></i>
+                                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400">Binance Pay</span>
+                                </span>
+                                @endif
                             </span>
                         </span>
                         <i class="fa-solid fa-circle-check payment-check-icon text-blue-600 dark:text-blue-400 text-xl {{ $isDefault ? '' : 'opacity-0' }}"></i>
@@ -507,13 +517,27 @@ document.addEventListener('DOMContentLoaded', function () {
         return @json(__('checkout.crypto_network_warning', ['network' => '%NETWORK%'])).replace('%NETWORK%', network);
     }
 
-    // Paylio không có QR/địa chỉ để hiển thị tại chỗ như crypto — chuyển thẳng trình duyệt sang
-    // trang checkout hosted của họ, họ tự redirect khách về lại route callback sau khi xong.
+    // Paylio mở trong POPUP (giống các nút thanh toán khác) thay vì rời hẳn trang — trang callback
+    // của Paylio (cùng domain với mình) tự gọi lại window.opener.paylioPaymentCompleted() rồi tự đóng.
+    // Mở popup TRỐNG ngay lập tức (đồng bộ, trong sự kiện click) trước khi gọi fetch — nếu đợi fetch
+    // xong mới window.open() thì trình duyệt sẽ chặn vì không còn coi là hành động trực tiếp của người dùng.
     function payWithPaylio() {
         const btn = document.getElementById('intl-pay-btn');
         const originalHtml = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ' + @json(__('checkout.processing_label'));
+
+        const popup = window.open('about:blank', 'paylio_checkout', 'width=480,height=720');
+
+        window.paylioPaymentCompleted = function (success, message) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            if (success) {
+                document.getElementById('checkout-form').submit();
+            } else {
+                alert(message || @json(__('checkout.generic_error')));
+            }
+        };
 
         fetch('{{ route('payments.paylio.pay') }}?purpose=checkout', {
             method: 'POST',
@@ -526,14 +550,21 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(r => r.json())
         .then(data => {
             if (!data.success || !data.checkout_url) {
+                if (popup) popup.close();
                 alert(data.message || @json(__('checkout.generic_error')));
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
                 return;
             }
-            window.location.href = data.checkout_url;
+            if (popup) {
+                popup.location.href = data.checkout_url;
+            } else {
+                // Popup bị chặn -> rơi về hành vi cũ (chuyển hẳn trang) để không chặn luôn thanh toán.
+                window.location.href = data.checkout_url;
+            }
         })
         .catch(() => {
+            if (popup) popup.close();
             alert(@json(__('checkout.crypto_connection_error')));
             btn.disabled = false;
             btn.innerHTML = originalHtml;
