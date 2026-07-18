@@ -1,6 +1,6 @@
 @extends('theme::layouts.app')
 
-@section('title', '403 - Khu Vực Cấm')
+@section('title', '403 - Forbidden Zone')
 
 @section('content')
 <div class="min-h-[80vh] flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden group">

@@ -1,6 +1,6 @@
 @extends('theme::layouts.app')
 
-@section('title', 'Xác minh địa chỉ email')
+@section('title', 'Verify Email Address - SoftwarePays')
 
 @section('content')
 <div class="min-h-[calc(100vh-80px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">

@@ -10,7 +10,7 @@
     $isVndCurrency = session('currency', 'VND') === 'VND';
 @endphp
 
-@section('title', 'Nạp Tiền Vào Ví - SoftwarePays')
+@section('title', 'Top Up Your Wallet - SoftwarePays')
 
 @push('styles')
 <style>

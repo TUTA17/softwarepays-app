@@ -1,6 +1,6 @@
 @extends('theme::layouts.app')
 
-@section('title', '500 - Lỗi Máy Chủ')
+@section('title', '500 - Server Error')
 
 @section('content')
 <div class="min-h-[80vh] flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden group">

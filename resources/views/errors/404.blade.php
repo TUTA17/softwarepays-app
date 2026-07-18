@@ -1,6 +1,6 @@
 @extends('theme::layouts.app')
 
-@section('title', '404 - Nhiệm Vụ Thất Bại')
+@section('title', '404 - Mission Failed')
 
 @section('content')
 <div class="min-h-[80vh] flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden group">
