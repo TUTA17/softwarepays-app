@@ -42,19 +42,19 @@
     </div>
 
     <!-- Title -->
-    <a href="{{ route('sounds.show', $sound->slug) }}" class="block font-bold text-slate-800 dark:text-slate-200 text-[11px] px-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors w-full break-words line-clamp-2 leading-snug mb-1.5 h-7 flex items-center justify-center" title="{{ $sound->title }}">
+    <a href="{{ route('sounds.show', $sound->slug) }}" class="block font-bold text-slate-800 dark:text-slate-200 text-sm px-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors w-full break-words line-clamp-2 leading-snug mb-2 h-9 flex items-center justify-center" title="{{ $sound->title }}">
         {{ Str::limit($sound->title, 40) }}
     </a>
 
     <!-- Action Icons -->
-    <div class="flex items-center justify-center gap-2.5 text-slate-400 dark:text-slate-500 text-[11px]">
-        <button type="button" onclick="likeSound('{{ $sound->slug }}', this)" class="hover:text-red-500 transition-colors" title="{{ __('soundshow.like_button') }}">
+    <div class="flex items-center justify-center gap-4 text-slate-400 dark:text-slate-500 text-lg">
+        <button type="button" onclick="likeSound('{{ $sound->slug }}', this)" class="hover:text-red-500 hover:scale-110 transition-all" title="{{ __('soundshow.like_button') }}">
             <i class="fa-solid fa-heart"></i>
         </button>
-        <button type="button" onclick="copySoundLink('{{ route('sounds.show', $sound->slug) }}', this)" class="hover:text-blue-500 transition-colors" title="{{ __('soundshow.share_button') }}">
+        <button type="button" onclick="copySoundLink('{{ route('sounds.show', $sound->slug) }}', this)" class="hover:text-blue-500 hover:scale-110 transition-all" title="{{ __('soundshow.share_button') }}">
             <i class="fa-solid fa-share-nodes"></i>
         </button>
-        <a href="{{ route('sounds.download', $sound->slug) }}" class="hover:text-indigo-500 transition-colors" title="{{ __('soundshow.download_button') }}">
+        <a href="{{ route('sounds.download', $sound->slug) }}" class="hover:text-indigo-500 hover:scale-110 transition-all" title="{{ __('soundshow.download_button') }}">
             <i class="fa-solid fa-download"></i>
         </a>
     </div>
