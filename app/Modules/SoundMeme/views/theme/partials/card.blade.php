@@ -42,8 +42,8 @@
     </div>
 
     <!-- Title -->
-    <a href="{{ route('sounds.show', $sound->slug) }}" class="block font-bold text-slate-800 dark:text-slate-200 text-sm px-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors w-full break-words line-clamp-2 leading-snug mb-2 h-9 flex items-center justify-center" title="{{ $sound->title }}">
-        {{ Str::limit($sound->title, 40) }}
+    <a href="{{ route('sounds.show', $sound->slug) }}" class="block font-bold text-slate-800 dark:text-slate-200 text-sm px-1 text-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors w-full break-words line-clamp-2 overflow-hidden leading-snug mb-2 h-9" title="{{ $sound->title }}">
+        {{ Str::limit($sound->title, 30) }}
     </a>
 
     <!-- Action Icons -->
