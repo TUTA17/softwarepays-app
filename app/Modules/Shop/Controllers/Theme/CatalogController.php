@@ -21,10 +21,54 @@ class CatalogController extends Controller
         abort_unless(isset(self::SIMPLE_TYPES[$slug]), 404);
         [$type, $title] = self::SIMPLE_TYPES[$slug];
 
-        $products = Product::where('product_type', $type)->where('is_active', true)
-            ->orderBy('name')->paginate(24);
+        $query = Product::where('product_type', $type)->where('is_active', true);
 
-        return view('shop::theme.catalog-simple', compact('products', 'title', 'slug'));
+        if ($request->filled('q')) {
+            $query->where('name', 'like', '%' . $request->q . '%');
+        }
+
+        // Thẻ quà tặng (qua-tang) có tới hàng nghìn sản phẩm trải khắp hàng trăm thương hiệu
+        // (Google Play, Amazon, Netflix...) -> gộp phẳng vào 1 danh sách là không thể chọn nổi.
+        // Thêm bộ lọc theo thương hiệu (đoán từ tên sản phẩm) để khách thu hẹp trước khi chọn.
+        $brandCounts = [];
+        if ($slug === 'qua-tang') {
+            $brandCounts = \Illuminate\Support\Facades\Cache::remember('giftcard_brand_counts', 3600, function () use ($type) {
+                $counts = [];
+                Product::where('product_type', $type)->where('is_active', true)
+                    ->pluck('name')->each(function ($name) use (&$counts) {
+                        $brand = $this->extractGiftCardBrand($name);
+                        $counts[$brand] = ($counts[$brand] ?? 0) + 1;
+                    });
+                arsort($counts);
+                return $counts;
+            });
+
+            if ($request->filled('brand') && isset($brandCounts[$request->brand])) {
+                $query->where('name', 'like', str_replace(['%', '_'], ['\\%', '\\_'], $request->brand) . '%');
+            }
+        }
+
+        $products = $query->orderBy('name')->paginate(24)->withQueryString();
+
+        return view('shop::theme.catalog-simple', compact('products', 'title', 'slug', 'brandCounts'));
+    }
+
+    // Đoán tên thương hiệu từ tên sản phẩm thẻ quà tặng (VD: "Google Play SAR 500 Gift Card SA"
+    // -> "Google Play", "Thẻ Google Play 100.000đ" -> "Thẻ Google Play") — cắt tại vị trí xuất
+    // hiện đầu tiên của số, ký hiệu tiền tệ, hoặc cụm "Gift Card", phần còn lại phía trước là brand.
+    protected function extractGiftCardBrand(string $name): string
+    {
+        $brand = $name;
+        if (preg_match('/^(.*?)(?:\d|[\$€£₺₴₱₩฿₹]|Gift Card)/u', $name, $m) && trim($m[1]) !== '') {
+            $brand = trim($m[1]);
+        }
+
+        // Bỏ mã tiền tệ 3 ký tự còn sót lại ở cuối (VD: "Google Play EUR" -> "Google Play") để
+        // gộp đúng 1 thương hiệu thay vì tách vụn theo từng loại tiền tệ khác nhau.
+        static $currencyCodes = ['IDR', 'TRY', 'ARS', 'HKD', 'INR', 'USD', 'EUR', 'GBP', 'VND', 'THB', 'PHP', 'MYR', 'PLN', 'MXN', 'SAR', 'QAR', 'ZAR', 'UAH', 'KRW', 'BRL', 'CNY', 'AUD', 'AED', 'SGD', 'KWD', 'PEN', 'CAD', 'COP', 'TWD', 'CLP', 'NGN', 'OMR', 'CZK', 'DKK', 'NOK', 'SEK', 'CHF', 'RON', 'HUF', 'BGN', 'ILS', 'JPY', 'NZD', 'RUB'];
+        $brand = trim(preg_replace('/\s+(?:' . implode('|', $currencyCodes) . ')$/i', '', $brand));
+
+        return $brand !== '' ? $brand : trim(preg_replace('/\s+/', ' ', $name));
     }
 
     public function browseVpn()

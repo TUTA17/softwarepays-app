@@ -15,6 +15,27 @@
         <h1 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">{{ $title }}</h1>
     </div>
 
+    @if(!empty($brandCounts))
+    <!-- Danh mục nhiều nghìn sản phẩm trải khắp hàng trăm thương hiệu -> lọc theo thương hiệu +
+         tìm kiếm để khách còn thu hẹp/chọn được, thay vì lướt qua 1 danh sách phẳng vô tận. -->
+    <form method="GET" action="{{ url()->current() }}" class="flex flex-col sm:flex-row gap-3 mb-8">
+        <select name="brand" onchange="this.form.submit()" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-semibold rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-64">
+            <option value="">{{ __('catalog.all_brands') }} ({{ number_format(array_sum($brandCounts)) }})</option>
+            @foreach($brandCounts as $brand => $count)
+                <option value="{{ $brand }}" {{ request('brand') === $brand ? 'selected' : '' }}>{{ $brand }} ({{ $count }})</option>
+            @endforeach
+        </select>
+        <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input type="text" name="q" value="{{ request('q') }}" placeholder="{{ __('catalog.search_placeholder') }}" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm rounded-lg pl-9 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-6 py-2.5 rounded-lg transition">{{ __('catalog.search_button') }}</button>
+        @if(request('brand') || request('q'))
+            <a href="{{ url()->current() }}" class="flex items-center justify-center gap-2 text-sm font-semibold text-slate-500 hover:text-blue-600 px-3">{{ __('catalog.clear_filters') }}</a>
+        @endif
+    </form>
+    @endif
+
     @if($products->isEmpty())
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-16 text-center text-slate-500">
             <i class="fa-solid fa-ghost text-6xl mb-6 opacity-50"></i>
@@ -51,7 +72,7 @@
                                 </button>
                             </form>
                         @else
-                            <a href="{{ route('login') }}" class="bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold px-4 py-2 rounded-lg transition">
+                            <a href="{{ route('login', ['redirect' => url()->current()]) }}" class="bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold px-4 py-2 rounded-lg transition">
                                 {{ __('header.login') }}
                             </a>
                         @endauth
