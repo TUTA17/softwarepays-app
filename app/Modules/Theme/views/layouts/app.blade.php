@@ -401,35 +401,37 @@
                     @php
                         $currentCurrency = session('currency', 'VND');
 
+                        // Khách nước ngoài là chính -> English và các ngôn ngữ phổ biến quốc tế xếp trước,
+                        // Tiếng Việt xếp cuối thay vì ưu tiên đầu danh sách.
                         $languages = [
-                            'vi' => ['name' => 'Tiếng Việt', 'flag' => 'vn'],
                             'en' => ['name' => 'English', 'flag' => 'us'],
                             'zh' => ['name' => '中文', 'flag' => 'cn'],
-                            'ja' => ['name' => '日本語', 'flag' => 'jp'],
-                            'ko' => ['name' => '한국어', 'flag' => 'kr'],
-                            'th' => ['name' => 'ไทย', 'flag' => 'th'],
-                            'ru' => ['name' => 'Русский', 'flag' => 'ru'],
-                            'de' => ['name' => 'Deutsch', 'flag' => 'de'],
-                            'fr' => ['name' => 'Français', 'flag' => 'fr'],
-                            'it' => ['name' => 'Italiano', 'flag' => 'it'],
                             'es' => ['name' => 'Español', 'flag' => 'es'],
+                            'fr' => ['name' => 'Français', 'flag' => 'fr'],
+                            'de' => ['name' => 'Deutsch', 'flag' => 'de'],
                             'pt' => ['name' => 'Português', 'flag' => 'pt'],
                             'pt-BR' => ['name' => 'Português (BR)', 'flag' => 'br'],
+                            'ru' => ['name' => 'Русский', 'flag' => 'ru'],
+                            'ja' => ['name' => '日本語', 'flag' => 'jp'],
+                            'ko' => ['name' => '한국어', 'flag' => 'kr'],
+                            'it' => ['name' => 'Italiano', 'flag' => 'it'],
+                            'id' => ['name' => 'Bahasa Indonesia', 'flag' => 'id'],
+                            'th' => ['name' => 'ไทย', 'flag' => 'th'],
+                            'ms' => ['name' => 'Bahasa Melayu', 'flag' => 'my'],
+                            'vi' => ['name' => 'Tiếng Việt', 'flag' => 'vn'],
                             'lo' => ['name' => 'ລາວ', 'flag' => 'la'],
                             'km' => ['name' => 'ខ្មែរ', 'flag' => 'kh'],
-                            'id' => ['name' => 'Bahasa Indonesia', 'flag' => 'id'],
-                            'ms' => ['name' => 'Bahasa Melayu', 'flag' => 'my'],
                         ];
 
                         $currencies = [
-                            'VND' => 'Vietnamese Dong',
                             'USD' => 'US Dollar',
                             'EUR' => 'Euro',
-                            'CNY' => 'Chinese Yuan',
                             'JPY' => 'Japanese Yen',
                             'KRW' => 'South Korean Won',
+                            'CNY' => 'Chinese Yuan',
                             'THB' => 'Thai Baht',
                             'RUB' => 'Russian Ruble',
+                            'VND' => 'Vietnamese Dong',
                         ];
                     
                         $activeLang = $languages[$currentLang] ?? $languages['vi'];
@@ -458,7 +460,7 @@
                                     </div>
                                 </div>
                                 <div class="p-3">
-                                    <p class="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest px-1">{{ __('Tiền tệ') }}</p>
+                                    <p class="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest px-1">{{ __('header.currency') }}</p>
                                     <div class="space-y-1">
                                         @foreach($currencies as $code => $name)
                                             <a href="{{ route('currency.switch', $code) }}" class="w-full flex items-center justify-between px-3 py-2 rounded-lg {{ $currentCurrency === $code ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-bold' : 'hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium' }} text-sm transition-colors">
