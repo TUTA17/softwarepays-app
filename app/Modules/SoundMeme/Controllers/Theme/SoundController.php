@@ -44,7 +44,7 @@ class SoundController extends Controller
                 $query->orderBy('created_at', 'desc');
         }
 
-        $sounds = $query->paginate(12)->withQueryString();
+        $sounds = $query->paginate(40)->withQueryString();
         $sounds->getCollection()->transform(fn ($s) => $this->attachUrls($s));
 
         $categories = SoundCategory::where('status', true)->orderBy('name')->get();

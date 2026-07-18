@@ -49,7 +49,7 @@
             <p>{{ __('soundindex.empty_state') }}</p>
         </div>
     @else
-        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-x-2 gap-y-6">
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-2 gap-y-6">
             @foreach($sounds as $sound)
                 @include('soundmeme::theme.partials.card', ['sound' => $sound])
             @endforeach
