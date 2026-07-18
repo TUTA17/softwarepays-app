@@ -25,7 +25,7 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-slate-900 dark:text-white">{{ __('support.email_label') }}</h3>
-                        <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">{{ \App\Modules\Core\Models\Setting::getValue('support_email', 'support@keygame.com') }}</p>
+                        <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">{{ \App\Modules\Core\Models\Setting::getValue('email', 'support@softwarepays.com') }}</p>
                         <p class="text-slate-500 dark:text-slate-400 text-sm">{{ __('support.email_response_note') }}</p>
                     </div>
                 </div>
