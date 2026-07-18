@@ -69,9 +69,9 @@
     <div class="card" style="margin-bottom: 24px; padding: 16px;">
         <form action="{{ route('admin.soundmeme.sounds.settings') }}" method="POST" style="display:flex; gap:10px; align-items:center;">
             @csrf
-            <strong style="white-space:nowrap;">Cấu hình Cronjob tự động đăng:</strong>
-            <input type="number" name="publish_rate" value="{{ $publishRate ?? 1 }}" min="0" class="form-control" style="width:100px;">
-            <span style="color:var(--text-muted);">bài xuất bản / 15 phút (0 = tắt)</span>
+            <strong style="white-space:nowrap;">Cấu hình Cronjob tự động cào bài (Crawl):</strong>
+            <input type="number" name="crawl_rate" value="{{ $crawlRate ?? 10 }}" min="0" class="form-control" style="width:100px;">
+            <span style="color:var(--text-muted);">bài được lấy về / 15 phút (0 = tắt)</span>
             <button type="submit" class="btn btn-primary" style="padding:6px 16px;">Lưu Cấu Hình</button>
         </form>
     </div>
@@ -83,7 +83,6 @@
                 <select name="status" class="form-control" style="width:160px;">
                     <option value="">-- Trạng thái --</option>
                     <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Nháp / Chờ duyệt</option>
-                    <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Đã duyệt</option>
                     <option value="published" {{ request('status') === 'published' ? 'selected' : '' }}>Đã đăng</option>
                     <option value="hidden" {{ request('status') === 'hidden' ? 'selected' : '' }}>Đã ẩn</option>
                 </select>
@@ -92,11 +91,48 @@
         </div>
     </div>
 
+    <div class="card" style="margin-bottom: 24px; padding: 16px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <strong style="white-space:nowrap;">Thao tác hàng loạt (theo bộ lọc đang chọn ở trên):</strong>
+        <form action="{{ route('admin.soundmeme.sounds.bulk_approve_all') }}" method="POST" style="display:inline;" onsubmit="return confirm('Duyệt TẤT CẢ sound đang khớp bộ lọc hiện tại (không chỉ trang này)?');">
+            @csrf
+            <input type="hidden" name="search" value="{{ request('search') }}">
+            <input type="hidden" name="status" value="{{ request('status') }}">
+            <button type="submit" class="btn" style="background: #10b981; border:none; color: white;">
+                <span class="material-symbols-outlined" style="vertical-align:middle; font-size:16px;">done_all</span> Duyệt tất cả
+            </button>
+        </form>
+        <form action="{{ route('admin.soundmeme.sounds.bulk_delete_all') }}" method="POST" style="display:inline;" onsubmit="return confirm('XOÁ TẤT CẢ sound đang khớp bộ lọc hiện tại (không chỉ trang này)? File trên R2 cũng sẽ bị xoá, không thể hoàn tác!');">
+            @csrf
+            <input type="hidden" name="search" value="{{ request('search') }}">
+            <input type="hidden" name="status" value="{{ request('status') }}">
+            <button type="submit" class="btn" style="background: #b91c1c; border:none; color: white;">
+                <span class="material-symbols-outlined" style="vertical-align:middle; font-size:16px;">delete_sweep</span> Xoá tất cả
+            </button>
+        </form>
+    </div>
+
     <div class="card">
+        <div style="padding: 16px; border-bottom: 1px solid var(--border-color); display: none; gap:10px;" id="bulk-action-bar">
+            <form action="{{ route('admin.soundmeme.sounds.bulk_approve') }}" method="POST" id="bulk-approve-form" style="display:inline;" onsubmit="return confirm('Duyệt các sound đã chọn?');">
+                @csrf
+                <input type="hidden" name="ids_string" class="bulk-ids-input" value="">
+                <button type="submit" class="btn" style="background:#10b981; color:white; border:none;">
+                    <span class="material-symbols-outlined" style="vertical-align:middle; font-size:16px;">check</span> Duyệt các mục đã chọn (<span class="selected-count">0</span>)
+                </button>
+            </form>
+            <form action="{{ route('admin.soundmeme.sounds.bulk_delete') }}" method="POST" id="bulk-delete-form" style="display:inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xoá các sound đã chọn?');">
+                @csrf
+                <input type="hidden" name="ids_string" class="bulk-ids-input" value="">
+                <button type="submit" class="btn" style="background:#b91c1c; color:white; border:none;">
+                    <span class="material-symbols-outlined" style="vertical-align:middle; font-size:16px;">delete</span> Xoá các mục đã chọn (<span class="selected-count">0</span>)
+                </button>
+            </form>
+        </div>
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
+                        <th style="width: 40px;"><input type="checkbox" id="check-all"></th>
                         <th>#</th>
                         <th>Tiêu đề</th>
                         <th>Danh mục</th>
@@ -109,6 +145,7 @@
                 <tbody>
                     @forelse($sounds as $sound)
                     <tr>
+                        <td><input type="checkbox" name="ids[]" value="{{ $sound->id }}" class="row-checkbox"></td>
                         <td>{{ $sound->id }}</td>
                         <td style="font-weight:600; color:var(--primary);">
                             {{ $sound->title }}
@@ -120,8 +157,6 @@
                         <td>
                             @if($sound->status === 'published')
                                 <span class="badge badge-success">Đã đăng</span>
-                            @elseif($sound->status === 'approved')
-                                <span class="badge" style="background:#dbeafe;color:#1e40af;">Đã duyệt</span>
                             @elseif($sound->status === 'draft')
                                 <span class="badge" style="background:#fef3c7;color:#92400e;">Nháp (Chờ duyệt)</span>
                             @else
@@ -147,7 +182,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Chưa có sound nào</td></tr>
+                    <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);">Chưa có sound nào</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -159,4 +194,34 @@
         </div>
         @endif
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var checkAll = document.getElementById('check-all');
+            var checkboxes = document.querySelectorAll('.row-checkbox');
+            var actionBar = document.getElementById('bulk-action-bar');
+
+            function updateBulkAction() {
+                var checked = document.querySelectorAll('.row-checkbox:checked');
+                var count = checked.length;
+                document.querySelectorAll('.selected-count').forEach(function (el) { el.textContent = count; });
+                actionBar.style.display = count > 0 ? 'flex' : 'none';
+                checkAll.checked = (count === checkboxes.length && checkboxes.length > 0);
+
+                var ids = Array.from(checked).map(function(cb) { return cb.value; });
+                document.querySelectorAll('.bulk-ids-input').forEach(function (el) { el.value = ids.join(','); });
+            }
+
+            if (checkAll) {
+                checkAll.addEventListener('change', function () {
+                    checkboxes.forEach(function (cb) { cb.checked = checkAll.checked; });
+                    updateBulkAction();
+                });
+            }
+
+            checkboxes.forEach(function (cb) {
+                cb.addEventListener('change', updateBulkAction);
+            });
+        });
+    </script>
 @endsection

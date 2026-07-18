@@ -25,24 +25,16 @@ class SoundController extends Controller
 
     public function index(Request $request)
     {
-        $query = Sound::with('category')->orderBy('created_at', 'desc');
-
-        if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%');
-        }
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $sounds = $query->paginate(20)->withQueryString();
+        $sounds = $this->filteredQuery($request)->paginate(20)->withQueryString();
         $sounds->getCollection()->transform(function($s) {
             $s->play_url = $this->r2->getSignedDownloadUrl($s->object_key, 30);
             return $s;
         });
 
-        $publishRate = Setting::getValue('soundmeme_autopublish_rate', 1);
+        $rateSetting = Setting::where('name', 'soundmeme_autocrawl_rate')->first();
+        $crawlRate = $rateSetting ? $rateSetting->value : 10;
 
-        return view('soundmeme::admin.sounds.index', compact('sounds', 'publishRate'));
+        return view('soundmeme::admin.sounds.index', compact('sounds', 'crawlRate'));
     }
 
     public function create()
@@ -161,41 +153,102 @@ class SoundController extends Controller
     public function approve($id)
     {
         $sound = Sound::findOrFail($id);
-        $sound->update(['status' => Sound::STATUS_APPROVED]);
-        return back()->with('success', 'Đã duyệt bài! Bài này sẽ được Cronjob tự động đăng trong thời gian tới.');
+        $sound->update(['status' => Sound::STATUS_PUBLISHED]);
+        return back()->with('success', 'Đã duyệt bài thành công! Bài viết đã hiển thị trên web.');
     }
 
     public function saveSettings(Request $request)
     {
-        $request->validate(['publish_rate' => 'required|integer|min:0']);
-        Setting::setValue('soundmeme_autopublish_rate', $request->publish_rate);
-        return back()->with('success', 'Đã lưu cấu hình tự động đăng.');
+        $request->validate(['crawl_rate' => 'required|integer|min:0']);
+        Setting::updateOrCreate(
+            ['name' => 'soundmeme_autocrawl_rate'],
+            ['value' => $request->crawl_rate, 'type' => 'soundmeme']
+        );
+        return back()->with('success', 'Đã lưu cấu hình tự động lấy bài.');
     }
 
     public function destroy($id)
     {
         $sound = Sound::findOrFail($id);
 
-        // Xoá file thật trên R2 trước, chỉ xoá bản ghi DB nếu R2 xoá thành công — nếu R2 lỗi,
-        // không được âm thầm bỏ qua (ném lỗi ra ngoài, log rõ ràng, giữ nguyên bản ghi DB để retry).
-        try {
-            if ($this->r2->objectExists($sound->object_key)) {
-                $this->r2->deleteObject($sound->object_key);
-            }
-            if ($sound->thumbnail_key && $this->r2->objectExists($sound->thumbnail_key)) {
-                $this->r2->deleteObject($sound->thumbnail_key);
-            }
-            if ($sound->waveform_key && $this->r2->objectExists($sound->waveform_key)) {
-                $this->r2->deleteObject($sound->waveform_key);
-            }
-        } catch (\Throwable $e) {
-            Log::error("Xoá sound #{$sound->id} thất bại khi xoá file trên R2: " . $e->getMessage());
-            return back()->with('error', 'Xoá file trên R2 thất bại, bản ghi chưa bị xoá. Vui lòng thử lại hoặc kiểm tra log.');
-        }
+        if ($sound->object_key) $this->r2->deleteObject($sound->object_key);
+        if ($sound->thumbnail_key) $this->r2->deleteObject($sound->thumbnail_key);
+        if ($sound->waveform_key) $this->r2->deleteObject($sound->waveform_key);
 
         $sound->delete();
 
         return back()->with('success', 'Đã xoá sound!');
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids_string' => 'required|string'
+        ]);
+
+        $ids = explode(',', $request->ids_string);
+
+        $sounds = Sound::whereIn('id', $ids)->get();
+        foreach ($sounds as $sound) {
+            if ($sound->object_key) $this->r2->deleteObject($sound->object_key);
+            if ($sound->thumbnail_key) $this->r2->deleteObject($sound->thumbnail_key);
+            if ($sound->waveform_key) $this->r2->deleteObject($sound->waveform_key);
+            $sound->delete();
+        }
+
+        return back()->with('success', 'Đã xoá ' . $sounds->count() . ' sound thành công.');
+    }
+
+    // Duyệt các sound đã tick chọn (checkbox) — cùng cơ chế ids_string với bulkDelete ở trên.
+    public function bulkApprove(Request $request)
+    {
+        $request->validate([
+            'ids_string' => 'required|string'
+        ]);
+
+        $ids = explode(',', $request->ids_string);
+        $count = Sound::whereIn('id', $ids)->update(['status' => Sound::STATUS_PUBLISHED]);
+
+        return back()->with('success', "Đã duyệt {$count} sound thành công.");
+    }
+
+    // Duyệt TẤT CẢ sound đang khớp bộ lọc hiện tại (tìm kiếm/trạng thái trên thanh lọc phía trên),
+    // không giới hạn theo trang — dùng khi muốn duyệt sạch cả trăm bài Nháp cùng lúc.
+    public function bulkApproveAll(Request $request)
+    {
+        $count = $this->filteredQuery($request)->update(['status' => Sound::STATUS_PUBLISHED]);
+
+        return back()->with('success', "Đã duyệt tất cả {$count} sound khớp bộ lọc hiện tại.");
+    }
+
+    // Xoá TẤT CẢ sound đang khớp bộ lọc hiện tại — phải xoá từng file trên R2 trước (không thể
+    // xoá hàng loạt bằng 1 câu SQL vì còn phải dọn file trên R2), nên duyệt qua từng bản ghi.
+    public function bulkDeleteAll(Request $request)
+    {
+        $sounds = $this->filteredQuery($request)->get();
+
+        foreach ($sounds as $sound) {
+            if ($sound->object_key) $this->r2->deleteObject($sound->object_key);
+            if ($sound->thumbnail_key) $this->r2->deleteObject($sound->thumbnail_key);
+            if ($sound->waveform_key) $this->r2->deleteObject($sound->waveform_key);
+            $sound->delete();
+        }
+
+        return back()->with('success', 'Đã xoá tất cả ' . $sounds->count() . ' sound khớp bộ lọc hiện tại.');
+    }
+
+    protected function filteredQuery(Request $request)
+    {
+        $query = Sound::with('category')->orderBy('id', 'desc');
+
+        if ($request->filled('search')) {
+            $query->where('title', 'like', '%' . $request->search . '%');
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        return $query;
     }
 
     // Kiểm tra nội dung file thật bằng finfo (đọc magic byte), không tin Content-Type client gửi lên.

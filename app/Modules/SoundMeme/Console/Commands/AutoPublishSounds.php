@@ -13,7 +13,8 @@ class AutoPublishSounds extends Command
 
     public function handle()
     {
-        $rate = (int) Setting::getValue('soundmeme_autopublish_rate', 1);
+        $rateSetting = Setting::where('name', 'soundmeme_autopublish_rate')->first();
+        $rate = $rateSetting ? (int) $rateSetting->value : 1;
 
         if ($rate <= 0) {
             $this->info('Auto publish is disabled (rate <= 0).');

@@ -18,7 +18,9 @@ class Sound extends Model
         'object_key', 'thumbnail_key', 'waveform_key', 'public_url',
         'original_filename', 'mime_type', 'extension',
         'duration', 'bitrate', 'codec', 'file_size',
-        'status', 'is_featured', 'play_count', 'download_count', 'created_by',
+        'status', 'is_featured', 'play_count', 'download_count',
+        'like_count', 'share_count',
+        'created_by'
     ];
 
     protected $casts = [

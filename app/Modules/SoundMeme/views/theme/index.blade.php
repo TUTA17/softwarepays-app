@@ -40,7 +40,7 @@
             <p>Chưa có sound nào phù hợp.</p>
         </div>
     @else
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-x-2 gap-y-6">
             @foreach($sounds as $sound)
                 @include('soundmeme::theme.partials.card', ['sound' => $sound])
             @endforeach
@@ -57,5 +57,5 @@
 <script>
     window.SOUND_CSRF_TOKEN = '{{ csrf_token() }}';
 </script>
-<script src="{{ asset('js/sound-player.js') }}"></script>
+<script src="{{ asset('js/sound-player.js?v=' . time()) }}"></script>
 @endsection

@@ -1,54 +1,61 @@
-<div class="sound-card group bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
-     data-slug="{{ $sound->slug }}" data-play-url="{{ $sound->play_url }}" data-duration="{{ $sound->duration }}">
+@php
+    $colors = [
+        'bg-[#FF0000]', // Red
+        'bg-[#0000FF]', // Blue
+        'bg-[#008000]', // Green
+        'bg-[#FFFF00]', // Yellow
+        'bg-[#800080]', // Purple
+        'bg-[#00FFFF]', // Cyan
+        'bg-[#FF00FF]', // Magenta
+        'bg-[#FFA500]', // Orange
+    ];
+    $c = $colors[$sound->id % count($colors)];
+@endphp
 
-    <div class="relative aspect-[16/9] bg-slate-100 dark:bg-slate-900 flex items-center justify-center overflow-hidden">
-        @if($sound->thumbnail_url)
-            <img src="{{ $sound->thumbnail_url }}" alt="{{ $sound->title }}" class="w-full h-full object-cover">
-        @else
-            <i class="fa-solid fa-music text-4xl text-slate-300 dark:text-slate-600"></i>
-        @endif
+<div class="sound-button-wrapper flex flex-col items-center justify-start group text-center"
+     data-slug="{{ $sound->slug }}" data-play-url="{{ $sound->play_url }}">
 
-        <button type="button" class="play-btn absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/20 transition-colors">
-            <span class="w-14 h-14 rounded-full bg-white/90 dark:bg-slate-900/90 flex items-center justify-center shadow-lg">
-                <i class="play-icon fa-solid fa-play text-blue-600 dark:text-blue-400 text-lg"></i>
-            </span>
+    <style>
+        .myinstants-btn-small {
+            background-image: url('https://www.myinstants.com/media/images/transparent_button_sprite.png') !important;
+            background-size: 200% 100% !important;
+            background-position: 0% 0% !important;
+            background-repeat: no-repeat !important;
+            transition: none !important;
+        }
+        .myinstants-btn-small:active,
+        .sound-button-wrapper.playing .myinstants-btn-small {
+            background-position: 100% 0% !important;
+        }
+    </style>
+    <div class="relative w-[85px] h-[85px] mb-3 flex items-center justify-center transition-transform hover:scale-105">
+        <!-- Colored Base -->
+        <div class="absolute rounded-full {{ $c }} z-0" style="width: 86%; height: 86%;"></div>
+        
+        <!-- Transparent Sprite Button -->
+        <button type="button" class="play-btn myinstants-btn-small absolute inset-0 z-10 focus:outline-none cursor-pointer">
+            <!-- Progress Overlay -->
+            <svg class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none opacity-0 group-[.playing]:opacity-100" viewBox="0 0 100 100">
+                <circle class="progress-ring text-black/20" stroke-width="6" stroke="currentColor" fill="transparent" r="42" cx="50" cy="50" style="stroke-dasharray: 264; stroke-dashoffset: 264; transition: stroke-dashoffset 0.1s linear;"></circle>
+            </svg>
         </button>
-
-        @if($sound->category)
-            <span class="absolute top-2 left-2 px-2.5 py-1 rounded-full bg-blue-600 text-white text-xs font-bold">{{ $sound->category->name }}</span>
-        @endif
     </div>
 
-    <div class="p-4">
-        <a href="{{ route('sounds.show', $sound->slug) }}" class="block font-bold text-slate-900 dark:text-white line-clamp-1 mb-1 hover:text-blue-600 dark:hover:text-blue-400">
-            {{ $sound->title }}
+    <!-- Title -->
+    <a href="{{ route('sounds.show', $sound->slug) }}" class="block font-bold text-slate-800 dark:text-slate-200 text-[11px] px-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors w-full break-words line-clamp-2 leading-snug mb-1.5 h-7 flex items-center justify-center" title="{{ $sound->title }}">
+        {{ Str::limit($sound->title, 40) }}
+    </a>
+
+    <!-- Action Icons -->
+    <div class="flex items-center justify-center gap-2.5 text-slate-400 dark:text-slate-500 text-[11px]">
+        <button type="button" onclick="likeSound('{{ $sound->slug }}', this)" class="hover:text-red-500 transition-colors" title="Thích">
+            <i class="fa-solid fa-heart"></i>
+        </button>
+        <button type="button" onclick="copySoundLink('{{ route('sounds.show', $sound->slug) }}', this)" class="hover:text-blue-500 transition-colors" title="Chia sẻ">
+            <i class="fa-solid fa-share-nodes"></i>
+        </button>
+        <a href="{{ route('sounds.download', $sound->slug) }}" class="hover:text-indigo-500 transition-colors" title="Tải xuống">
+            <i class="fa-solid fa-download"></i>
         </a>
-
-        @if($sound->tags)
-            <div class="flex flex-wrap gap-1 mb-2">
-                @foreach(array_slice($sound->tags_array, 0, 3) as $tag)
-                    <span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">#{{ $tag }}</span>
-                @endforeach
-            </div>
-        @endif
-
-        <div class="progress-wrap h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 cursor-pointer mb-2">
-            <div class="progress-fill h-full rounded-full bg-blue-600" style="width:0%"></div>
-        </div>
-
-        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-3">
-            <span><span class="time-current">0:00</span> / {{ $sound->duration ? gmdate('i:s', $sound->duration) : '--:--' }}</span>
-            <span><i class="fa-solid fa-headphones"></i> {{ number_format($sound->play_count) }} &nbsp; <i class="fa-solid fa-download"></i> {{ number_format($sound->download_count) }}</span>
-        </div>
-
-        <div class="flex gap-2">
-            <a href="{{ route('sounds.download', $sound->slug) }}" class="flex-1 text-center px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
-                <i class="fa-solid fa-download"></i> Tải xuống
-            </a>
-            <button type="button" onclick="copySoundLink('{{ route('sounds.show', $sound->slug) }}', this)"
-                    class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors">
-                <i class="fa-solid fa-link"></i>
-            </button>
-        </div>
     </div>
 </div>

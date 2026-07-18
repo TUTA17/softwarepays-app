@@ -11,60 +11,91 @@
         <span class="text-slate-700 dark:text-slate-300">{{ $sound->title }}</span>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div class="lg:col-span-2">
-            <div class="sound-card bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden mb-6"
-                 data-slug="{{ $sound->slug }}" data-play-url="{{ $sound->play_url }}" data-duration="{{ $sound->duration }}">
+@php
+    $colors = [
+        'bg-[#FF0000]', // Red
+        'bg-[#0000FF]', // Blue
+        'bg-[#008000]', // Green
+        'bg-[#FFFF00]', // Yellow
+        'bg-[#800080]', // Purple
+        'bg-[#00FFFF]', // Cyan
+        'bg-[#FF00FF]', // Magenta
+        'bg-[#FFA500]', // Orange
+    ];
+    $c = $colors[$sound->id % count($colors)];
+@endphp
 
-                <div class="relative aspect-[16/9] bg-slate-100 dark:bg-slate-900 flex items-center justify-center overflow-hidden">
-                    @if($sound->thumbnail_url)
-                        <img src="{{ $sound->thumbnail_url }}" alt="{{ $sound->title }}" class="w-full h-full object-cover">
-                    @else
-                        <i class="fa-solid fa-music text-6xl text-slate-300 dark:text-slate-600"></i>
-                    @endif
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center">
 
-                    <button type="button" class="play-btn absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/20 transition-colors">
-                        <span class="w-20 h-20 rounded-full bg-white/90 dark:bg-slate-900/90 flex items-center justify-center shadow-lg">
-                            <i class="play-icon fa-solid fa-play text-blue-600 dark:text-blue-400 text-2xl"></i>
-                        </span>
-                    </button>
-                </div>
+    <div class="text-sm text-slate-500 dark:text-slate-400 mb-8 font-medium">
+        <a href="{{ route('sounds.index') }}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Trang chủ</a>
+        <span class="mx-2">></span>
+        <span class="text-slate-800 dark:text-slate-200">{{ $sound->title }}</span>
+    </div>
 
-                <div class="p-5">
-                    <h1 class="text-2xl font-display font-black text-slate-900 dark:text-white mb-3">{{ $sound->title }}</h1>
+    <h1 class="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-12 font-display uppercase tracking-tight break-words">{{ $sound->title }}</h1>
 
-                    <div class="progress-wrap h-2 rounded-full bg-slate-200 dark:bg-slate-700 cursor-pointer mb-2">
-                        <div class="progress-fill h-full rounded-full bg-blue-600" style="width:0%"></div>
-                    </div>
-                    <div class="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 mb-4">
-                        <span><span class="time-current">0:00</span> / {{ $sound->duration ? gmdate('i:s', $sound->duration) : '--:--' }}</span>
-                        <span><i class="fa-solid fa-headphones"></i> {{ number_format($sound->play_count) }} lượt nghe &nbsp; <i class="fa-solid fa-download"></i> {{ number_format($sound->download_count) }} lượt tải</span>
-                    </div>
-
-                    @if($sound->tags)
-                        <div class="flex flex-wrap gap-1.5 mb-4">
-                            @foreach($sound->tags_array as $tag)
-                                <span class="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">#{{ $tag }}</span>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    @if($sound->description)
-                        <p class="text-slate-600 dark:text-slate-300 mb-5 whitespace-pre-line">{{ $sound->description }}</p>
-                    @endif
-
-                    <div class="flex gap-3">
-                        <a href="{{ route('sounds.download', $sound->slug) }}" class="flex-1 text-center px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-colors">
-                            <i class="fa-solid fa-download"></i> Tải xuống
-                        </a>
-                        <button type="button" onclick="copySoundLink('{{ route('sounds.show', $sound->slug) }}', this)"
-                                class="px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-semibold transition-colors">
-                            <i class="fa-solid fa-link"></i> Sao chép liên kết
-                        </button>
-                    </div>
-                </div>
-            </div>
+    <div class="sound-button-wrapper inline-block mb-10" data-slug="{{ $sound->slug }}" data-play-url="{{ $sound->play_url }}">
+        <style>
+            .myinstants-btn-huge {
+                background-image: url('https://www.myinstants.com/media/images/transparent_button_sprite.png') !important;
+                background-size: 200% 100% !important;
+                background-position: 0% 0% !important;
+                background-repeat: no-repeat !important;
+                transition: none !important;
+            }
+            .myinstants-btn-huge:active,
+            .sound-button-wrapper.playing .myinstants-btn-huge {
+                background-position: 100% 0% !important;
+            }
+        </style>
+        <div class="relative mb-8 flex items-center justify-center mx-auto" style="width: 200px; height: 200px; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.4));">
+            <!-- Colored Base -->
+            <div class="absolute rounded-full {{ $c }} z-0" style="width: 86%; height: 86%;"></div>
+            
+            <!-- Transparent Sprite Button -->
+            <button type="button" class="play-btn myinstants-btn-huge absolute inset-0 z-10 focus:outline-none cursor-pointer">
+                <!-- Progress Overlay -->
+                <svg class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none opacity-0 group-[.playing]:opacity-100" viewBox="0 0 100 100">
+                    <circle class="progress-ring text-black/20" stroke-width="4" stroke="currentColor" fill="transparent" r="45" cx="50" cy="50" style="stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 0.1s linear;"></circle>
+                </svg>
+            </button>
         </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="text-slate-600 dark:text-slate-400 mb-10">
+        <div class="flex items-center justify-center gap-2 mb-3 text-lg md:text-xl">
+            <i class="fa-solid fa-heart text-red-500 animate-pulse"></i> 
+            <span class="font-bold text-slate-900 dark:text-white like-count">{{ number_format($sound->like_count) }}</span> 
+            người đã thích âm thanh này
+        </div>
+        <div class="text-sm font-medium">
+            Tải lên bởi SoftwarePays &bull; {{ number_format($sound->play_count) }} lượt nghe &bull; {{ number_format($sound->download_count) }} lượt tải
+        </div>
+    </div>
+
+    <!-- Actions (Like Myinstants style) -->
+    <div class="flex flex-wrap justify-center gap-3 mb-12 max-w-3xl mx-auto">
+        <button onclick="likeSound('{{ $sound->slug }}', this)" class="like-btn flex-1 min-w-[150px] flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all shadow-md active:scale-95">
+            <i class="fa-regular fa-heart text-lg"></i> Thích
+        </button>
+        <button onclick="shareSound('{{ $sound->slug }}'); window.open('https://www.facebook.com/sharer/sharer.php?u={{ urlencode(route('sounds.show', $sound->slug)) }}', '_blank')" class="flex-1 min-w-[150px] flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all shadow-md active:scale-95">
+            <i class="fa-brands fa-facebook-f text-lg"></i> Chia sẻ
+        </button>
+        <button onclick="copySoundLink('{{ route('sounds.show', $sound->slug) }}', this)" class="flex-1 min-w-[150px] flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all shadow-md active:scale-95">
+            <i class="fa-solid fa-link text-lg"></i> Sao chép Link
+        </button>
+        <a href="{{ route('sounds.download', $sound->slug) }}" class="flex-1 min-w-[150px] flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all shadow-md active:scale-95">
+            <i class="fa-solid fa-download text-lg"></i> Tải xuống MP3
+        </a>
+    </div>
+
+    <!-- Embed Code -->
+    <div class="max-w-xl mx-auto mb-12">
+        <p class="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mb-2">Nhúng vào website của bạn</p>
+        <textarea readonly class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-600 dark:text-slate-300 font-mono text-center focus:outline-none focus:border-blue-500 cursor-text" rows="2" onclick="this.select()"><iframe width="110" height="200" src="{{ route('sounds.show', $sound->slug) }}" frameborder="0"></iframe></textarea>
+    </div>
 
         <div>
             <h3 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-4">Sound liên quan</h3>
@@ -96,5 +127,5 @@
 <script>
     window.SOUND_CSRF_TOKEN = '{{ csrf_token() }}';
 </script>
-<script src="{{ asset('js/sound-player.js') }}"></script>
+<script src="{{ asset('js/sound-player.js?v=' . time()) }}"></script>
 @endsection

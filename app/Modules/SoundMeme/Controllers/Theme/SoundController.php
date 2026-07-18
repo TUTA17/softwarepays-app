@@ -37,6 +37,9 @@ class SoundController extends Controller
             case 'downloads':
                 $query->orderBy('download_count', 'desc');
                 break;
+            case 'likes':
+                $query->orderBy('like_count', 'desc');
+                break;
             default:
                 $query->orderBy('created_at', 'desc');
         }
@@ -94,6 +97,27 @@ class SoundController extends Controller
         $url = $this->r2->getSignedDownloadUrl($sound->object_key, 15, $filename);
 
         return redirect()->away($url);
+    }
+
+    public function like(Request $request, $slug)
+    {
+        $sound = Sound::where('slug', $slug)->where('status', Sound::STATUS_PUBLISHED)->firstOrFail();
+
+        $cacheKey = 'sound_like_' . $sound->id . '_' . $request->ip();
+        if (!Cache::has($cacheKey)) {
+            $sound->increment('like_count');
+            Cache::put($cacheKey, true, now()->addYear()); // Khóa 1 năm cho like
+        }
+
+        return response()->json(['success' => true, 'like_count' => $sound->like_count]);
+    }
+
+    public function share(Request $request, $slug)
+    {
+        $sound = Sound::where('slug', $slug)->where('status', Sound::STATUS_PUBLISHED)->firstOrFail();
+        $sound->increment('share_count');
+
+        return response()->json(['success' => true, 'share_count' => $sound->share_count]);
     }
 
     protected function attachUrls(Sound $sound): Sound
