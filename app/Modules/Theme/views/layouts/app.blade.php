@@ -808,10 +808,13 @@
                 <div>
                     <h3 class="font-display font-semibold text-slate-900 dark:text-white text-lg mb-6">{{ __('footer.products_title') }}</h3>
                     <ul class="space-y-3">
-                        <li><a href="{{ route('shop', ['platforms' => ['Steam']]) }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_game_steam') }}</a></li>
-                        <li><a href="{{ route('shop', ['platforms' => ['EA App']]) }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_origin_ea') }}</a></li>
-                        <li><a href="{{ route('shop', ['platforms' => ['Battle.net']]) }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_battlenet') }}</a></li>
-                        <li><a href="{{ route('shop', ['platforms' => ['Epic Games']]) }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('footer.link_epic_games') }}</a></li>
+                        <li><a href="{{ route('smm.index') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('home_categories.smm') }}</a></li>
+                        <li><a href="{{ route('shop') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('home_categories.games') }}</a></li>
+                        <li><a href="{{ route('catalog.simple', 'goi-dang-ky') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('home_categories.subscriptions') }}</a></li>
+                        <li><a href="{{ route('catalog.simple', 'phan-mem') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('home_categories.software') }}</a></li>
+                        <li><a href="{{ route('catalog.card') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('home_categories.cards') }}</a></li>
+                        <li><a href="{{ route('catalog.simple', 'qua-tang') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('home_categories.giftcards') }}</a></li>
+                        <li><a href="{{ route('catalog.esim') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('home_categories.esim') }}</a></li>
                     </ul>
                 </div>
 
