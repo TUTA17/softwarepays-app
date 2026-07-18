@@ -111,6 +111,7 @@
                 ['label' => __('home_categories.cards'), 'icon' => 'fa-solid fa-wallet', 'href' => route('catalog.card')],
                 ['label' => __('home_categories.giftcards'), 'icon' => 'fa-solid fa-gift', 'href' => route('catalog.simple', 'qua-tang')],
                 ['label' => __('home_categories.esim'), 'icon' => 'fa-solid fa-sim-card', 'href' => route('catalog.esim')],
+                ['label' => __('home_categories.other'), 'icon' => 'fa-solid fa-layer-group', 'href' => route('pages.other')],
             ];
         @endphp
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-5">

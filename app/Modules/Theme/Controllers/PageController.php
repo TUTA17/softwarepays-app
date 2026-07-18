@@ -36,4 +36,9 @@ class PageController extends Controller
     {
         return view('theme::pages.warranty');
     }
+
+    public function other()
+    {
+        return view('theme::pages.other');
+    }
 }

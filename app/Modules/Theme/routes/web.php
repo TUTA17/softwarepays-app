@@ -32,6 +32,7 @@ Route::get('/support', [PageController::class, 'support'])->name('pages.support'
 Route::get('/privacy-policy', [PageController::class, 'privacyPolicy'])->name('pages.privacy');
 Route::get('/terms-of-service', [PageController::class, 'termsOfService'])->name('pages.terms');
 Route::get('/warranty-policy', [PageController::class, 'warrantyPolicy'])->name('pages.warranty');
+Route::get('/other', [PageController::class, 'other'])->name('pages.other');
 
 
 Route::get('/dev/clear-cache', function () {
