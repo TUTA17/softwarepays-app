@@ -758,24 +758,9 @@
                 </a>
             </div>
         </div>
-        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-4">
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-6">
             @foreach($homeGifs as $g)
-            <a href="{{ route('Gifs.show', $g->slug) }}" class="product-card group">
-                <div class="product-card-media bg-slate-100 dark:bg-slate-800 aspect-square relative overflow-hidden">
-                    <img src="{{ $g->play_url }}" alt="{{ $g->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy">
-                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px] z-10 pointer-events-none">
-                        <span class="bg-teal-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-xl flex items-center gap-2"><i class="fa-solid fa-eye"></i> {{ __('home.featured_quick_view') }}</span>
-                    </div>
-                </div>
-                <div class="p-4 flex flex-col flex-grow">
-                    <div class="mb-2 h-[48px]">
-                        <h3 class="font-display font-semibold text-[15px] text-slate-900 dark:text-white leading-snug group-hover:text-teal-500 transition-colors line-clamp-2" title="{{ $g->title }}">{{ $g->title }}</h3>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 uppercase"><i class="fa-solid fa-download"></i> {{ number_format($g->download_count) }}</span>
-                    </div>
-                </div>
-            </a>
+                @include('gifmeme::theme.partials.card', ['Gif' => $g])
             @endforeach
         </div>
     </div>
@@ -787,5 +772,12 @@
         window.SOUND_CSRF_TOKEN = '{{ csrf_token() }}';
     </script>
     <script src="{{ asset('js/sound-player.js?v=' . time()) }}"></script>
+    @endif
+
+    @if(isset($homeGifs) && $homeGifs->isNotEmpty())
+    <script>
+        window.Gif_CSRF_TOKEN = '{{ csrf_token() }}';
+    </script>
+    <script src="{{ asset('js/gif-player.js?v=' . time()) }}"></script>
     @endif
 @endsection
