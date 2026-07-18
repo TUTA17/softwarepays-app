@@ -221,30 +221,62 @@
             </div>
 
             <div class="mt-4 sm:mt-0 flex gap-2">
-                <a href="{{ route('steam-wallet') }}" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-semibold transition-all shadow-sm">
+                <a href="{{ route('catalog.simple', 'qua-tang') }}" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-semibold transition-all shadow-sm">
                     {{ __('home.steamwallet_view_all') }} <i class="fa-solid fa-arrow-right"></i>
                 </a>
             </div>
         </div>
-        
+
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
             @foreach($giftcards->take(10) as $card)
                 @php
                     $genres = json_decode($card->genres, true) ?? [];
                     $region = in_array('Vietnam', $genres) ? 'Vietnam' : (in_array('Global', $genres) ? 'Global' : 'Other');
                     $regionColor = $region === 'Vietnam' ? 'text-red-600 bg-red-100 dark:bg-red-900/60 dark:text-red-400' : 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/60 dark:text-emerald-400';
+                    // Thẻ quà tặng là sản phẩm giá cố định, mua thẳng (không có trang chi tiết riêng) —
+                    // bấm vào là thêm thẳng vào giỏ (giống catalog-simple), khách chưa đăng nhập thì
+                    // đưa qua đăng nhập rồi quay lại đúng trang chủ (không phải trang sản phẩm Steam Wallet).
                 @endphp
-                <a href="{{ route('steam-wallet') }}" class="glass-card rounded-xl sm:rounded-2xl overflow-hidden group hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/10 transition-all border border-slate-200 dark:border-slate-700 flex flex-col bg-white dark:bg-slate-800 relative">
+                @auth
+                <form action="{{ route('cart.add', $card->id) }}" method="POST" class="glass-card rounded-xl sm:rounded-2xl overflow-hidden group hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/10 transition-all border border-slate-200 dark:border-slate-700 flex flex-col bg-white dark:bg-slate-800 relative">
+                    @csrf
+                    <button type="submit" class="contents text-left">
+                        <!-- Region Badge -->
+                        <div class="absolute top-3 right-3 z-10">
+                            <span class="text-[10px] font-bold px-2 py-1 rounded-md shadow-sm {{ $regionColor }} backdrop-blur-md">{{ $region }}</span>
+                        </div>
+
+                        <!-- Cover Image -->
+                        <div class="aspect-square bg-slate-100 dark:bg-slate-900 relative overflow-hidden">
+                            <img src="{{ $card->header_image ?: '/images/steam_wallet_default.png' }}" alt="{{ $card->name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        </div>
+
+                        <!-- Content -->
+                        <div class="p-3 sm:p-4 border-t border-slate-100 dark:border-slate-700/50 flex-grow flex flex-col justify-between bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
+                            <h3 class="font-display font-bold text-slate-900 dark:text-white text-xs sm:text-sm mb-2 group-hover:text-blue-500 transition-colors line-clamp-2">
+                                {{ str_replace(['Steam Wallet ', ' (Vietnam)', ' (Global)'], '', $card->name) }}
+                            </h3>
+                            <div class="flex items-center justify-between">
+                                <span class="text-blue-600 dark:text-blue-400 font-black text-sm sm:text-base">{!! \App\Helpers\CurrencyHelper::formatPrice($card->price) !!}</span>
+                                <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                    <i class="fa-solid fa-plus text-[10px] sm:text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </button>
+                </form>
+                @else
+                <a href="{{ route('login', ['redirect' => url()->current()]) }}" class="glass-card rounded-xl sm:rounded-2xl overflow-hidden group hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/10 transition-all border border-slate-200 dark:border-slate-700 flex flex-col bg-white dark:bg-slate-800 relative">
                     <!-- Region Badge -->
                     <div class="absolute top-3 right-3 z-10">
                         <span class="text-[10px] font-bold px-2 py-1 rounded-md shadow-sm {{ $regionColor }} backdrop-blur-md">{{ $region }}</span>
                     </div>
-                    
+
                     <!-- Cover Image -->
                     <div class="aspect-square bg-slate-100 dark:bg-slate-900 relative overflow-hidden">
                         <img src="{{ $card->header_image ?: '/images/steam_wallet_default.png' }}" alt="{{ $card->name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                     </div>
-                    
+
                     <!-- Content -->
                     <div class="p-3 sm:p-4 border-t border-slate-100 dark:border-slate-700/50 flex-grow flex flex-col justify-between bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
                         <h3 class="font-display font-bold text-slate-900 dark:text-white text-xs sm:text-sm mb-2 group-hover:text-blue-500 transition-colors line-clamp-2">
@@ -258,6 +290,7 @@
                         </div>
                     </div>
                 </a>
+                @endauth
             @endforeach
         </div>
     </div>
