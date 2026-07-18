@@ -387,6 +387,7 @@
                                 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden py-2 flex flex-col">
                                     <a href="{{ route('blog.index') }}" class="px-4 py-2.5 text-sm font-semibold {{ request()->routeIs('blog.index') || request()->routeIs('blog.show') ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-slate-700' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600' }} transition-colors">{{ __('nav.news') }}</a>
                                     <a href="{{ route('blog.guides') }}" class="px-4 py-2.5 text-sm font-semibold {{ request()->routeIs('blog.guides') ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-slate-700' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600' }} transition-colors">{{ __('nav.guide') }}</a>
+                                    <a href="{{ route('sounds.index') }}" class="px-4 py-2.5 text-sm font-semibold {{ request()->routeIs('sounds.*') ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-slate-700' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600' }} transition-colors">Sound Meme</a>
                                     <a href="{{ route('coupons.index') }}" class="px-4 py-2.5 text-sm font-semibold {{ request()->routeIs('coupons.*') ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-slate-700' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600' }} transition-colors">{{ __('header.promotions') }}</a>
                                     <a href="{{ route('pages.support') }}" class="px-4 py-2.5 text-sm font-semibold {{ request()->routeIs('pages.support') ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-slate-700' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600' }} transition-colors">{{ __('header.support') }}</a>
                                 </div>
@@ -683,6 +684,9 @@
                 </a>
                 <a href="{{ route('blog.index') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 {{ request()->routeIs('blog.index') || request()->routeIs('blog.show') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : '' }}">
                     <i class="fa-solid fa-newspaper w-6 text-center text-lg"></i> {{ __('nav.news') }}
+                </a>
+                <a href="{{ route('sounds.index') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 {{ request()->routeIs('sounds.*') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : '' }}">
+                    <i class="fa-solid fa-music w-6 text-center text-lg"></i> Sound Meme
                 </a>
                 <a href="{{ route('blog.guides') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 {{ request()->routeIs('blog.guides') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : '' }}">
                     <i class="fa-solid fa-book w-6 text-center text-lg"></i> {{ __('nav.guide') }}

@@ -1,0 +1,21 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Modules\SoundMeme\Controllers\Admin\SoundController;
+use App\Modules\SoundMeme\Controllers\Admin\SoundCategoryController;
+use App\Modules\Core\Controllers\Admin\R2TestController;
+
+Route::prefix(config('app.admin_prefix', 'admin') . '/soundmeme')->name('admin.soundmeme.')->middleware(['admin.auth'])->group(function () {
+    Route::get('/r2-test', [R2TestController::class, 'test'])->name('r2_test');
+    Route::get('/sounds', [SoundController::class, 'index'])->name('sounds');
+    Route::get('/sounds/create', [SoundController::class, 'create'])->name('sounds.create');
+    Route::post('/sounds', [SoundController::class, 'store'])->name('sounds.store')->middleware('throttle:sound-upload');
+    Route::get('/sounds/{id}/edit', [SoundController::class, 'edit'])->name('sounds.edit');
+    Route::put('/sounds/{id}', [SoundController::class, 'update'])->name('sounds.update')->middleware('throttle:sound-upload');
+    Route::delete('/sounds/{id}', [SoundController::class, 'destroy'])->name('sounds.destroy');
+
+    Route::get('/categories', [SoundCategoryController::class, 'index'])->name('categories');
+    Route::post('/categories', [SoundCategoryController::class, 'store'])->name('categories.store');
+    Route::put('/categories/{id}', [SoundCategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/categories/{id}', [SoundCategoryController::class, 'destroy'])->name('categories.destroy');
+});

@@ -84,5 +84,18 @@ class AppServiceProvider extends ServiceProvider
             }
             return new \Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoApiTransport($apiKey);
         });
+
+        // Rate limit cho module Sound Meme (không có tiền lệ RateLimiter nào trong dự án trước
+        // đây, đây là chuẩn Laravel mặc định). Upload/sửa: giới hạn theo admin đang đăng nhập.
+        // Play/download: giới hạn theo IP, cộng thêm lớp chống đếm khống ở Cache trong controller.
+        \Illuminate\Support\Facades\RateLimiter::for('sound-upload', function (\Illuminate\Http\Request $request) {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(10)->by(
+                optional(\Illuminate\Support\Facades\Auth::guard('admin')->user())->id ?: $request->ip()
+            );
+        });
+
+        \Illuminate\Support\Facades\RateLimiter::for('sound-engagement', function (\Illuminate\Http\Request $request) {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(30)->by($request->ip());
+        });
     }
 }
