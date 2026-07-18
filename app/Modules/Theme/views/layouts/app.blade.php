@@ -811,7 +811,7 @@
 
                 <div>
                     <h3 class="font-display font-semibold text-slate-900 dark:text-white text-lg mb-6">{{ __('footer.products_title') }}</h3>
-                    <ul class="space-y-3">
+                    <ul class="grid grid-cols-2 gap-x-4 gap-y-3">
                         <li><a href="{{ route('smm.index') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('home_categories.smm') }}</a></li>
                         <li><a href="{{ route('shop') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('home_categories.games') }}</a></li>
                         <li><a href="{{ route('catalog.simple', 'goi-dang-ky') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('home_categories.subscriptions') }}</a></li>
@@ -819,6 +819,8 @@
                         <li><a href="{{ route('catalog.card') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('home_categories.cards') }}</a></li>
                         <li><a href="{{ route('catalog.simple', 'qua-tang') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('home_categories.giftcards') }}</a></li>
                         <li><a href="{{ route('catalog.esim') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('home_categories.esim') }}</a></li>
+                        <li><a href="{{ route('sounds.index') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> Sound Meme</a></li>
+                        <li><a href="{{ route('Gifs.index') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> GIF Meme</a></li>
                     </ul>
                 </div>
 
