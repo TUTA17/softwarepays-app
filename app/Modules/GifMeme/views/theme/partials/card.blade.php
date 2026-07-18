@@ -1,3 +1,4 @@
+    <div class="flex flex-col items-center justify-start group text-center">
     <div class="relative w-full aspect-square mb-3 mx-auto group cursor-pointer hover:scale-105 transition-transform duration-300 rounded-xl overflow-hidden shadow-sm">
         <a href="{{ route('Gifs.show', $Gif->slug) }}">
             <img src="{{ $Gif->play_url }}" alt="{{ $Gif->title }}" class="w-full h-full object-cover" loading="lazy">

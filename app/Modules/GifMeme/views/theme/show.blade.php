@@ -57,7 +57,7 @@
             <h3 class="text-lg font-black text-slate-800 dark:text-white uppercase tracking-wider mb-10 font-display">
                 <i class="fa-solid fa-layer-group text-blue-500 mr-2"></i> {{ __('Gifshow.related_title') }}
             </h3>
-            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-x-2 gap-y-8">
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-8">
                 @forelse($related as $r)
                     @include('gifmeme::theme.partials.card', ['Gif' => $r])
                 @empty

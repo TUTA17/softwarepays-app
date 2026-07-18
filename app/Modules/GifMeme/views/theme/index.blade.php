@@ -18,11 +18,9 @@
             <h2 class="text-xl font-black text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                 <i class="fa-solid fa-star text-amber-500"></i> {{ __('Gifindex.editors_picks') }}
             </h2>
-            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-4 gap-y-8">
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-4 gap-y-8">
                 @foreach($editorsPicks as $Gif)
-                    <div>
-                        @include('gifmeme::theme.partials.card', ['Gif' => $Gif])
-                    </div>
+                    @include('gifmeme::theme.partials.card', ['Gif' => $Gif])
                 @endforeach
             </div>
         </div>
@@ -33,11 +31,9 @@
             <h2 class="text-xl font-black text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                 <i class="fa-solid fa-fire text-red-500"></i> Top Meme
             </h2>
-            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-4 gap-y-8">
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-4 gap-y-8">
                 @foreach($topMeme as $Gif)
-                    <div>
-                        @include('gifmeme::theme.partials.card', ['Gif' => $Gif])
-                    </div>
+                    @include('gifmeme::theme.partials.card', ['Gif' => $Gif])
                 @endforeach
             </div>
         </div>
@@ -48,11 +44,9 @@
             <h2 class="text-xl font-black text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                 <i class="fa-solid fa-clock text-blue-500"></i> {{ __('Gifindex.sort_newest') }}
             </h2>
-            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-4 gap-y-8">
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-4 gap-y-8">
                 @foreach($latest as $Gif)
-                    <div>
-                        @include('gifmeme::theme.partials.card', ['Gif' => $Gif])
-                    </div>
+                    @include('gifmeme::theme.partials.card', ['Gif' => $Gif])
                 @endforeach
             </div>
         </div>
@@ -91,7 +85,7 @@
             <p>{{ __('Gifindex.empty_state') }}</p>
         </div>
     @else
-        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-2 gap-y-6">
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-6">
             @foreach($Gifs as $Gif)
                 @include('gifmeme::theme.partials.card', ['Gif' => $Gif])
             @endforeach
