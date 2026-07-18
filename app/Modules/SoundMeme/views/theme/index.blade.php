@@ -12,6 +12,55 @@
         <p class="text-slate-500 dark:text-slate-400">{{ __('soundindex.tagline') }}</p>
     </div>
 
+    @if($isBrowsingDefault)
+        @if($editorsPicks->isNotEmpty())
+        <div class="mb-10">
+            <h2 class="text-xl font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-star text-amber-500"></i> {{ __('soundindex.editors_picks') }}
+            </h2>
+            <div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width: thin;">
+                @foreach($editorsPicks as $sound)
+                    <div class="shrink-0 w-[100px]">
+                        @include('soundmeme::theme.partials.card', ['sound' => $sound])
+                    </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        @if($topMeme->isNotEmpty())
+        <div class="mb-10">
+            <h2 class="text-xl font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-fire text-red-500"></i> Top Meme
+            </h2>
+            <div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width: thin;">
+                @foreach($topMeme as $sound)
+                    <div class="shrink-0 w-[100px]">
+                        @include('soundmeme::theme.partials.card', ['sound' => $sound])
+                    </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        @if($latest->isNotEmpty())
+        <div class="mb-10">
+            <h2 class="text-xl font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-clock text-blue-500"></i> {{ __('soundindex.sort_newest') }}
+            </h2>
+            <div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width: thin;">
+                @foreach($latest as $sound)
+                    <div class="shrink-0 w-[100px]">
+                        @include('soundmeme::theme.partials.card', ['sound' => $sound])
+                    </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        <h2 class="text-xl font-black text-slate-900 dark:text-white mb-4 pt-2 border-t border-slate-200 dark:border-slate-700">{{ __('soundindex.browse_all') }}</h2>
+    @endif
+
     <form method="GET" id="sound-filter-form" class="mb-6">
         <div class="flex flex-wrap gap-3 mb-4">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('soundindex.search_placeholder') }}"

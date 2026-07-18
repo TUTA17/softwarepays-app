@@ -49,7 +49,27 @@ class SoundController extends Controller
 
         $categories = SoundCategory::where('status', true)->orderBy('name')->get();
 
-        return view('soundmeme::theme.index', compact('sounds', 'categories'));
+        // Các mục nổi bật (Lựa chọn biên tập viên / Top Meme / Mới nhất) chỉ hiện ở trang chủ mặc
+        // định — khi khách đang tìm kiếm/lọc thì ẩn đi, chỉ hiện đúng kết quả khớp bộ lọc, tránh
+        // rối mắt với danh sách không liên quan tới cái đang tìm.
+        $isBrowsingDefault = !$request->filled('search') && !$request->filled('category') && $request->get('sort', 'newest') === 'newest' && $sounds->currentPage() === 1;
+
+        $editorsPicks = collect();
+        $topMeme = collect();
+        $latest = collect();
+
+        if ($isBrowsingDefault) {
+            $editorsPicks = Sound::with('category')->where('status', Sound::STATUS_PUBLISHED)->where('is_featured', true)
+                ->orderBy('created_at', 'desc')->take(8)->get()->map(fn ($s) => $this->attachUrls($s));
+
+            $topMeme = Sound::with('category')->where('status', Sound::STATUS_PUBLISHED)
+                ->orderBy('play_count', 'desc')->take(8)->get()->map(fn ($s) => $this->attachUrls($s));
+
+            $latest = Sound::with('category')->where('status', Sound::STATUS_PUBLISHED)
+                ->orderBy('created_at', 'desc')->take(8)->get()->map(fn ($s) => $this->attachUrls($s));
+        }
+
+        return view('soundmeme::theme.index', compact('sounds', 'categories', 'isBrowsingDefault', 'editorsPicks', 'topMeme', 'latest'));
     }
 
     public function show($slug)
