@@ -81,13 +81,25 @@
                                     <i class="fa-solid fa-credit-card block text-lg mb-1"></i> Paylio
                                 </button>
                             </div>
-                            <div id="paylioIconsRow" class="hidden mt-3 flex items-center gap-2 text-slate-400 dark:text-slate-500">
-                                <i class="fa-brands fa-cc-visa text-lg" title="Visa"></i>
-                                <i class="fa-brands fa-cc-mastercard text-lg" title="Mastercard"></i>
-                                <i class="fa-brands fa-apple-pay text-xl" title="Apple Pay"></i>
-                                <i class="fa-brands fa-google-pay text-xl" title="Google Pay"></i>
-                                <i class="fa-solid fa-building-columns text-lg" title="{{ __('wallet.deposit_bank_qr_label') }}"></i>
-                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400">Binance Pay</span>
+                        </div>
+
+                        <div id="paylioProviderPicker" class="hidden mb-8">
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-hand-pointer text-blue-400"></i> {{ __('wallet.choose_paylio_provider_label') }}
+                            </label>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                <button type="button" class="paylio-provider-btn active bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-500 text-blue-700 dark:text-blue-400 rounded-xl py-3 text-center font-bold text-xs" data-provider="stripe" onclick="setPaylioProvider('stripe', this)">
+                                    <i class="fa-solid fa-credit-card block text-lg mb-1"></i> {{ __('checkout.paylio_card_short_label') }}
+                                </button>
+                                <button type="button" class="paylio-provider-btn bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center font-bold text-xs" data-provider="banxa" onclick="setPaylioProvider('banxa', this)">
+                                    <i class="fa-solid fa-building-columns block text-lg mb-1"></i> {{ __('checkout.paylio_bank_short_label') }}
+                                </button>
+                                <button type="button" class="paylio-provider-btn bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center font-bold text-xs" data-provider="binance" onclick="setPaylioProvider('binance', this)">
+                                    <i class="fa-solid fa-coins block text-lg mb-1"></i> Binance Pay
+                                </button>
+                                <button type="button" class="paylio-provider-btn bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center font-bold text-xs" data-provider="paypal" onclick="setPaylioProvider('paypal', this)">
+                                    <i class="fa-brands fa-paypal block text-lg mb-1"></i> PayPal
+                                </button>
                             </div>
                         </div>
 
@@ -343,7 +355,10 @@
 <script>
     let depositMethod = {!! $isVndCurrency ? "'bank'" : "'crypto'" !!};
     let cryptoMethod = 'bitcoin';
-    // Ngân hàng (QR) = ví VNĐ; Crypto = ví USD riêng, không quy đổi.
+    let paylioProvider = 'stripe';
+    // Sàn tối thiểu USD riêng của từng provider Paylio — khớp với PaymentGatewayController::PAYLIO_MIN_USD.
+    const PAYLIO_MIN = { stripe: 2, paypal: 5, binance: 15, banxa: 20 };
+    // Ngân hàng (QR) = ví VNĐ; Crypto/Paylio = ví USD riêng, không quy đổi.
     let currentUnit = depositMethod === 'bank' ? 'vnd' : 'usd';
     let currentMinAmount = currentUnit === 'vnd' ? 10000 : 1;
 
@@ -357,11 +372,13 @@
         btn.classList.remove('bg-white', 'dark:bg-slate-900', 'border-slate-200', 'dark:border-slate-700', 'text-slate-700', 'dark:text-slate-300');
 
         document.getElementById('cryptoCurrencyPicker').classList.toggle('hidden', method !== 'crypto');
-        document.getElementById('paylioIconsRow').classList.toggle('hidden', method !== 'paylio');
+        document.getElementById('paylioProviderPicker').classList.toggle('hidden', method !== 'paylio');
 
         // Crypto/Paylio nạp thẳng vào ví USD riêng (không quy đổi VNĐ); chỉ Ngân hàng (QR) dùng VNĐ.
         currentUnit = method === 'bank' ? 'vnd' : 'usd';
-        currentMinAmount = currentUnit === 'vnd' ? 10000 : 1;
+        // Paylio có sàn tối thiểu riêng theo từng provider (VD: Binance Pay $15), cao hơn hẳn mức
+        // $1 chung của crypto -> phải cập nhật đúng ngay khi đổi phương thức/provider.
+        currentMinAmount = currentUnit === 'vnd' ? 10000 : (method === 'paylio' ? (PAYLIO_MIN[paylioProvider] || 1) : 1);
 
         const amountInput = document.getElementById('customAmount');
         const prefixEl = document.getElementById('customAmountPrefix');
@@ -370,10 +387,10 @@
             document.getElementById('amountBtnsVnd').classList.add('hidden');
             document.getElementById('amountBtnsUsd').classList.remove('hidden');
             prefixEl.textContent = '$';
-            amountInput.min = '1';
+            amountInput.min = String(currentMinAmount);
             amountInput.step = '0.01';
             amountInput.removeAttribute('max');
-            amountInput.placeholder = 'Tối thiểu $1';
+            amountInput.placeholder = 'Tối thiểu $' + currentMinAmount;
             labelEl.textContent = 'Hoặc nhập số tiền khác (USD)';
         } else {
             document.getElementById('amountBtnsVnd').classList.remove('hidden');
@@ -400,6 +417,22 @@
             b.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-blue-500/10', 'text-blue-700');
         });
         btn.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-blue-500/10', 'text-blue-700');
+    }
+
+    function setPaylioProvider(provider, btn) {
+        paylioProvider = provider;
+        document.querySelectorAll('.paylio-provider-btn').forEach(b => {
+            b.classList.remove('active', 'bg-blue-50', 'dark:bg-blue-500/10', 'border-blue-500', 'text-blue-700', 'dark:text-blue-400');
+            b.classList.add('bg-white', 'dark:bg-slate-900', 'border-slate-200', 'dark:border-slate-700', 'text-slate-700', 'dark:text-slate-300');
+        });
+        btn.classList.add('active', 'bg-blue-50', 'dark:bg-blue-500/10', 'border-blue-500', 'text-blue-700', 'dark:text-blue-400');
+        btn.classList.remove('bg-white', 'dark:bg-slate-900', 'border-slate-200', 'dark:border-slate-700', 'text-slate-700', 'dark:text-slate-300');
+
+        // Mỗi provider có sàn tối thiểu riêng -> cập nhật lại ô nhập số tiền ngay khi đổi provider.
+        currentMinAmount = PAYLIO_MIN[provider] || 1;
+        const amountInput = document.getElementById('customAmount');
+        amountInput.min = String(currentMinAmount);
+        amountInput.placeholder = 'Tối thiểu $' + currentMinAmount;
     }
 
     function handleDepositSubmit() {
@@ -441,7 +474,7 @@
             }
         };
 
-        fetch('{{ route('payments.paylio.pay') }}?purpose=topup&amount=' + amount, {
+        fetch('{{ route('payments.paylio.pay') }}?purpose=topup&amount=' + amount + '&provider=' + encodeURIComponent(paylioProvider), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

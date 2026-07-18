@@ -124,7 +124,8 @@
         $intlMethodLabels = [
             'bitcoin' => 'Bitcoin', 'ethereum' => 'Ethereum',
             'litecoin' => 'Litecoin', 'usdt' => 'Tether (USDT)', 'solana' => 'Solana',
-            'paylio' => 'Paylio (Thẻ/PayPal/Stripe -> USDC)',
+            'paylio_stripe' => 'Paylio - Thẻ (Stripe)', 'paylio_banxa' => 'Paylio - Chuyển khoản (Banxa)',
+            'paylio_binance' => 'Paylio - Binance Pay', 'paylio_paypal' => 'Paylio - PayPal',
         ];
     @endphp
 

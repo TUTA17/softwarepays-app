@@ -45,7 +45,7 @@ public function savePaymentSettings(Request $request)
     public const DOMESTIC_FEE_METHODS = ['wallet', 'momo', 'zalopay', 'vnpay', 'vietqr', 'napas'];
 
     // Phương thức quốc tế: chỉ hiển thị phí ước tính, chưa xử lý thanh toán thật
-    public const INTL_FEE_METHODS = ['bitcoin', 'ethereum', 'litecoin', 'usdt', 'solana', 'paylio'];
+    public const INTL_FEE_METHODS = ['bitcoin', 'ethereum', 'litecoin', 'usdt', 'solana', 'paylio_stripe', 'paylio_banxa', 'paylio_binance', 'paylio_paypal'];
 
     public function savePaymentFeeSettings(Request $request)
     {

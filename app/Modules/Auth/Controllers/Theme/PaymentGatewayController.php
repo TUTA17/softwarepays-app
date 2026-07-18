@@ -133,14 +133,28 @@ class PaymentGatewayController extends Controller
         ]);
     }
 
-    // Paylio: khách trả bằng thẻ/PayPal/Stripe/Klarna... qua trang checkout hosted của Paylio,
+    // Sàn tối thiểu USD riêng của từng provider Paylio — đã kiểm tra trực tiếp qua API live
+    // (khác nhau đáng kể: paypal $5, stripe $2, binance $15, banxa $20).
+    protected const PAYLIO_MIN_USD = [
+        'stripe' => 2,
+        'paypal' => 5,
+        'binance' => 15,
+        'banxa' => 20,
+    ];
+
+    // Paylio: khách trả bằng thẻ/PayPal/Chuyển khoản/Binance Pay... qua trang checkout hosted của Paylio,
     // tiền về thẳng ví USDC (Polygon) của mình — không cần tài khoản merchant PayPal/Stripe riêng.
+    // provider: bắt buộc chọn 1 provider cụ thể (stripe/paypal/binance/banxa) để bỏ qua màn "chọn provider"
+    // của chính Paylio (tương ứng các nút Thẻ/PayPal/Binance Pay/Chuyển khoản tách riêng trên site).
     public function paylioPay(Request $request, PaylioService $paylio)
     {
         $walletAddress = config('services.paylio.wallet_address');
         if (!$walletAddress) {
             return response()->json(['success' => false, 'message' => 'Paylio chưa được cấu hình ví nhận tiền.'], 500);
         }
+
+        $provider = $request->query('provider');
+        $minUsd = self::PAYLIO_MIN_USD[$provider] ?? null;
 
         $user = Auth::user();
         $purpose = $request->query('purpose', 'topup');
@@ -152,6 +166,9 @@ class PaymentGatewayController extends Controller
             if ($amountUsd < 1) {
                 return response()->json(['success' => false, 'message' => 'Không xác định được số tiền cần thanh toán.'], 422);
             }
+            if ($minUsd && $amountUsd < $minUsd) {
+                return response()->json(['success' => false, 'message' => "Số tiền tối thiểu cho phương thức này là \${$minUsd}."], 422);
+            }
             $amountVnd = null;
         } else {
             $amountVnd = $this->resolveAmountVnd($request);
@@ -159,8 +176,9 @@ class PaymentGatewayController extends Controller
                 return response()->json(['success' => false, 'message' => 'Không xác định được số tiền cần thanh toán.'], 422);
             }
             $usdRate = \App\Helpers\CurrencyHelper::usdRate();
-            // Sàn tối thiểu $1 cho các cổng thanh toán quốc tế
-            $amountUsd = max(1, round($amountVnd * $usdRate, 2));
+            // Sàn tối thiểu $1 chung cho các cổng thanh toán quốc tế, hoặc cao hơn nếu provider yêu cầu
+            // (khách trả đúng số PHẢI charge, phần dư nếu có vẫn được cộng đủ vào ví — không mất tiền).
+            $amountUsd = max(1, $minUsd ?? 1, round($amountVnd * $usdRate, 2));
         }
 
         $reference = 'PLIO' . $user->id . '_' . time();
@@ -175,6 +193,7 @@ class PaymentGatewayController extends Controller
             'currency' => $isWalletTopup ? 'USD' : 'VND',
             'metadata' => [
                 'gateway' => 'paylio',
+                'provider' => $provider,
                 'purpose' => $purpose,
                 'amount_usd' => $amountUsd,
             ],
@@ -184,11 +203,12 @@ class PaymentGatewayController extends Controller
         // vào bất kỳ tham số nào Paylio gửi kèm (query string callback không có chữ ký xác thực).
         $callbackUrl = route('payments.paylio.callback', ['transaction' => $transaction->id]);
 
-        $result = $paylio->createWallet($walletAddress, $callbackUrl, $amountUsd, $user->email, $reference);
+        $result = $paylio->createWallet($walletAddress, $callbackUrl, $amountUsd, $user->email, $reference, $provider);
 
         if (!$result || empty($result['checkout_url'])) {
             $transaction->update(['status' => 'failed']);
-            return response()->json(['success' => false, 'message' => 'Không thể khởi tạo thanh toán Paylio. Vui lòng thử lại sau.'], 500);
+            $errorMsg = $result['error'] ?? null;
+            return response()->json(['success' => false, 'message' => $errorMsg ?: 'Không thể khởi tạo thanh toán Paylio. Vui lòng thử lại sau.'], 500);
         }
 
         $transaction->update(['metadata' => array_merge($transaction->metadata, [

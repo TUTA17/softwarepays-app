@@ -77,11 +77,30 @@
                         'solana' => 'Solana',
                     ];
 
-                    // Paylio: khách trả bằng thẻ/PayPal/Stripe/Klarna... qua trang hosted của Paylio,
-                    // tiền về ví USDC (Polygon) của mình — thêm song song với crypto (NOWPayments),
-                    // mọi khách (VN hay không) đều thấy cùng danh sách phương thức quốc tế này.
-                    $intlMethods = $cryptoMethods + ['paylio' => __('checkout.paylio_label')];
-                    $intlShortLabels = $cryptoMethods + ['paylio' => __('checkout.paylio_short_label')];
+                    // Paylio: khách trả bằng thẻ/PayPal/Chuyển khoản/Binance Pay qua trang hosted của Paylio,
+                    // tiền về ví USDC (Polygon) của mình. Mỗi provider tách thành 1 nút riêng (key
+                    // paylio_<provider>) để khách chọn thẳng, không phải vào màn "chọn provider" của Paylio
+                    // — provider thật gửi cho Paylio API lấy từ phần sau dấu "_" (xem payWithPaylio() bên dưới).
+                    $paylioMethods = [
+                        'paylio_stripe' => __('checkout.paylio_card_label'),
+                        'paylio_banxa' => __('checkout.paylio_bank_label'),
+                        'paylio_binance' => __('checkout.paylio_binance_label'),
+                        'paylio_paypal' => __('checkout.paylio_paypal_label'),
+                    ];
+                    $paylioShortLabels = [
+                        'paylio_stripe' => __('checkout.paylio_card_short_label'),
+                        'paylio_banxa' => __('checkout.paylio_bank_short_label'),
+                        'paylio_binance' => 'Binance Pay',
+                        'paylio_paypal' => 'PayPal',
+                    ];
+                    $paylioIcons = [
+                        'paylio_stripe' => 'fa-solid fa-credit-card',
+                        'paylio_banxa' => 'fa-solid fa-building-columns',
+                        'paylio_binance' => 'fa-solid fa-coins',
+                        'paylio_paypal' => 'fa-brands fa-paypal',
+                    ];
+                    $intlMethods = $cryptoMethods + $paylioMethods;
+                    $intlShortLabels = $cryptoMethods + $paylioShortLabels;
 
                     $defaultMethod = $isVietnam ? 'wallet' : 'bitcoin';
                 @endphp
@@ -120,20 +139,13 @@
                     <label class="payment-method-option relative flex cursor-pointer rounded-lg border {{ $isDefault ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-500/10' : 'border-slate-200 dark:border-slate-700' }} p-4 shadow-sm"
                            data-method="{{ $key }}" data-short-label="{{ $intlShortLabels[$key] }}" data-basic-pct="{{ $basic }}" data-intl-pct="{{ $intlPct }}" data-fx-pct="{{ $fxPct }}" data-fixed-usd="{{ $fixedUsd }}" data-intl="1" data-disabled="0">
                         <input type="radio" name="payment_method" value="{{ $key }}" class="sr-only payment-method-radio" {{ $isDefault ? 'checked' : '' }}>
-                        <span class="flex flex-1">
+                        <span class="flex flex-1 items-center gap-3">
+                            @isset($paylioIcons[$key])
+                            <i class="{{ $paylioIcons[$key] }} text-xl text-slate-400 dark:text-slate-500 w-5 text-center shrink-0"></i>
+                            @endisset
                             <span class="flex flex-col">
                                 <span class="block text-sm font-medium text-slate-900 dark:text-white">{{ $label }}</span>
                                 <span class="mt-1 flex items-center text-sm text-slate-500 dark:text-slate-400">{{ __('checkout.intl_pay_ready_note') }}</span>
-                                @if($key === 'paylio')
-                                <span class="mt-2 flex items-center gap-2 text-slate-400 dark:text-slate-500">
-                                    <i class="fa-brands fa-cc-visa text-lg" title="Visa"></i>
-                                    <i class="fa-brands fa-cc-mastercard text-lg" title="Mastercard"></i>
-                                    <i class="fa-brands fa-apple-pay text-xl" title="Apple Pay"></i>
-                                    <i class="fa-brands fa-google-pay text-xl" title="Google Pay"></i>
-                                    <i class="fa-solid fa-building-columns text-lg" title="{{ __('wallet.deposit_bank_qr_label') }}"></i>
-                                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400">Binance Pay</span>
-                                </span>
-                                @endif
                             </span>
                         </span>
                         <i class="fa-solid fa-circle-check payment-check-icon text-blue-600 dark:text-blue-400 text-xl {{ $isDefault ? '' : 'opacity-0' }}"></i>
@@ -460,8 +472,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const payWithText = @json(__('checkout.pay_with', ['method' => '%METHOD%'])).replace('%METHOD%', label);
             submitArea.innerHTML = '<button type="button" id="intl-pay-btn" class="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-4 rounded-xl text-lg font-bold shadow-lg transition transform hover:-translate-y-1"><i class="fa-solid fa-credit-card"></i> ' + payWithText + '</button>';
             document.getElementById('intl-pay-btn').addEventListener('click', function () {
-                if (method === 'paylio') {
-                    payWithPaylio();
+                if (method.startsWith('paylio_')) {
+                    payWithPaylio(method.replace('paylio_', ''));
                 } else {
                     payWithCrypto(method);
                 }
@@ -521,7 +533,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // của Paylio (cùng domain với mình) tự gọi lại window.opener.paylioPaymentCompleted() rồi tự đóng.
     // Mở popup TRỐNG ngay lập tức (đồng bộ, trong sự kiện click) trước khi gọi fetch — nếu đợi fetch
     // xong mới window.open() thì trình duyệt sẽ chặn vì không còn coi là hành động trực tiếp của người dùng.
-    function payWithPaylio() {
+    function payWithPaylio(provider) {
         const btn = document.getElementById('intl-pay-btn');
         const originalHtml = btn.innerHTML;
         btn.disabled = true;
@@ -533,13 +545,16 @@ document.addEventListener('DOMContentLoaded', function () {
             btn.disabled = false;
             btn.innerHTML = originalHtml;
             if (success) {
+                // Tiền vừa nạp đã nằm trong ví USD -> tiếp tục thanh toán bằng VÍ, không phải gửi lại
+                // "paylio_..." (backend chặn thẳng payment_method thuộc nhóm quốc tế ở bước checkout).
+                hiddenInput.value = 'wallet';
                 document.getElementById('checkout-form').submit();
             } else {
                 alert(message || @json(__('checkout.generic_error')));
             }
         };
 
-        fetch('{{ route('payments.paylio.pay') }}?purpose=checkout', {
+        fetch('{{ route('payments.paylio.pay') }}?purpose=checkout&provider=' + encodeURIComponent(provider), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -633,6 +648,9 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 if (data.status === 'completed') {
                     clearInterval(cryptoPollTimer);
+                    // Tiền vừa nạp đã nằm trong ví USD -> tiếp tục thanh toán bằng VÍ, không phải gửi lại
+                    // 'bitcoin'/... (backend chặn thẳng payment_method thuộc nhóm quốc tế ở bước checkout).
+                    hiddenInput.value = 'wallet';
                     document.getElementById('checkout-form').submit();
                 } else if (data.status === 'failed' || data.status === 'cancelled') {
                     clearInterval(cryptoPollTimer);
@@ -645,8 +663,10 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // Tự động hoàn tất đơn hàng nếu vừa nạp ví xong quay lại trang này
+    // Tự động hoàn tất đơn hàng nếu vừa nạp ví xong quay lại trang này — tiền đã nằm trong ví USD,
+    // nên phải gửi payment_method='wallet' (không phải phương thức quốc tế lúc chọn ban đầu).
     @if(session('auto_checkout'))
+        hiddenInput.value = 'wallet';
         document.getElementById('checkout-form').submit();
     @endif
 });
