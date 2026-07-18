@@ -101,13 +101,14 @@
                 <div class="space-y-3 mb-6">
                     @foreach($domesticMethods as $key => $m)
                     @php $methodDisabled = !in_array($key, ['wallet', 'wallet_usd']) && !$isVndCurrency; @endphp
-                    <label class="payment-method-option relative flex rounded-lg border {{ $methodDisabled ? 'opacity-40 grayscale cursor-not-allowed' : ($key === $defaultMethod ? 'cursor-pointer border-blue-500 bg-blue-50/50 dark:bg-blue-500/10' : 'cursor-pointer border-slate-200 dark:border-slate-700') }} p-4 shadow-sm focus:outline-none"
-                           data-method="{{ $key }}" data-currency="{{ $key === 'wallet_usd' ? 'USD' : 'VND' }}" data-fee-pct="{{ $feeConfig['fee_pct_'.$key] ?? 0 }}" data-fee-fixed="{{ $feeConfig['fee_fixed_vnd'] ?? 0 }}" data-intl="0" data-disabled="{{ $methodDisabled ? '1' : '0' }}">
-                        <input type="radio" name="payment_method" value="{{ $key }}" class="sr-only payment-method-radio" {{ $key === $defaultMethod ? 'checked' : '' }} {{ $methodDisabled ? 'disabled' : '' }}>
+                    @continue($methodDisabled)
+                    <label class="payment-method-option relative flex rounded-lg border {{ $key === $defaultMethod ? 'cursor-pointer border-blue-500 bg-blue-50/50 dark:bg-blue-500/10' : 'cursor-pointer border-slate-200 dark:border-slate-700' }} p-4 shadow-sm focus:outline-none"
+                           data-method="{{ $key }}" data-currency="{{ $key === 'wallet_usd' ? 'USD' : 'VND' }}" data-fee-pct="{{ $feeConfig['fee_pct_'.$key] ?? 0 }}" data-fee-fixed="{{ $feeConfig['fee_fixed_vnd'] ?? 0 }}" data-intl="0" data-disabled="0">
+                        <input type="radio" name="payment_method" value="{{ $key }}" class="sr-only payment-method-radio" {{ $key === $defaultMethod ? 'checked' : '' }}>
                         <span class="flex flex-1">
                             <span class="flex flex-col">
                                 <span class="block text-sm font-medium text-slate-900 dark:text-white">{{ $m['label'] }}</span>
-                                <span class="mt-1 flex items-center text-sm text-slate-500 dark:text-slate-400">{!! $methodDisabled ? __('checkout.vnd_only_note') : $m['desc'] !!}</span>
+                                <span class="mt-1 flex items-center text-sm text-slate-500 dark:text-slate-400">{{ $m['desc'] }}</span>
                             </span>
                         </span>
                         <i class="fa-solid fa-circle-check payment-check-icon text-blue-600 dark:text-blue-400 text-xl {{ $key === $defaultMethod ? '' : 'opacity-0' }}"></i>
