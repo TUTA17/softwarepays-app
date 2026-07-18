@@ -5,6 +5,7 @@ namespace App\Modules\Auth\Controllers\Theme;
 use App\Http\Controllers\Controller;
 use App\Modules\Theme\Models\Transaction;
 use App\Services\Payments\NowPaymentsService;
+use App\Services\Payments\PaylioService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -130,6 +131,105 @@ class PaymentGatewayController extends Controller
             'order_amount_usd' => $orderAmountUsd,
             'charged_amount_usd' => $amountUsd,
         ]);
+    }
+
+    // Paylio: khách trả bằng thẻ/PayPal/Stripe/Klarna... qua trang checkout hosted của Paylio,
+    // tiền về thẳng ví USDC (Polygon) của mình — không cần tài khoản merchant PayPal/Stripe riêng.
+    public function paylioPay(Request $request, PaylioService $paylio)
+    {
+        $walletAddress = config('services.paylio.wallet_address');
+        if (!$walletAddress) {
+            return response()->json(['success' => false, 'message' => 'Paylio chưa được cấu hình ví nhận tiền.'], 500);
+        }
+
+        $user = Auth::user();
+        $purpose = $request->query('purpose', 'topup');
+        $isWalletTopup = $purpose === 'topup';
+
+        if ($isWalletTopup) {
+            // Ví USD riêng — khách nhập thẳng số USD, không quy đổi qua VNĐ ở bất kỳ bước nào.
+            $amountUsd = round((float) $request->query('amount', 0), 2);
+            if ($amountUsd < 1) {
+                return response()->json(['success' => false, 'message' => 'Không xác định được số tiền cần thanh toán.'], 422);
+            }
+            $amountVnd = null;
+        } else {
+            $amountVnd = $this->resolveAmountVnd($request);
+            if (!$amountVnd) {
+                return response()->json(['success' => false, 'message' => 'Không xác định được số tiền cần thanh toán.'], 422);
+            }
+            $usdRate = \App\Helpers\CurrencyHelper::usdRate();
+            // Sàn tối thiểu $1 cho các cổng thanh toán quốc tế
+            $amountUsd = max(1, round($amountVnd * $usdRate, 2));
+        }
+
+        $reference = 'PLIO' . $user->id . '_' . time();
+
+        $transaction = Transaction::create([
+            'user_id' => $user->id,
+            'amount' => $isWalletTopup ? $amountUsd : $amountVnd,
+            'type' => 'deposit',
+            'status' => 'pending',
+            'description' => 'Nạp tiền qua Paylio' . ($isWalletTopup ? ' (USD)' : ''),
+            'reference_id' => $reference,
+            'currency' => $isWalletTopup ? 'USD' : 'VND',
+            'metadata' => [
+                'gateway' => 'paylio',
+                'purpose' => $purpose,
+                'amount_usd' => $amountUsd,
+            ],
+        ]);
+
+        // Nhúng sẵn ID giao dịch của MÌNH vào URL callback -> nhận diện giao dịch không phụ thuộc
+        // vào bất kỳ tham số nào Paylio gửi kèm (query string callback không có chữ ký xác thực).
+        $callbackUrl = route('payments.paylio.callback', ['transaction' => $transaction->id]);
+
+        $result = $paylio->createWallet($walletAddress, $callbackUrl, $amountUsd, $user->email, $reference);
+
+        if (!$result || empty($result['checkout_url'])) {
+            $transaction->update(['status' => 'failed']);
+            return response()->json(['success' => false, 'message' => 'Không thể khởi tạo thanh toán Paylio. Vui lòng thử lại sau.'], 500);
+        }
+
+        $transaction->update(['metadata' => array_merge($transaction->metadata, [
+            'paylio_payment_id' => $result['payment_id'] ?? null,
+            'paylio_ipn_token' => $result['ipn_token'] ?? null,
+        ])]);
+
+        return response()->json(['success' => true, 'checkout_url' => $result['checkout_url']]);
+    }
+
+    // Paylio GET-redirect khách về đây sau khi hoàn tất (hoặc hủy) thanh toán trên trang hosted của họ.
+    // Tài liệu API nói rõ query string đi kèm (ipn_token/status) chỉ là gợi ý, KHÔNG có chữ ký xác thực
+    // -> tuyệt đối không tin trực tiếp, luôn gọi lại GET /payment-status để lấy trạng thái thật.
+    public function paylioCallback(Request $request, int $transaction, PaylioService $paylio)
+    {
+        $tx = Transaction::where('id', $transaction)->where('status', 'pending')->first();
+
+        if (!$tx) {
+            // Không còn pending nữa (đã xử lý trước đó) hoặc không tồn tại -> vẫn đưa khách về nơi hợp lý.
+            return redirect()->route('wallet.show');
+        }
+
+        $ipnToken = $tx->metadata['paylio_ipn_token'] ?? null;
+        $paymentId = $tx->metadata['paylio_payment_id'] ?? null;
+        $status = $paylio->getStatus($ipnToken, $paymentId);
+
+        if (!$status || ($status['status'] ?? null) !== 'paid') {
+            if (($status['status'] ?? null) === 'canceled') {
+                $tx->update(['status' => 'cancelled']);
+            }
+            $redirectRoute = ($tx->metadata['purpose'] ?? null) === 'checkout' ? 'cart.checkout' : 'wallet.show';
+            return redirect()->route($redirectRoute)->with('error', 'Thanh toán Paylio chưa hoàn tất hoặc đã bị hủy.');
+        }
+
+        $this->completeDeposit($tx);
+
+        if (($tx->metadata['purpose'] ?? null) === 'checkout') {
+            return redirect()->route('cart.checkout')->with('success', 'Nạp tiền qua Paylio thành công! Vui lòng bấm Thanh Toán Bằng Ví để hoàn tất đơn hàng.')->with('auto_checkout', true);
+        }
+
+        return redirect()->route('wallet.show')->with('success', 'Nạp tiền qua Paylio thành công!');
     }
 
     public function nowpaymentsStatus(Request $request, $transactionId)

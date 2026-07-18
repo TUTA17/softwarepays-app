@@ -64,7 +64,7 @@
                             <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
                                 <i class="fa-solid fa-credit-card text-blue-400"></i> {{ __('wallet.deposit_choose_method') }}
                             </label>
-                            <div class="grid grid-cols-2 gap-3">
+                            <div class="grid grid-cols-3 gap-3">
                                 @if($isVndCurrency)
                                 <button type="button" id="method-bank" class="deposit-method-btn active bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-500 text-blue-700 dark:text-blue-400 rounded-xl py-3 text-center font-bold text-sm" onclick="setDepositMethod('bank', this)">
                                     <i class="fa-solid fa-building-columns block text-lg mb-1"></i> {{ __('wallet.deposit_bank_qr_label') }}
@@ -76,6 +76,9 @@
                                 @endif
                                 <button type="button" id="method-crypto" class="deposit-method-btn {{ $isVndCurrency ? 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300' : 'active bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-500 text-blue-700 dark:text-blue-400' }} rounded-xl py-3 text-center font-bold text-sm" onclick="setDepositMethod('crypto', this)">
                                     <i class="fa-brands fa-bitcoin block text-lg mb-1"></i> Crypto
+                                </button>
+                                <button type="button" id="method-paylio" class="deposit-method-btn bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl py-3 text-center font-bold text-sm" onclick="setDepositMethod('paylio', this)">
+                                    <i class="fa-solid fa-credit-card block text-lg mb-1"></i> Paylio
                                 </button>
                             </div>
                         </div>
@@ -347,7 +350,7 @@
 
         document.getElementById('cryptoCurrencyPicker').classList.toggle('hidden', method !== 'crypto');
 
-        // Crypto nạp thẳng vào ví USD riêng (không quy đổi VNĐ); chỉ Ngân hàng (QR) dùng VNĐ.
+        // Crypto/Paylio nạp thẳng vào ví USD riêng (không quy đổi VNĐ); chỉ Ngân hàng (QR) dùng VNĐ.
         currentUnit = method === 'bank' ? 'vnd' : 'usd';
         currentMinAmount = currentUnit === 'vnd' ? 10000 : 1;
 
@@ -378,6 +381,7 @@
 
         const label = document.getElementById('btnGenerateLabel');
         if (method === 'bank') label.textContent = 'TẠO MÃ QR NẠP TIỀN';
+        else if (method === 'paylio') label.textContent = 'NẠP TIỀN QUA PAYLIO';
         else label.textContent = 'NẠP TIỀN QUA CRYPTO';
     }
 
@@ -399,9 +403,44 @@
 
         if (depositMethod === 'bank') {
             generateQR();
+        } else if (depositMethod === 'paylio') {
+            depositWithPaylio(amount);
         } else {
             payWalletWithCrypto(amount, cryptoMethod);
         }
+    }
+
+    // Paylio không có QR/địa chỉ để hiển thị tại chỗ — chuyển thẳng trình duyệt sang trang
+    // checkout hosted của họ, họ tự redirect khách về lại route callback sau khi thanh toán xong.
+    function depositWithPaylio(amount) {
+        const btn = document.getElementById('btnGenerate');
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ' + @json(__('checkout.processing_label'));
+
+        fetch('{{ route('payments.paylio.pay') }}?purpose=topup&amount=' + amount, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success || !data.checkout_url) {
+                alert(data.message || @json(__('checkout.generic_error')));
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                return;
+            }
+            window.location.href = data.checkout_url;
+        })
+        .catch(() => {
+            alert(@json(__('checkout.crypto_connection_error')));
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        });
     }
 
     let walletCryptoPollTimer = null;

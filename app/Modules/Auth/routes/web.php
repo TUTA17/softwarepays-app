@@ -61,6 +61,9 @@ Route::middleware(['web'])->group(function () {
         // NOWPayments (crypto)
         Route::post('/payments/nowpayments/pay', [PaymentGatewayController::class, 'nowpaymentsPay'])->name('payments.nowpayments.pay');
         Route::get('/payments/nowpayments/status/{transaction}', [PaymentGatewayController::class, 'nowpaymentsStatus'])->name('payments.nowpayments.status');
+
+        // Paylio (thẻ/PayPal/Stripe/Klarna... qua on-ramp, tiền về ví USDC Polygon)
+        Route::post('/payments/paylio/pay', [PaymentGatewayController::class, 'paylioPay'])->name('payments.paylio.pay');
     });
 
     // Bank/MoMo Top-up Webhook Route
@@ -68,4 +71,7 @@ Route::middleware(['web'])->group(function () {
 
     // NOWPayments IPN Webhook (không có session/auth, xác thực bằng chữ ký HMAC)
     Route::post('/payments/nowpayments/ipn', [PaymentGatewayController::class, 'nowpaymentsIpn'])->name('payments.nowpayments.ipn');
+
+    // Paylio redirect khách về sau khi thanh toán xong ở trang hosted của họ (không có session/auth cố định)
+    Route::get('/payments/paylio/callback/{transaction}', [PaymentGatewayController::class, 'paylioCallback'])->name('payments.paylio.callback');
 });

@@ -77,10 +77,11 @@
                         'solana' => 'Solana',
                     ];
 
-                    // Không còn cổng thanh toán quốc tế nào khác ngoài crypto -> mọi khách (VN hay không)
-                    // đều thấy cùng danh sách phương thức quốc tế này.
-                    $intlMethods = $cryptoMethods;
-                    $intlShortLabels = $cryptoMethods;
+                    // Paylio: khách trả bằng thẻ/PayPal/Stripe/Klarna... qua trang hosted của Paylio,
+                    // tiền về ví USDC (Polygon) của mình — thêm song song với crypto (NOWPayments),
+                    // mọi khách (VN hay không) đều thấy cùng danh sách phương thức quốc tế này.
+                    $intlMethods = $cryptoMethods + ['paylio' => __('checkout.paylio_label')];
+                    $intlShortLabels = $cryptoMethods + ['paylio' => __('checkout.paylio_short_label')];
 
                     $defaultMethod = $isVietnam ? 'wallet' : 'bitcoin';
                 @endphp
@@ -442,13 +443,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const newTotal = baseTotal + fee;
         finalTotalEl.textContent = formatByCurrency(newTotal, methodCurrency, methodRate);
 
-        // Cập nhật nút Đặt hàng theo phương thức quốc tế: crypto mở modal chờ thanh toán thật.
+        // Cập nhật nút Đặt hàng theo phương thức quốc tế: crypto mở modal chờ thanh toán thật,
+        // Paylio chuyển hẳn sang trang hosted của họ (không có QR/địa chỉ ví để hiển thị tại chỗ).
         if (isIntl) {
             const label = el.dataset.shortLabel || el.querySelector('.block.text-sm').textContent.trim();
             const payWithText = @json(__('checkout.pay_with', ['method' => '%METHOD%'])).replace('%METHOD%', label);
             submitArea.innerHTML = '<button type="button" id="intl-pay-btn" class="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-4 rounded-xl text-lg font-bold shadow-lg transition transform hover:-translate-y-1"><i class="fa-solid fa-credit-card"></i> ' + payWithText + '</button>';
             document.getElementById('intl-pay-btn').addEventListener('click', function () {
-                payWithCrypto(method);
+                if (method === 'paylio') {
+                    payWithPaylio();
+                } else {
+                    payWithCrypto(method);
+                }
             });
         } else if (userBalance < (newTotal * usdRate)) {
             // Mọi phương thức nội địa đều trừ từ cùng 1 ví USD duy nhất -> luôn so sánh theo USD.
@@ -499,6 +505,39 @@ document.addEventListener('DOMContentLoaded', function () {
     function networkWarningText(payCurrency) {
         const network = cryptoNetworkNames[payCurrency] || payCurrency.toUpperCase();
         return @json(__('checkout.crypto_network_warning', ['network' => '%NETWORK%'])).replace('%NETWORK%', network);
+    }
+
+    // Paylio không có QR/địa chỉ để hiển thị tại chỗ như crypto — chuyển thẳng trình duyệt sang
+    // trang checkout hosted của họ, họ tự redirect khách về lại route callback sau khi xong.
+    function payWithPaylio() {
+        const btn = document.getElementById('intl-pay-btn');
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ' + @json(__('checkout.processing_label'));
+
+        fetch('{{ route('payments.paylio.pay') }}?purpose=checkout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success || !data.checkout_url) {
+                alert(data.message || @json(__('checkout.generic_error')));
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                return;
+            }
+            window.location.href = data.checkout_url;
+        })
+        .catch(() => {
+            alert(@json(__('checkout.crypto_connection_error')));
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        });
     }
 
     function payWithCrypto(method) {

@@ -57,6 +57,12 @@ return [
         'ipn_secret' => env('NOWPAYMENTS_IPN_SECRET_KEY'),
     ],
 
+    'paylio' => [
+        'api_key' => env('PAYLIO_API_KEY'),
+        // Ví USDC (mạng Polygon) nhận tiền — bắt buộc phải có mới tạo được giao dịch Paylio.
+        'wallet_address' => env('PAYLIO_WALLET_ADDRESS'),
+    ],
+
     'vpnpanels' => [
         'api_key' => env('VPNPANELS_API_KEY'),
         'base_url' => env('VPNPANELS_BASE_URL', 'https://vpnpanels.com/api/v2'),
