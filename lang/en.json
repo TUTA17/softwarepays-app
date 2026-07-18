@@ -1137,5 +1137,9 @@
     "soundshow.download_button": "Download MP3",
     "soundshow.embed_title": "Embed on your website",
     "soundshow.related_title": "Related sounds",
-    "soundshow.no_related": "No related sounds yet."
+    "soundshow.no_related": "No related sounds yet.",
+    "checkout.bank_qr_modal_title": "Bank Transfer via QR",
+    "checkout.bank_qr_instruction": "Scan the QR code with your banking app to transfer the exact remaining amount below — your order will complete automatically once payment is received.",
+    "checkout.bank_qr_waiting": "Waiting for transfer confirmation...",
+    "checkout.pay_qr_button": "Pay via QR"
 }

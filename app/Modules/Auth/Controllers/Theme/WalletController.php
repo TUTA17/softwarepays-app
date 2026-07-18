@@ -54,6 +54,22 @@ class WalletController extends Controller
         ]);
     }
 
+    // Poll trạng thái giao dịch nạp tiền — dùng cho luồng QR chuyển khoản ngay tại trang checkout,
+    // để tự động tiếp tục thanh toán đơn hàng ngay khi webhook SePay báo đã nhận tiền, không cần
+    // khách tự F5 lại trang.
+    public function checkStatus(Request $request, $id)
+    {
+        $transaction = Transaction::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (!$transaction) {
+            return response()->json(['success' => false, 'message' => 'Không tìm thấy giao dịch.'], 404);
+        }
+
+        return response()->json(['success' => true, 'status' => $transaction->status]);
+    }
+
     public function cancelTransaction(Request $request, $id)
     {
         $transaction = Transaction::where('id', $id)

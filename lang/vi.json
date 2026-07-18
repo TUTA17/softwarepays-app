@@ -1104,5 +1104,9 @@
     "soundshow.download_button": "Tải xuống MP3",
     "soundshow.embed_title": "Nhúng vào website của bạn",
     "soundshow.related_title": "Sound liên quan",
-    "soundshow.no_related": "Chưa có sound liên quan."
+    "soundshow.no_related": "Chưa có sound liên quan.",
+    "checkout.bank_qr_modal_title": "Chuyển khoản qua QR",
+    "checkout.bank_qr_instruction": "Quét mã QR bằng app ngân hàng để chuyển đúng số tiền còn thiếu bên dưới — đơn hàng sẽ tự động hoàn tất ngay khi nhận được tiền.",
+    "checkout.bank_qr_waiting": "Đang chờ xác nhận chuyển khoản...",
+    "checkout.pay_qr_button": "Thanh toán qua QR"
 }

@@ -57,6 +57,7 @@ Route::middleware(['web'])->group(function () {
         Route::get('/wallet', [WalletController::class, 'show'])->name('wallet.show');
         Route::post('/wallet/deposit/create', [WalletController::class, 'createInvoice'])->name('wallet.deposit.create');
         Route::post('/wallet/transaction/{id}/cancel', [WalletController::class, 'cancelTransaction'])->name('wallet.transaction.cancel');
+        Route::get('/wallet/transaction/{id}/status', [WalletController::class, 'checkStatus'])->name('wallet.transaction.status');
 
         // NOWPayments (crypto)
         Route::post('/payments/nowpayments/pay', [PaymentGatewayController::class, 'nowpaymentsPay'])->name('payments.nowpayments.pay');

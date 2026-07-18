@@ -374,6 +374,41 @@
     </div>
 </div>
 
+<!-- Modal chuyển khoản QR (VietQR) ngay tại checkout — bù phần tiền còn thiếu, tự động tiếp tục
+     đặt hàng khi webhook SePay báo đã nhận tiền, không cần rời sang trang Ví. -->
+<div id="bankQrModal" class="fixed inset-0 z-[100] hidden" aria-modal="true" role="dialog">
+    <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="closeBankQrModal()"></div>
+    <div class="fixed inset-0 z-[101] w-screen overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative rounded-2xl bg-white dark:bg-slate-800 text-center shadow-xl sm:w-full sm:max-w-md p-6">
+                <button type="button" onclick="closeBankQrModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-500">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">{{ __('checkout.bank_qr_modal_title') }}</h3>
+                <div id="bankQrModalLoading" class="py-10">
+                    <i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500"></i>
+                    <p class="mt-3 text-sm text-slate-500">{{ __('checkout.crypto_initializing') }}</p>
+                </div>
+                <div id="bankQrModalContent" class="hidden">
+                    <p class="text-sm text-slate-500 mb-3">{{ __('checkout.bank_qr_instruction') }}</p>
+                    <img id="bankQrImage" class="mx-auto mb-3 rounded-lg border border-slate-200 dark:border-slate-700" width="220" height="220" alt="QR code">
+                    <p id="bankQrAmount" class="text-xl font-bold text-slate-900 dark:text-white mb-2"></p>
+                    <div class="text-left text-sm bg-slate-100 dark:bg-slate-900 rounded-lg p-3 space-y-1">
+                        <p><span class="text-slate-500">Ngân hàng:</span> <strong>{{ $bankConfig['bank_id'] ?? '' }}</strong></p>
+                        <p><span class="text-slate-500">Số tài khoản:</span> <strong>{{ $bankConfig['account_no'] ?? '' }}</strong></p>
+                        <p><span class="text-slate-500">{{ __('checkout.account_name_label') }}:</span> <strong>{{ $bankConfig['account_name'] ?? '' }}</strong></p>
+                        <p><span class="text-slate-500">Nội dung:</span> <strong id="bankQrMemo"></strong></p>
+                    </div>
+                    <p class="mt-4 text-sm text-amber-600 dark:text-amber-400"><i class="fa-solid fa-hourglass-half mr-1"></i> <span id="bankQrCountdown">15:00</span> &middot; {{ __('checkout.bank_qr_waiting') }}</p>
+                </div>
+                <div id="bankQrModalError" class="hidden py-6">
+                    <p class="text-sm text-red-500"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const options = document.querySelectorAll('.payment-method-option');
@@ -398,6 +433,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // đổi vì đó là tiền tệ SẼ BỊ TRỪ THẬT qua cổng thanh toán bên ngoài.
     const displayCurrency = @json($displayCurrency);
     const displayRate = {{ (float) $displayRate }};
+    const isVndCurrencyGlobal = @json($isVndCurrency);
     const currencySymbols = { VND: 'đ', USD: '$', EUR: '€', JPY: '¥', THB: '฿', CNY: '¥', KRW: '₩', RUB: '₽' };
 
     function resolveMethodCurrency(method, isIntl) {
@@ -480,8 +516,21 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         } else if (userBalance < (newTotal * usdRate)) {
             // Mọi phương thức nội địa đều trừ từ cùng 1 ví USD duy nhất -> luôn so sánh theo USD.
-            submitArea.innerHTML = '<div class="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-lg mb-3"><p class="text-sm text-red-600 dark:text-red-400 text-center">' + @json(__('flash.wallet_insufficient')) + '</p></div>' +
-                '<a href="{{ route('wallet.show') }}" class="w-full flex justify-center items-center gap-2 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-6 py-4 rounded-xl text-lg font-bold transition"><i class="fa-solid fa-wallet"></i> ' + @json(__('wallet.deposit_button')) + '</a>';
+            const shortfallUsd = (newTotal * usdRate) - userBalance;
+            if (method === 'wallet' || !isVndCurrencyGlobal) {
+                // Ví thuần (không phải QR nội địa) hoặc đang không hiển thị theo VNĐ -> vẫn bắt nạp
+                // trước qua trang Ví như cũ, vì không có QR VNĐ để bù ngay tại đây.
+                submitArea.innerHTML = '<div class="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-lg mb-3"><p class="text-sm text-red-600 dark:text-red-400 text-center">' + @json(__('flash.wallet_insufficient')) + '</p></div>' +
+                    '<a href="{{ route('wallet.show') }}" class="w-full flex justify-center items-center gap-2 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-6 py-4 rounded-xl text-lg font-bold transition"><i class="fa-solid fa-wallet"></i> ' + @json(__('wallet.deposit_button')) + '</a>';
+            } else {
+                // Phương thức QR nội địa (momo/zalopay/vnpay/vietqr/napas) + đang hiển thị VNĐ ->
+                // cho quét QR bù ngay phần còn thiếu tại đây, không cần rời trang checkout.
+                const shortfallVnd = Math.ceil(shortfallUsd / usdRate);
+                submitArea.innerHTML = '<button type="button" id="bank-qr-pay-btn" class="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-6 py-4 rounded-xl text-lg font-bold shadow-lg transition transform hover:-translate-y-1"><i class="fa-solid fa-qrcode"></i> ' + @json(__('checkout.pay_qr_button')) + '</button>';
+                document.getElementById('bank-qr-pay-btn').addEventListener('click', function () {
+                    payWithBankQr(shortfallVnd);
+                });
+            }
         } else {
             submitArea.innerHTML = '<button type="submit" class="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-4 rounded-xl text-lg font-bold shadow-lg shadow-blue-500/30 transition transform hover:-translate-y-1"><i class="fa-solid fa-credit-card"></i> ' + @json(__('checkout.title')) + '</button>';
         }
@@ -669,6 +718,110 @@ document.addEventListener('DOMContentLoaded', function () {
         hiddenInput.value = 'wallet';
         document.getElementById('checkout-form').submit();
     @endif
+
+    // --- Chuyển khoản QR nội địa ngay tại checkout (bù phần tiền còn thiếu) ---
+    let bankQrPollTimer = null;
+    let bankQrCountdownTimer = null;
+
+    function closeBankQrModal() {
+        document.getElementById('bankQrModal').classList.add('hidden');
+        if (bankQrPollTimer) clearInterval(bankQrPollTimer);
+        if (bankQrCountdownTimer) clearInterval(bankQrCountdownTimer);
+    }
+
+    function payWithBankQr(shortfallVnd) {
+        const modal = document.getElementById('bankQrModal');
+        const loading = document.getElementById('bankQrModalLoading');
+        const content = document.getElementById('bankQrModalContent');
+        const errorBox = document.getElementById('bankQrModalError');
+        modal.classList.remove('hidden');
+        loading.classList.remove('hidden');
+        content.classList.add('hidden');
+        errorBox.classList.add('hidden');
+
+        fetch('{{ route('wallet.deposit.create') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ amount: shortfallVnd }),
+        })
+        .then(r => r.json())
+        .then(data => {
+            loading.classList.add('hidden');
+            if (!data.success) {
+                errorBox.classList.remove('hidden');
+                errorBox.querySelector('p').textContent = data.message || @json(__('checkout.generic_error'));
+                return;
+            }
+            content.classList.remove('hidden');
+
+            const bankId = @json($bankConfig['bank_id'] ?? '');
+            const accountNo = @json($bankConfig['account_no'] ?? '');
+            const accountName = @json($bankConfig['account_name'] ?? '');
+            const memo = 'NAPTIEN {{ Auth::id() }}';
+            const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact.png?amount=${data.amount}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(accountName)}`;
+
+            document.getElementById('bankQrImage').src = qrUrl;
+            document.getElementById('bankQrAmount').textContent = Math.round(data.amount).toLocaleString('vi-VN') + 'đ';
+            document.getElementById('bankQrMemo').textContent = memo;
+
+            if (bankQrPollTimer) clearInterval(bankQrPollTimer);
+            bankQrPollTimer = setInterval(() => pollBankQrStatus(data.transaction_id), 5000);
+            startBankQrCountdown();
+        })
+        .catch(() => {
+            loading.classList.add('hidden');
+            errorBox.classList.remove('hidden');
+            errorBox.querySelector('p').textContent = @json(__('checkout.crypto_connection_error'));
+        });
+    }
+
+    function pollBankQrStatus(transactionId) {
+        fetch('{{ url('/wallet/transaction') }}/' + transactionId + '/status', { headers: { 'Accept': 'application/json' } })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'completed') {
+                    clearInterval(bankQrPollTimer);
+                    if (bankQrCountdownTimer) clearInterval(bankQrCountdownTimer);
+                    // Tiền vừa nạp đã nằm trong ví USD -> tiếp tục thanh toán bằng VÍ.
+                    hiddenInput.value = 'wallet';
+                    document.getElementById('checkout-form').submit();
+                } else if (data.status === 'failed' || data.status === 'cancelled') {
+                    clearInterval(bankQrPollTimer);
+                    if (bankQrCountdownTimer) clearInterval(bankQrCountdownTimer);
+                    const content = document.getElementById('bankQrModalContent');
+                    const errorBox = document.getElementById('bankQrModalError');
+                    content.classList.add('hidden');
+                    errorBox.classList.remove('hidden');
+                    errorBox.querySelector('p').textContent = @json(__('checkout.crypto_failed_expired'));
+                }
+            });
+    }
+
+    function startBankQrCountdown() {
+        if (bankQrCountdownTimer) clearInterval(bankQrCountdownTimer);
+        let timeRemaining = 15 * 60 - 1;
+        const display = document.getElementById('bankQrCountdown');
+
+        bankQrCountdownTimer = setInterval(() => {
+            const minutes = String(Math.floor(timeRemaining / 60)).padStart(2, '0');
+            const seconds = String(timeRemaining % 60).padStart(2, '0');
+            display.textContent = minutes + ':' + seconds;
+
+            if (--timeRemaining < 0) {
+                clearInterval(bankQrCountdownTimer);
+                if (bankQrPollTimer) clearInterval(bankQrPollTimer);
+                const content = document.getElementById('bankQrModalContent');
+                const errorBox = document.getElementById('bankQrModalError');
+                content.classList.add('hidden');
+                errorBox.classList.remove('hidden');
+                errorBox.querySelector('p').textContent = @json(__('checkout.crypto_failed_expired'));
+            }
+        }, 1000);
+    }
 });
 </script>
 @endsection
