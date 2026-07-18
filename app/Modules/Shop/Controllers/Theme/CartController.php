@@ -171,16 +171,11 @@ class CartController extends Controller
             $final_total += round($final_total * $feePct / 100) + $feeFixed;
         }
 
-        // Ví USD là số dư thật riêng biệt (balance_usd) — thanh toán bằng ví này phải trừ đúng USD thật,
-        // không quy đổi cosmetic qua VNĐ như các phương thức nội địa khác.
-        $isWalletUsd = $paymentMethod === 'wallet_usd';
-        $final_total_usd = $isWalletUsd ? round($final_total * \App\Helpers\CurrencyHelper::rate('USD'), 2) : null;
+        // Ví chỉ còn 1 số dư USD duy nhất — mọi phương thức nội địa (ví/momo/zalopay/vnpay/vietqr/napas)
+        // đều trừ từ cùng ví này, nên phải quy đổi tổng tiền VNĐ của đơn sang USD trước khi kiểm tra/trừ.
+        $final_total_usd = round($final_total * \App\Helpers\CurrencyHelper::rate('USD'), 2);
 
-        if ($isWalletUsd) {
-            if ($user->balance_usd < $final_total_usd) {
-                return back()->with('error', 'Số dư ví USD không đủ! Vui lòng nạp thêm tiền vào ví USD.');
-            }
-        } elseif ($user->balance < $final_total) {
+        if ($user->balance < $final_total_usd) {
             return back()->with('error', 'Số dư không đủ! Vui lòng nạp thêm tiền vào ví.');
         }
 
@@ -193,8 +188,8 @@ class CartController extends Controller
             // Send Email
             \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\CheckoutOtpMail($otp, $final_total));
 
-            // Lưu lại đúng phương thức khách đã chọn (đặc biệt ví VNĐ/ví USD) để bước xác thực OTP
-            // gọi lại checkoutProcess() không bị rơi về mặc định 'wallet' (form OTP không có field payment_method).
+            // Lưu lại đúng phương thức khách đã chọn để bước xác thực OTP gọi lại checkoutProcess()
+            // không bị rơi về mặc định 'wallet' (form OTP không có field payment_method).
             session()->put('checkout_pending_payment_method', $paymentMethod);
 
             return redirect()->route('cart.checkout.verify');
@@ -203,12 +198,8 @@ class CartController extends Controller
 
         \Illuminate\Support\Facades\DB::beginTransaction();
         try {
-            // Trừ tiền user 1 lần cho tổng bill — đúng ví thật đang thanh toán (VNĐ hoặc USD).
-            if ($isWalletUsd) {
-                $user->balance_usd -= $final_total_usd;
-            } else {
-                $user->balance -= $final_total;
-            }
+            // Trừ tiền user 1 lần cho tổng bill — ví chỉ còn 1 số dư USD duy nhất.
+            $user->balance -= $final_total_usd;
             $user->points += round($final_total / 1000);
             $user->save();
 
@@ -225,14 +216,12 @@ class CartController extends Controller
                     $gameKey = $this->fulfillCartItem($product, $details, $user);
 
                     if ($gameKey) {
-                        $itemAmount = $isWalletUsd
-                            ? round($details['price'] * \App\Helpers\CurrencyHelper::rate('USD'), 2)
-                            : $details['price'];
+                        $itemAmount = round($details['price'] * \App\Helpers\CurrencyHelper::rate('USD'), 2);
 
                         \App\Modules\Theme\Models\Transaction::create([
                             'user_id' => $user->id,
                             'amount' => -$itemAmount,
-                            'currency' => $isWalletUsd ? 'USD' : 'VND',
+                            'currency' => 'USD',
                             'type' => 'purchase',
                             'description' => 'Mua ' . $product->name . ($details['variant_label'] ?? null ? ' (' . $details['variant_label'] . ')' : ''),
                             'status' => 'completed',
@@ -257,14 +246,17 @@ class CartController extends Controller
                 if ($referrer) {
                     $commissionPercent = \App\Modules\Core\Models\Setting::getValue('affiliate_commission', 5);
                     $commission = round($total * ($commissionPercent / 100));
-                    
+
                     if ($commission > 0) {
-                        $referrer->balance += $commission;
+                        // $total tính bằng VNĐ nhưng ví chỉ còn 1 số dư USD duy nhất -> quy đổi trước khi cộng.
+                        $commissionUsd = round($commission * \App\Helpers\CurrencyHelper::rate('USD'), 2);
+                        $referrer->balance += $commissionUsd;
                         $referrer->save();
 
                         \App\Modules\Theme\Models\Transaction::create([
                             'user_id' => $referrer->id,
-                            'amount' => $commission,
+                            'amount' => $commissionUsd,
+                            'currency' => 'USD',
                             'type' => 'affiliate_reward',
                             'description' => 'Hoa hồng từ user: ' . $user->name,
                             'status' => 'completed',

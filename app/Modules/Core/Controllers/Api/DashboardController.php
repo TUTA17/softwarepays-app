@@ -61,6 +61,7 @@ class DashboardController extends Controller
                 'user_name' => $t->user->name ?? null,
                 'type' => $t->type,
                 'amount' => (float) $t->amount,
+                'currency' => $t->currency ?? 'VND',
                 'status' => $t->status,
                 'created_at' => $t->created_at,
             ]);

@@ -213,12 +213,15 @@ class AuthController extends Controller
         if ($referredBy) {
             $referrer = User::find($referredBy);
             if ($referrer) {
-                $bonus = \App\Modules\Core\Models\Setting::getValue('referral_signup_bonus', 500);
-                if ($bonus > 0) {
-                    $referrer->increment('balance', $bonus);
+                // Setting lưu theo VNĐ (dễ cấu hình) nhưng ví chỉ còn 1 số dư USD duy nhất -> quy đổi trước khi cộng.
+                $bonusVnd = \App\Modules\Core\Models\Setting::getValue('referral_signup_bonus', 500);
+                if ($bonusVnd > 0) {
+                    $bonusUsd = round($bonusVnd * \App\Helpers\CurrencyHelper::rate('USD'), 2);
+                    $referrer->increment('balance', $bonusUsd);
                     \App\Modules\Theme\Models\Transaction::create([
                         'user_id' => $referrer->id,
-                        'amount' => $bonus,
+                        'amount' => $bonusUsd,
+                        'currency' => 'USD',
                         'type' => 'referral_bonus',
                         'status' => 'completed',
                         'description' => 'Thưởng giới thiệu bạn bè: ' . $user->name,

@@ -232,11 +232,13 @@ class SmmController extends Controller
         $originalRate = (float) $selectedService->rate;
         $userRate = $originalRate + ($originalRate * ($profitMargin / 100));
         
-        // Rate is usually per 1000 items in SMM panels
+        // Rate is usually per 1000 items in SMM panels — tính bằng VNĐ, nhưng ví chỉ còn 1 số dư USD
+        // duy nhất nên phải quy đổi trước khi kiểm tra/trừ.
         $totalCharge = ($userRate / 1000) * $request->quantity;
+        $totalChargeUsd = round($totalCharge * \App\Helpers\CurrencyHelper::rate('USD'), 2);
 
         // Check user balance
-        if ($user->balance < $totalCharge) {
+        if ($user->balance < $totalChargeUsd) {
             return back()->with('error', 'Số dư không đủ để thực hiện giao dịch này. Vui lòng nạp thêm tiền.');
         }
 
@@ -248,13 +250,14 @@ class SmmController extends Controller
             DB::beginTransaction();
 
             // 1. Deduct user balance
-            $user->balance -= $totalCharge;
+            $user->balance -= $totalChargeUsd;
             $user->save();
 
             // 2. Create transaction record
             Transaction::create([
                 'user_id' => $user->id,
-                'amount' => -$totalCharge,
+                'amount' => -$totalChargeUsd,
+                'currency' => 'USD',
                 'type' => 'purchase',
                 'description' => "Mua dịch vụ mạng xã hội: {$selectedService->name} ({$request->quantity})",
                 'status' => 'completed'

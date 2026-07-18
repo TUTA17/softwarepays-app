@@ -62,8 +62,7 @@
                     $isVietnam = session('geo_country') === 'VN';
 
                     $domesticMethods = [
-                        'wallet' => ['label' => __('checkout.wallet_short_label') . ' (VNĐ)', 'desc' => __('wallet.balance_label') . ': ' . \App\Helpers\CurrencyHelper::formatWalletBalance(auth()->user()->balance)],
-                        'wallet_usd' => ['label' => __('checkout.wallet_short_label') . ' (USD)', 'desc' => __('wallet.balance_label') . ': ' . \App\Helpers\CurrencyHelper::formatWalletBalanceUsd(auth()->user()->balance_usd)],
+                        'wallet' => ['label' => __('checkout.wallet_short_label') . ' (USD)', 'desc' => __('wallet.balance_label') . ': ' . \App\Helpers\CurrencyHelper::formatWalletBalance(auth()->user()->balance)],
                         'momo' => ['label' => __('checkout.momo_label'), 'desc' => __('checkout.vietqr_transfer_desc')],
                         'zalopay' => ['label' => __('checkout.zalopay_label'), 'desc' => __('checkout.vietqr_transfer_desc')],
                         'vnpay' => ['label' => __('checkout.vnpay_label'), 'desc' => __('checkout.vietqr_transfer_desc')],
@@ -100,10 +99,10 @@
                 <p class="text-xs font-bold uppercase text-slate-400 mb-2">{{ __('wallet.deposit_domestic_heading') }}</p>
                 <div class="space-y-3 mb-6">
                     @foreach($domesticMethods as $key => $m)
-                    @php $methodDisabled = !in_array($key, ['wallet', 'wallet_usd']) && !$isVndCurrency; @endphp
+                    @php $methodDisabled = $key !== 'wallet' && !$isVndCurrency; @endphp
                     @continue($methodDisabled)
                     <label class="payment-method-option relative flex rounded-lg border {{ $key === $defaultMethod ? 'cursor-pointer border-blue-500 bg-blue-50/50 dark:bg-blue-500/10' : 'cursor-pointer border-slate-200 dark:border-slate-700' }} p-4 shadow-sm focus:outline-none"
-                           data-method="{{ $key }}" data-currency="{{ $key === 'wallet_usd' ? 'USD' : 'VND' }}" data-fee-pct="{{ $feeConfig['fee_pct_'.$key] ?? 0 }}" data-fee-fixed="{{ $feeConfig['fee_fixed_vnd'] ?? 0 }}" data-intl="0" data-disabled="0">
+                           data-method="{{ $key }}" data-currency="{{ $key === 'wallet' ? 'USD' : 'VND' }}" data-fee-pct="{{ $feeConfig['fee_pct_'.$key] ?? 0 }}" data-fee-fixed="{{ $feeConfig['fee_fixed_vnd'] ?? 0 }}" data-intl="0" data-disabled="0">
                         <input type="radio" name="payment_method" value="{{ $key }}" class="sr-only payment-method-radio" {{ $key === $defaultMethod ? 'checked' : '' }}>
                         <span class="flex flex-1">
                             <span class="flex flex-col">
@@ -231,13 +230,13 @@
                     @csrf
                     <input type="hidden" name="payment_method" id="selected_payment_method" value="{{ $defaultMethod }}">
                     @php
+                        // Ví chỉ còn 1 số dư USD duy nhất -> phải so với tổng đơn ĐÃ quy đổi sang USD, không phải VNĐ gốc.
                         $userBalance = auth()->user()->balance;
-                        $userBalanceUsd = auth()->user()->balance_usd;
-                        $finalTotalUsd = $final_total * \App\Helpers\CurrencyHelper::rate('USD');
+                        $finalTotalUsd = round($final_total * \App\Helpers\CurrencyHelper::rate('USD'), 2);
                     @endphp
-                    <div id="checkout-submit-area" data-user-balance="{{ $userBalance }}" data-user-balance-usd="{{ $userBalanceUsd }}" data-final-total-usd="{{ $finalTotalUsd }}">
+                    <div id="checkout-submit-area" data-user-balance="{{ $userBalance }}">
                         @if($isVietnam)
-                            @if($userBalance >= $final_total)
+                            @if($userBalance >= $finalTotalUsd)
                                 <button type="submit" id="checkout-submit-btn" class="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-4 rounded-xl text-lg font-bold shadow-lg shadow-blue-500/30 transition transform hover:-translate-y-1">
                                     <i class="fa-solid fa-credit-card"></i>
                                     <span id="checkout-submit-label">{{ __('checkout.pay_with', ['method' => __('checkout.wallet_short_label')]) }}</span>
@@ -375,7 +374,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const baseTotal = parseFloat(finalTotalEl.dataset.baseTotal);
     const usdRate = {{ (float) $usdRate }};
     const userBalance = parseFloat(document.getElementById('checkout-submit-area').dataset.userBalance);
-    const userBalanceUsd = parseFloat(document.getElementById('checkout-submit-area').dataset.userBalanceUsd);
     const submitArea = document.getElementById('checkout-submit-area');
 
     const subtotalEl = document.getElementById('summary-subtotal');
@@ -383,11 +381,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const subtotalVnd = parseFloat(subtotalEl.dataset.baseVnd);
     const discountVnd = parseFloat(discountEl.dataset.baseVnd);
 
-    // Ví VNĐ và momo/zalopay/vnpay/vietqr/napas trừ thẳng số dư ví VNĐ nhưng hiển thị giá theo đúng tiền tệ
+    // Momo/zalopay/vnpay/vietqr/napas trừ thẳng từ ví USD duy nhất nhưng hiển thị giá theo đúng tiền tệ
     // khách đang chọn ở đầu trang (giống hệt cách giá sản phẩm luôn hiển thị) — không có lý do gì bắt buộc
-    // phải xem bằng VNĐ chỉ vì đang chọn các phương thức này. Ví USD là ví thật riêng biệt (balance_usd),
-    // nên LUÔN hiển thị/tính bằng USD thật, không đổi theo tiền tệ hiển thị đang chọn. PayPal/crypto cũng
-    // bắt buộc đổi vì đó là tiền tệ SẼ BỊ TRỪ THẬT qua cổng thanh toán bên ngoài.
+    // phải xem bằng VNĐ chỉ vì đang chọn các phương thức này. Ví (wallet) là số dư USD thật, nên LUÔN
+    // hiển thị/tính bằng USD thật, không đổi theo tiền tệ hiển thị đang chọn. PayPal/crypto cũng bắt buộc
+    // đổi vì đó là tiền tệ SẼ BỊ TRỪ THẬT qua cổng thanh toán bên ngoài.
     const displayCurrency = @json($displayCurrency);
     const displayRate = {{ (float) $displayRate }};
     const paypalCurrency = @json($paypalCurrency);
@@ -395,7 +393,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const currencySymbols = { VND: 'đ', USD: '$', EUR: '€', JPY: '¥', THB: '฿', CNY: '¥', KRW: '₩', RUB: '₽' };
 
     function resolveMethodCurrency(method, isIntl) {
-        if (method === 'wallet_usd') return { code: 'USD', rate: usdRate };
+        if (method === 'wallet') return { code: 'USD', rate: usdRate };
         if (!isIntl) return { code: displayCurrency, rate: displayRate };
         if (method === 'paypal' || method === 'card') return { code: paypalCurrency, rate: paypalRate };
         return { code: 'USD', rate: usdRate };
@@ -471,10 +469,8 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('intl-pay-btn').addEventListener('click', function () {
                 payWithCrypto(method);
             });
-        } else if (method === 'wallet_usd' && userBalanceUsd < (newTotal * usdRate)) {
-            submitArea.innerHTML = '<div class="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-lg mb-3"><p class="text-sm text-red-600 dark:text-red-400 text-center">' + @json(__('flash.wallet_insufficient')) + '</p></div>' +
-                '<a href="{{ route('wallet.show') }}" class="w-full flex justify-center items-center gap-2 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-6 py-4 rounded-xl text-lg font-bold transition"><i class="fa-solid fa-wallet"></i> ' + @json(__('wallet.deposit_button')) + '</a>';
-        } else if (method !== 'wallet_usd' && userBalance < newTotal) {
+        } else if (userBalance < (newTotal * usdRate)) {
+            // Mọi phương thức nội địa đều trừ từ cùng 1 ví USD duy nhất -> luôn so sánh theo USD.
             submitArea.innerHTML = '<div class="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-lg mb-3"><p class="text-sm text-red-600 dark:text-red-400 text-center">' + @json(__('flash.wallet_insufficient')) + '</p></div>' +
                 '<a href="{{ route('wallet.show') }}" class="w-full flex justify-center items-center gap-2 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-6 py-4 rounded-xl text-lg font-bold transition"><i class="fa-solid fa-wallet"></i> ' + @json(__('wallet.deposit_button')) + '</a>';
         } else {

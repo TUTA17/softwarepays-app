@@ -28,7 +28,6 @@ class UserController extends Controller
                 'name' => $u->name,
                 'email' => $u->email,
                 'balance' => (float) $u->balance,
-                'balance_usd' => (float) $u->balance_usd,
                 'points' => $u->points,
                 'created_at' => $u->created_at,
             ]),
@@ -37,31 +36,24 @@ class UserController extends Controller
         ]);
     }
 
-    // Cộng tiền thủ công vào ví khách hàng từ app (mirror của web admin) — dùng khi thanh toán tự động bị lỗi.
+    // Cộng tiền thủ công vào ví khách hàng từ app (mirror của web admin) — ví chỉ còn 1 số dư USD
+    // duy nhất nên không còn chọn loại ví, admin nhập thẳng số USD cần cộng.
     public function addBalance(Request $request, $id)
     {
-        $currency = $request->input('currency', 'VND');
-        $minAmount = $currency === 'USD' ? 0.01 : 1000;
-
         $request->validate([
-            'amount' => "required|numeric|min:{$minAmount}",
-            'currency' => 'nullable|in:VND,USD',
+            'amount' => 'required|numeric|min:0.01',
             'note' => 'nullable|string|max:255',
         ], [
             'amount.required' => 'Vui lòng nhập số tiền.',
             'amount.numeric' => 'Số tiền không hợp lệ.',
-            'amount.min' => $currency === 'USD' ? 'Số tiền phải lớn hơn 0.' : 'Số tiền tối thiểu là 1.000đ.',
+            'amount.min' => 'Số tiền phải lớn hơn 0.',
         ]);
 
         $user = User::findOrFail($id);
         $amount = (float) $request->amount;
         $admin = $request->user();
 
-        if ($currency === 'USD') {
-            $user->increment('balance_usd', $amount);
-        } else {
-            $user->increment('balance', $amount);
-        }
+        $user->increment('balance', $amount);
 
         $description = 'Admin cộng tiền thủ công (bù thanh toán tự động lỗi)'
             . ($admin ? ' - Thực hiện bởi: ' . $admin->name : '')
@@ -74,7 +66,7 @@ class UserController extends Controller
             'status' => 'completed',
             'description' => $description,
             'reference_id' => 'MANUAL' . time() . $user->id,
-            'currency' => $currency,
+            'currency' => 'USD',
         ]);
 
         if (\App\Modules\Core\Models\Setting::getValue('transaction_confirmation_email_enable', '1') == '1') {
@@ -88,7 +80,6 @@ class UserController extends Controller
         return response()->json([
             'success' => true,
             'balance' => (float) $user->balance,
-            'balance_usd' => (float) $user->balance_usd,
         ]);
     }
 }

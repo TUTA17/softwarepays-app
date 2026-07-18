@@ -27,8 +27,7 @@
                         <th style="width: 60px;">ID</th>
                         <th>Tên Khách hàng</th>
                         <th>Email</th>
-                        <th>Số dư (VNĐ)</th>
-                        <th>Số dư (USD)</th>
+                        <th>Số dư ví</th>
                         <th>Điểm (Pts)</th>
                         <th>Mã Affiliate</th>
                         <th>Giới thiệu bởi</th>
@@ -42,8 +41,7 @@
                         <td style="font-weight: 600;">{{ $user->id }}</td>
                         <td style="font-weight: 600; color: var(--primary);">{{ $user->name }}</td>
                         <td style="color: var(--text-muted); font-size: 13px;">{{ $user->email }}</td>
-                        <td style="font-weight: 600; color: #16a34a;">{{ number_format($user->balance) }}đ</td>
-                        <td style="font-weight: 600; color: #10b981;">${{ number_format($user->balance_usd, 2) }}</td>
+                        <td style="font-weight: 600; color: #16a34a;">${{ number_format($user->balance, 2) }}</td>
                         <td style="font-weight: 600; color: #2563eb;">{{ number_format($user->points) }}</td>
                         <td style="font-family: monospace; font-size: 13px;">{{ $user->affiliate_code }}</td>
                         <td style="font-size: 13px;">{{ $user->referred_by ? 'ID: ' . $user->referred_by : '-' }}</td>
@@ -59,7 +57,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text-muted);">Chưa có Người dùng nào</td></tr>
+                    <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">Chưa có Người dùng nào</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -80,19 +78,8 @@
             <form action="{{ route('admin.users.add_balance', $user->id) }}" method="POST">
                 @csrf
                 <div class="form-group" style="margin-bottom:16px;">
-                    <label style="display:block; margin-bottom:8px; color:#aaa;">Ví nhận tiền</label>
-                    <div style="display:flex; gap:16px;">
-                        <label style="display:flex; align-items:center; gap:6px; color:#fff; font-weight:normal;">
-                            <input type="radio" name="currency" value="VND" checked onchange="document.getElementById('unit-label-{{ $user->id }}').textContent='VNĐ'; document.getElementById('amount-input-{{ $user->id }}').min='1000'; document.getElementById('amount-input-{{ $user->id }}').step='1000'; document.getElementById('amount-input-{{ $user->id }}').value=''; document.getElementById('amount-input-{{ $user->id }}').placeholder='VD: 100000';"> Ví VNĐ
-                        </label>
-                        <label style="display:flex; align-items:center; gap:6px; color:#fff; font-weight:normal;">
-                            <input type="radio" name="currency" value="USD" onchange="document.getElementById('unit-label-{{ $user->id }}').textContent='USD'; document.getElementById('amount-input-{{ $user->id }}').min='0.01'; document.getElementById('amount-input-{{ $user->id }}').step='0.01'; document.getElementById('amount-input-{{ $user->id }}').value=''; document.getElementById('amount-input-{{ $user->id }}').placeholder='VD: 10.00';"> Ví USD
-                        </label>
-                    </div>
-                </div>
-                <div class="form-group" style="margin-bottom:16px;">
-                    <label style="display:block; margin-bottom:8px; color:#aaa;">Số tiền (<span id="unit-label-{{ $user->id }}">VNĐ</span>)</label>
-                    <input type="number" id="amount-input-{{ $user->id }}" name="amount" min="1000" step="1000" required placeholder="VD: 100000" style="width:100%; padding:10px; border-radius:6px; border:1px solid #444; background:#2a2a3c; color:#fff;">
+                    <label style="display:block; margin-bottom:8px; color:#aaa;">Số tiền (USD)</label>
+                    <input type="number" name="amount" min="0.01" step="0.01" required placeholder="VD: 10.00" style="width:100%; padding:10px; border-radius:6px; border:1px solid #444; background:#2a2a3c; color:#fff;">
                 </div>
                 <div class="form-group" style="margin-bottom:16px;">
                     <label style="display:block; margin-bottom:8px; color:#aaa;">Ghi chú (không bắt buộc)</label>

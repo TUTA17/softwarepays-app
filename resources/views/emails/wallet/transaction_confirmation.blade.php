@@ -38,11 +38,7 @@
                 <ul>
                     <li><span>Mã giao dịch</span><strong>{{ $transaction->reference_id }}</strong></li>
                     <li><span>Thời gian</span><strong>{{ $transaction->updated_at->format('H:i d/m/Y') }}</strong></li>
-                    @if(($transaction->currency ?? 'VND') === 'USD')
-                        <li><span>Số dư ví USD hiện tại</span><strong>${{ number_format($user->balance_usd, 2) }}</strong></li>
-                    @else
-                        <li><span>Số dư ví VNĐ hiện tại</span><strong>{{ number_format($user->balance) }}đ</strong></li>
-                    @endif
+                    <li><span>Số dư ví hiện tại</span><strong>{!! \App\Helpers\CurrencyHelper::formatWalletBalance($user->balance) !!}</strong></li>
                 </ul>
             </div>
 

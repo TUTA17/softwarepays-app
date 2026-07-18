@@ -23,7 +23,7 @@
         </div>
         <div>
             <div style="color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase;">Tổng Doanh Thu</div>
-            <div style="font-size: 24px; font-weight: 700; color: #0f172a;">{!! \App\Helpers\CurrencyHelper::formatPrice($stats['total_revenue']) !!}</div>
+            <div style="font-size: 24px; font-weight: 700; color: #0f172a;">{!! \App\Helpers\CurrencyHelper::formatWalletBalance($stats['total_revenue']) !!}</div>
         </div>
     </div>
 
@@ -56,7 +56,7 @@
         </div>
         <div>
             <div style="color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase;">Số Dư Khách Hàng</div>
-            <div style="font-size: 24px; font-weight: 700; color: #0f172a;">{!! \App\Helpers\CurrencyHelper::formatPrice($stats['total_balance']) !!}</div>
+            <div style="font-size: 24px; font-weight: 700; color: #0f172a;">{!! \App\Helpers\CurrencyHelper::formatWalletBalance($stats['total_balance']) !!}</div>
         </div>
     </div>
 </div>
@@ -146,7 +146,11 @@
                             @endif
                         </td>
                         <td style="padding: 10px; font-size: 14px; font-weight: 700; text-align: right; color: {{ $trans->amount > 0 ? '#10b981' : '#ef4444' }};">
-                            {{ $trans->amount > 0 ? '+' : '' }}{!! \App\Helpers\CurrencyHelper::formatPrice($trans->amount) !!}
+                            @if(($trans->currency ?? 'VND') === 'USD')
+                                {{ $trans->amount > 0 ? '+' : '' }}${{ number_format($trans->amount, 2) }}
+                            @else
+                                {{ $trans->amount > 0 ? '+' : '' }}{{ number_format($trans->amount) }}đ
+                            @endif
                         </td>
                     </tr>
                     @endforeach

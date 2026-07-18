@@ -16,15 +16,9 @@
     </div>
     
     <div class="space-y-4">
-        <div class="grid grid-cols-2 gap-3">
-            <div class="bg-white dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-200/50 dark:border-slate-700/50">
-                <div class="text-xs text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider font-semibold">{{ __('sidebar.wallet_balance') }} (VNĐ)</div>
-                <div class="text-xl font-display font-bold text-blue-400">{!! \App\Helpers\CurrencyHelper::formatWalletBalance(Auth::user()->balance) !!}</div>
-            </div>
-            <div class="bg-white dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-200/50 dark:border-slate-700/50">
-                <div class="text-xs text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider font-semibold">{{ __('sidebar.wallet_balance') }} (USD)</div>
-                <div class="text-xl font-display font-bold text-emerald-400">{{ \App\Helpers\CurrencyHelper::formatWalletBalanceUsd(Auth::user()->balance_usd) }}</div>
-            </div>
+        <div class="bg-white dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-200/50 dark:border-slate-700/50">
+            <div class="text-xs text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider font-semibold">{{ __('sidebar.wallet_balance') }}</div>
+            <div class="text-xl font-display font-bold text-blue-400">{!! \App\Helpers\CurrencyHelper::formatWalletBalance(Auth::user()->balance) !!}</div>
         </div>
         <div class="bg-white dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-200/50 dark:border-slate-700/50 flex justify-between items-center">
             <div>

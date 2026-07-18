@@ -35,7 +35,9 @@ class PaymentGatewayController extends Controller
             }
             $finalTotal = $total - $discount;
 
-            $shortfall = $finalTotal - $user->balance;
+            // Ví chỉ còn 1 số dư USD duy nhất — quy đổi ngược về VNĐ-tương-đương để so với tổng đơn (VNĐ).
+            $userBalanceVnd = $user->balance / \App\Helpers\CurrencyHelper::rate('USD');
+            $shortfall = $finalTotal - $userBalanceVnd;
             return $shortfall > 0 ? $shortfall : 0.01; // luôn tạo giao dịch dương nhỏ nếu vô tình đã đủ
         }
 
@@ -371,11 +373,12 @@ class PaymentGatewayController extends Controller
     {
         $transaction->update(['status' => 'completed']);
         $user = $transaction->user;
-        if ($transaction->currency === 'USD') {
-            $user->balance_usd += $transaction->amount;
-        } else {
-            $user->balance += $transaction->amount;
-        }
+
+        // Ví chỉ còn 1 số dư USD duy nhất — Transaction vẫn ghi đúng tiền tệ gốc đã charge thật
+        // (USD cho topup trực tiếp, VNĐ cho flow checkout cũ), nhưng cộng vào ví luôn quy đổi ra USD.
+        $user->balance += $transaction->currency === 'USD'
+            ? $transaction->amount
+            : round($transaction->amount * \App\Helpers\CurrencyHelper::rate('USD'), 2);
         $user->save();
 
         if (\App\Modules\Core\Models\Setting::getValue('transaction_confirmation_email_enable', '1') == '1') {

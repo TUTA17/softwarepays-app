@@ -249,9 +249,9 @@
     var s = data.stats || {};
     els.dashboardStats.innerHTML =
       statCard('Khách hàng', s.total_users) +
-      statCard('Doanh thu', formatMoney(s.total_revenue)) +
+      statCard('Doanh thu', formatMoneyByCurrency(s.total_revenue, 'USD')) +
       statCard('Key đã bán', s.total_keys_sold) +
-      statCard('Tổng số dư ví', formatMoney(s.total_balance));
+      statCard('Tổng số dư ví', formatMoneyByCurrency(s.total_balance, 'USD'));
 
     var chart = data.chart || [];
     var max = Math.max.apply(null, chart.map(function (c) { return c.revenue; }).concat([1]));
@@ -273,7 +273,7 @@
 
     els.dashboardRecentTx.innerHTML = (data.recent_transactions || []).map(function (t) {
       var sign = t.type === 'deposit' ? '+' : (t.type === 'purchase' ? '-' : '');
-      return miniRow(escapeHtml(t.user_name || '-') + ' &middot; ' + (TX_TYPE_LABELS[t.type] || t.type), sign + formatMoney(Math.abs(t.amount)));
+      return miniRow(escapeHtml(t.user_name || '-') + ' &middot; ' + (TX_TYPE_LABELS[t.type] || t.type), sign + formatMoneyByCurrency(Math.abs(t.amount), t.currency));
     }).join('') || '<div class="empty-state">Chưa có dữ liệu</div>';
   }
 
@@ -608,15 +608,11 @@
         '</div>' +
         '<div class="order-time">Tham gia: ' + formatTime(u.created_at) + '</div>' +
         '<div class="order-actions">' +
-          '<div class="mini-row"><span>Ví VNĐ</span><span class="mini-row-right">' + formatMoney(u.balance) + '</span></div>' +
-          '<div class="mini-row"><span>Ví USD</span><span class="mini-row-right">' + formatMoneyByCurrency(u.balance_usd, 'USD') + '</span></div>' +
+          '<div class="mini-row"><span>Số dư ví</span><span class="mini-row-right">' + formatMoneyByCurrency(u.balance, 'USD') + '</span></div>' +
           '<div class="mini-row"><span>Điểm</span><span class="mini-row-right">' + (u.points || 0) + '</span></div>' +
           '<button class="btn btn-sm btn-add-balance-toggle">+ Cộng tiền thủ công</button>' +
           '<div class="add-balance-form hidden">' +
-            '<div class="add-balance-row">' +
-              '<input type="number" class="amount-input" placeholder="Số tiền" step="1" min="0">' +
-              '<select class="currency-select"><option value="VND">VNĐ</option><option value="USD">USD</option></select>' +
-            '</div>' +
+            '<input type="number" class="amount-input" placeholder="Số tiền ($)" step="0.01" min="0">' +
             '<input type="text" class="note-input" placeholder="Ghi chú (không bắt buộc)">' +
             '<button class="btn btn-primary btn-block btn-add-balance-submit">Xác nhận cộng tiền</button>' +
           '</div>' +
@@ -625,32 +621,26 @@
       var toggleBtn = card.querySelector('.btn-add-balance-toggle');
       var form = card.querySelector('.add-balance-form');
       var amountInput = card.querySelector('.amount-input');
-      var currencySelect = card.querySelector('.currency-select');
       var noteInput = card.querySelector('.note-input');
       var submitBtn = card.querySelector('.btn-add-balance-submit');
 
       toggleBtn.onclick = function () {
         form.classList.toggle('hidden');
       };
-      currencySelect.onchange = function () {
-        var isUsd = currencySelect.value === 'USD';
-        amountInput.step = isUsd ? '0.01' : '1';
-        amountInput.placeholder = isUsd ? 'Số tiền ($)' : 'Số tiền (đ)';
-      };
       submitBtn.onclick = function () {
         var amount = parseFloat(amountInput.value);
         if (!amount || amount <= 0) { showToast('Vui lòng nhập số tiền hợp lệ.'); return; }
-        addCustomerBalance(u.id, amount, currencySelect.value, noteInput.value.trim());
+        addCustomerBalance(u.id, amount, noteInput.value.trim());
       };
 
       els.customersList.appendChild(card);
     });
   }
 
-  function addCustomerBalance(userId, amount, currency, note) {
-    api('/customers/' + userId + '/add-balance', { method: 'POST', body: { amount: amount, currency: currency, note: note || null } })
+  function addCustomerBalance(userId, amount, note) {
+    api('/customers/' + userId + '/add-balance', { method: 'POST', body: { amount: amount, note: note || null } })
       .then(function () {
-        showToast('Đã cộng ' + formatMoneyByCurrency(amount, currency) + ' vào ví khách hàng.');
+        showToast('Đã cộng ' + formatMoneyByCurrency(amount, 'USD') + ' vào ví khách hàng.');
         resetAndLoadCustomers();
       })
       .catch(function (err) { showToast(err.message); });

@@ -103,17 +103,9 @@ class CurrencyHelper
         return self::rate('USD');
     }
 
-    // Số dư ví VNĐ — hiển thị đúng số thực đã nạp qua chuyển khoản/MoMo/thẻ nạp, KHÔNG quy đổi
-    // sang USD nữa (ví VNĐ và ví USD là hai số dư độc lập, xem formatWalletBalanceUsd()).
-    public static function formatWalletBalance($priceInVND): string
-    {
-        if (is_null($priceInVND) || $priceInVND === '') return '';
-
-        return number_format($priceInVND) . 'đ';
-    }
-
-    // Số dư ví USD — cộng thẳng từ PayPal/Crypto khi nạp tiền, độc lập hoàn toàn với ví VNĐ.
-    public static function formatWalletBalanceUsd($balanceUsd): string
+    // Ví chỉ còn 1 số dư thật duy nhất, tính bằng USD (gộp lại từ ví VNĐ + ví USD trước đây để
+    // đỡ rắc rối cho khách — nạp bằng kênh nào cũng quy đổi về cùng 1 số dư USD).
+    public static function formatWalletBalance($balanceUsd): string
     {
         if (is_null($balanceUsd) || $balanceUsd === '') return '$0.00';
 

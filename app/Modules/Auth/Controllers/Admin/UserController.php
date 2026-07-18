@@ -13,31 +13,24 @@ public function users()
         return view('auth::admin.users', compact('users'));
     }
 
-    // Cộng tiền thủ công vào ví khách hàng (dùng khi thanh toán tự động bị lỗi)
+    // Cộng tiền thủ công vào ví khách hàng (dùng khi thanh toán tự động bị lỗi) — ví chỉ còn 1 số dư
+    // USD duy nhất nên không còn chọn loại ví, admin nhập thẳng số USD cần cộng.
     public function addBalance(Request $request, $id)
     {
-        $currency = $request->input('currency', 'VND');
-        $minAmount = $currency === 'USD' ? 0.01 : 1000;
-
         $request->validate([
-            'amount' => "required|numeric|min:{$minAmount}",
-            'currency' => 'nullable|in:VND,USD',
+            'amount' => 'required|numeric|min:0.01',
             'note' => 'nullable|string|max:255',
         ], [
             'amount.required' => 'Vui lòng nhập số tiền.',
             'amount.numeric' => 'Số tiền không hợp lệ.',
-            'amount.min' => $currency === 'USD' ? 'Số tiền phải lớn hơn 0.' : 'Số tiền tối thiểu là 1.000đ.',
+            'amount.min' => 'Số tiền phải lớn hơn 0.',
         ]);
 
         $user = User::findOrFail($id);
         $amount = (float) $request->amount;
         $admin = \Illuminate\Support\Facades\Auth::guard('admin')->user();
 
-        if ($currency === 'USD') {
-            $user->increment('balance_usd', $amount);
-        } else {
-            $user->increment('balance', $amount);
-        }
+        $user->increment('balance', $amount);
 
         $description = 'Admin cộng tiền thủ công (bù thanh toán tự động lỗi)'
             . ($admin ? ' - Thực hiện bởi: ' . $admin->name : '')
@@ -50,7 +43,7 @@ public function users()
             'status' => 'completed',
             'description' => $description,
             'reference_id' => 'MANUAL' . time() . $user->id,
-            'currency' => $currency,
+            'currency' => 'USD',
         ]);
 
         if (\App\Modules\Core\Models\Setting::getValue('transaction_confirmation_email_enable', '1') == '1') {
@@ -61,9 +54,7 @@ public function users()
             }
         }
 
-        $displayAmount = $currency === 'USD' ? ('$' . number_format($amount, 2)) : (number_format($amount) . 'đ');
-
-        return back()->with('success', 'Đã cộng ' . $displayAmount . ' vào tài khoản của ' . $user->name . ' thành công!');
+        return back()->with('success', 'Đã cộng $' . number_format($amount, 2) . ' vào tài khoản của ' . $user->name . ' thành công!');
     }
 
     // API thêm Game từ Steam

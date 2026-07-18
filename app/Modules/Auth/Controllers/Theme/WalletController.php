@@ -136,7 +136,9 @@ class WalletController extends Controller
                     ]);
                 }
 
-                $user->balance += $amount;
+                // Ví chỉ còn 1 số dư USD duy nhất — số tiền VNĐ chuyển khoản thật vẫn ghi nguyên vào
+                // Transaction (bằng chứng giao dịch), nhưng cộng vào ví phải quy đổi sang USD trước.
+                $user->balance += round($amount * \App\Helpers\CurrencyHelper::rate('USD'), 2);
                 $user->save();
 
                 if (\App\Modules\Core\Models\Setting::getValue('transaction_confirmation_email_enable', '1') == '1') {

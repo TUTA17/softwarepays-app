@@ -28,7 +28,6 @@ class User extends Authenticatable
         'affiliate_code',
         'referred_by',
         'balance',
-        'balance_usd',
         'points',
     ];
 
