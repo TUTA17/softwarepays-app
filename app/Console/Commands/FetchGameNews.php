@@ -46,10 +46,20 @@ class FetchGameNews extends Command
                 return;
             }
 
-            $xml = simplexml_load_string($response->body(), 'SimpleXMLElement', LIBXML_NOCDATA);
-            
+            // GameHub đôi khi trả về RSS có ký tự "&" thô, chưa escape thành "&amp;" trong title/description
+            // (VD: "Tom & Jerry", link có query string "?a=1&b=2") -> simplexml_load_string() báo lỗi
+            // "xmlParseEntityRef: no name" vì XML coi "&" là mở đầu 1 entity chứ không phải ký tự thường.
+            // Escape lại mọi "&" KHÔNG PHẢI đã là entity hợp lệ (&amp; &lt; &gt; &quot; &apos; &#123; &#x1F;) trước khi parse.
+            $rawXml = preg_replace('/&(?!amp;|lt;|gt;|quot;|apos;|#[0-9]+;|#x[0-9a-fA-F]+;)/', '&amp;', $response->body());
+
+            libxml_use_internal_errors(true);
+            $xml = simplexml_load_string($rawXml, 'SimpleXMLElement', LIBXML_NOCDATA);
+
             if (!$xml || !isset($xml->channel->item)) {
-                $this->error("Định dạng RSS không hợp lệ.");
+                $errors = libxml_get_errors();
+                $detail = !empty($errors) ? trim($errors[0]->message) : 'không xác định';
+                libxml_clear_errors();
+                $this->error("Định dạng RSS không hợp lệ: " . $detail);
                 return;
             }
 
