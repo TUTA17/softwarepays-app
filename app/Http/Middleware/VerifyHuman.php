@@ -5,22 +5,22 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 
-// Cổng xác minh "không phải robot" (reCAPTCHA v2) cho khách lần đầu vào site trong phiên.
-// Sau khi xác minh 1 lần, session lưu cờ human_verified nên các trang/API sau đó (đăng nhập,
-// đăng ký, nạp tiền, thanh toán...) tự động được thông qua vì cùng nằm sau cổng này — không
-// cần gắn captcha riêng lẻ từng form.
+// Cổng xác minh "không phải robot" (reCAPTCHA v2) — CHỈ áp dụng cho các bước liên quan tới
+// tiền (thanh toán đơn hàng, nạp ví), không còn chặn toàn site như trước. Sau khi xác minh 1
+// lần, session lưu cờ human_verified nên các bước thanh toán/nạp tiền sau đó trong cùng phiên
+// tự động được thông qua — không cần gắn captcha riêng lẻ từng form.
 class VerifyHuman
 {
-    // Các path không cần qua cổng: trang quản trị, API nội bộ (app di động dùng Sanctum token,
-    // không có session trình duyệt để redirect), webhook thanh toán/cron server-to-server,
-    // và chính route xử lý captcha (tránh vòng lặp redirect vô hạn).
-    protected array $exceptPrefixes = [
-        'api/',
-        'human-verify',
-        'up',
-        'payments/nowpayments/ipn',
-        'system/sync-steam-games',
-        'system/sync-kinguin',
+    // CHỈ những path này mới cần qua cổng xác minh — thanh toán đơn hàng và nạp ví (đều là nơi
+    // tiền thực sự di chuyển). Mọi trang/API khác (duyệt shop, đăng nhập, đăng ký, blog, SMM,
+    // sound/gif meme...) không còn bị chặn bởi cổng này nữa.
+    protected array $protectedPrefixes = [
+        'cart/checkout',
+        'wallet',
+        'payments/nowpayments/pay',
+        'payments/nowpayments/status',
+        'payments/nowpayments/min-amount',
+        'payments/paylio/pay',
     ];
 
     // Cho qua bot tìm kiếm / preview link hợp lệ để không ảnh hưởng SEO và tính năng xem trước
@@ -41,10 +41,16 @@ class VerifyHuman
             return $next($request);
         }
 
-        foreach ($this->exceptPrefixes as $prefix) {
+        $isProtected = false;
+        foreach ($this->protectedPrefixes as $prefix) {
             if (str_starts_with($path, $prefix)) {
-                return $next($request);
+                $isProtected = true;
+                break;
             }
+        }
+
+        if (!$isProtected) {
+            return $next($request);
         }
 
         if ($request->userAgent() && preg_match($this->goodBotPattern, $request->userAgent())) {
