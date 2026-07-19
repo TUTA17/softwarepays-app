@@ -110,21 +110,11 @@
   box-shadow: 0 1px 1px 0 rgba(255, 255, 255, .75), inset 0 2px 2px rgba(0, 0, 0, .25);
 }
 
-/* Giọt nước miếng chảy dần xuống khi đang phát nhạc — dài hết cỡ (100% chiều cao khung chứa)
-   đúng vào lúc bài hát kết thúc, đồng bộ theo % thời lượng như thanh tiến trình bình thường. */
-.drool-drip {
-  width: 6px;
-  height: 26px;
-  overflow: hidden;
-}
-
-.drool-drip .drool-fill {
-  width: 100%;
+/* Nước miếng chảy dọc từ trên xuống ngay trong khung miệng khi đang phát nhạc — đầy hết
+   (100% chiều cao khung miệng) đúng vào lúc bài hát kết thúc, đồng bộ theo % thời lượng. */
+.drool-fill {
   height: 0%;
-  background: linear-gradient(to bottom, rgba(255,255,255,.95), rgba(255,255,255,.55));
-  border-radius: 0 0 999px 999px;
-  box-shadow: 0 1px 2px rgba(0,0,0,.25);
-  transition: height 0.1s linear;
+  transition: height 0.1s linear, opacity 0.2s;
 }
 </style>
 @endonce
@@ -139,12 +129,10 @@
                     <div class="w-4 h-1.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.9),inset_0_1px_2px_rgba(0,0,0,0.3)]"></div>
                 </div>
 
-                <!-- Cái miệng (khép, đứng yên) -->
-                <div class="absolute bottom-[25%] left-[30%] right-[30%] h-1.5 bg-black/30 rounded-full pointer-events-none z-20 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5),0_1px_1px_rgba(255,255,255,0.2)]"></div>
-
-                <!-- Giọt nước miếng chảy xuống theo tiến độ bài hát, chỉ hiện khi đang phát -->
-                <div class="drool-drip absolute left-1/2 -translate-x-1/2 top-[58%] opacity-0 group-[.playing]:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-                    <div class="drool-fill"></div>
+                <!-- Cái miệng — nước miếng chảy dọc từ trên xuống ngay trong khung miệng, đầy hết
+                     (100%) đúng lúc bài hát kết thúc, chỉ hiện khi đang phát -->
+                <div class="absolute bottom-[25%] left-[30%] right-[30%] h-1.5 bg-black/30 rounded-full overflow-hidden pointer-events-none z-20 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5),0_1px_1px_rgba(255,255,255,0.2)]">
+                    <div class="drool-fill w-full bg-gradient-to-b from-white/95 to-white/60 opacity-0 group-[.playing]:opacity-100"></div>
                 </div>
             </div>
             <div class="button-bottom"></div>
