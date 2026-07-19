@@ -3,7 +3,7 @@
 @section('title', 'Sửa Sound')
 
 @section('breadcrumb')
-    <a href="{{ route('admin.dashboard') }}">Dashboard</a><span class="separator">/</span><a href="{{ route('admin.soundmeme.sounds') }}">Sound Meme</a><span class="separator">/</span><span>Sửa</span>
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a><span class="separator">/</span><a href="{{ route('admin.soundmeme.sounds') }}">Sound World</a><span class="separator">/</span><span>Sửa</span>
 @endsection
 
 @section('content')

@@ -1,13 +1,13 @@
 @extends('theme::layouts.app')
 
-@section('title', 'Sound Meme - SoftwarePays')
+@section('title', 'Sound World - SoftwarePays')
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
     <div class="mb-8">
         <h1 class="text-3xl font-display font-black text-slate-900 dark:text-white mb-2">
-            <i class="fa-solid fa-music text-blue-600 dark:text-blue-400"></i> Sound Meme
+            <i class="fa-solid fa-music text-blue-600 dark:text-blue-400"></i> Sound World
         </h1>
         <p class="text-slate-500 dark:text-slate-400">{{ __('soundindex.tagline') }}</p>
     </div>

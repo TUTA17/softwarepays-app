@@ -1,14 +1,14 @@
 @extends('core::layouts.admin')
 
-@section('title', 'Gif Meme')
+@section('title', 'GIF World')
 
 @section('breadcrumb')
-    <a href="{{ route('admin.dashboard') }}">Dashboard</a><span class="separator">/</span><span>Gif Meme</span>
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a><span class="separator">/</span><span>GIF World</span>
 @endsection
 
 @section('content')
     <div class="page-header">
-        <div><h1 class="page-title">Gif Meme <span class="page-badge">GifS</span></h1></div>
+        <div><h1 class="page-title">GIF World <span class="page-badge">GifS</span></h1></div>
         <div style="display:flex; gap:10px;">
             <button type="button" id="r2-test-btn" class="btn" style="background: var(--bg-surface); border:1px solid var(--border-color); color: var(--text-primary);">
                 <span class="material-symbols-outlined" style="vertical-align:middle; font-size:16px;">cloud_sync</span> Kiểm tra R2

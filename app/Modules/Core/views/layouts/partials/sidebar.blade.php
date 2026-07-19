@@ -59,7 +59,7 @@
             <span class="material-symbols-outlined">category</span> Danh mục
         </a>
 
-        <div class="nav-section"><div class="nav-section-title">Sound Meme</div></div>
+        <div class="nav-section"><div class="nav-section-title">Sound World</div></div>
         <a href="{{ route('admin.soundmeme.sounds') }}" class="nav-item {{ request()->routeIs('admin.soundmeme.sounds', 'admin.soundmeme.sounds.*') ? 'active' : '' }}">
             <span class="material-symbols-outlined">graphic_eq</span> Âm thanh
         </a>

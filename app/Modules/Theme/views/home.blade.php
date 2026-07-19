@@ -718,7 +718,7 @@
     </div>
     @endif
 
-    <!-- Sound Meme -->
+    <!-- Sound World -->
     @if(isset($homeSounds) && $homeSounds->isNotEmpty())
     <div id="sound-meme" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-24 relative">
         <div class="flex flex-col sm:flex-row justify-between items-end mb-10 border-b border-slate-200 dark:border-slate-800 pb-4">
@@ -742,7 +742,7 @@
     </div>
     @endif
 
-    <!-- GIF Meme -->
+    <!-- GIF World -->
     @if(isset($homeGifs) && $homeGifs->isNotEmpty())
     <div id="gif-meme" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-24 relative">
         <div class="flex flex-col sm:flex-row justify-between items-end mb-10 border-b border-slate-200 dark:border-slate-800 pb-4">

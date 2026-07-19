@@ -15,7 +15,7 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        <!-- Sound Meme -->
+        <!-- Sound World -->
         <a href="{{ route('sounds.index') }}" class="glass-card rounded-2xl overflow-hidden group hover:-translate-y-1 hover:shadow-xl transition-all">
             <div class="h-40 bg-gradient-to-br from-orange-500 to-rose-600 relative overflow-hidden flex items-center justify-center">
                 <i class="fa-solid fa-volume-high text-6xl text-white/90"></i>
@@ -31,7 +31,7 @@
             </div>
         </a>
 
-        <!-- GIF Meme -->
+        <!-- GIF World -->
         <a href="{{ route('Gifs.index') }}" class="glass-card rounded-2xl overflow-hidden group hover:-translate-y-1 hover:shadow-xl transition-all">
             <div class="h-40 bg-gradient-to-br from-indigo-500 to-purple-600 relative overflow-hidden flex items-center justify-center">
                 <i class="fa-solid fa-images text-6xl text-white/90"></i>

@@ -3,7 +3,7 @@
 @section('title', 'Tải Gif Lên')
 
 @section('breadcrumb')
-    <a href="{{ route('admin.dashboard') }}">Dashboard</a><span class="separator">/</span><a href="{{ route('admin.gifmeme.gifs') }}">Gif Meme</a><span class="separator">/</span><span>Tải lên</span>
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a><span class="separator">/</span><a href="{{ route('admin.gifmeme.gifs') }}">GIF World</a><span class="separator">/</span><span>Tải lên</span>
 @endsection
 
 @section('content')

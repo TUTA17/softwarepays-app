@@ -365,8 +365,8 @@
                                     <a href="{{ route('catalog.simple', 'goi-dang-ky') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 transition-colors"><i class="fa-solid fa-clipboard-check w-4"></i> {{ __('home_categories.subscriptions') }}</a>
                                     <a href="{{ route('catalog.simple', 'phan-mem') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 transition-colors"><i class="fa-solid fa-desktop w-4"></i> {{ __('home_categories.software') }}</a>
                                     <a href="{{ route('catalog.esim') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 transition-colors"><i class="fa-solid fa-sim-card w-4"></i> {{ __('home_categories.esim') }}</a>
-                                    <a href="{{ route('sounds.index') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold {{ request()->routeIs('sounds.*') ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-slate-700' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600' }} transition-colors"><i class="fa-solid fa-music w-4"></i> Sound Meme</a>
-                                    <a href="{{ route('Gifs.index') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold {{ request()->routeIs('Gifs.*') ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-slate-700' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600' }} transition-colors"><i class="fa-solid fa-images w-4"></i> GIF Meme</a>
+                                    <a href="{{ route('sounds.index') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold {{ request()->routeIs('sounds.*') ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-slate-700' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600' }} transition-colors"><i class="fa-solid fa-music w-4"></i> Sound World</a>
+                                    <a href="{{ route('Gifs.index') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold {{ request()->routeIs('Gifs.*') ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-slate-700' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600' }} transition-colors"><i class="fa-solid fa-images w-4"></i> GIF World</a>
                                 </div>
                             </div>
                         </div>
@@ -687,10 +687,10 @@
                     <i class="fa-solid fa-newspaper w-6 text-center text-lg"></i> {{ __('nav.news') }}
                 </a>
                 <a href="{{ route('sounds.index') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 {{ request()->routeIs('sounds.*') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : '' }}">
-                    <i class="fa-solid fa-music w-6 text-center text-lg"></i> Sound Meme
+                    <i class="fa-solid fa-music w-6 text-center text-lg"></i> Sound World
                 </a>
                 <a href="{{ route('Gifs.index') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 {{ request()->routeIs('Gifs.*') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : '' }}">
-                    <i class="fa-solid fa-images w-6 text-center text-lg"></i> GIF Meme
+                    <i class="fa-solid fa-images w-6 text-center text-lg"></i> GIF World
                 </a>
                 <a href="{{ route('blog.guides') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 {{ request()->routeIs('blog.guides') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : '' }}">
                     <i class="fa-solid fa-book w-6 text-center text-lg"></i> {{ __('nav.guide') }}
@@ -819,8 +819,8 @@
                         <li><a href="{{ route('catalog.card') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('home_categories.cards') }}</a></li>
                         <li><a href="{{ route('catalog.simple', 'qua-tang') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('home_categories.giftcards') }}</a></li>
                         <li><a href="{{ route('catalog.esim') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> {{ __('home_categories.esim') }}</a></li>
-                        <li><a href="{{ route('sounds.index') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> Sound Meme</a></li>
-                        <li><a href="{{ route('Gifs.index') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> GIF Meme</a></li>
+                        <li><a href="{{ route('sounds.index') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> Sound World</a></li>
+                        <li><a href="{{ route('Gifs.index') }}" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 text-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-angle-right text-xs"></i> GIF World</a></li>
                     </ul>
                 </div>
 

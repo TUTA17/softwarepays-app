@@ -1,14 +1,14 @@
 @extends('core::layouts.admin')
 
-@section('title', 'Danh mục Gif Meme')
+@section('title', 'Danh mục GIF World')
 
 @section('breadcrumb')
-    <a href="{{ route('admin.dashboard') }}">Dashboard</a><span class="separator">/</span><a href="{{ route('admin.gifmeme.gifs') }}">Gif Meme</a><span class="separator">/</span><span>Danh mục</span>
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a><span class="separator">/</span><a href="{{ route('admin.gifmeme.gifs') }}">GIF World</a><span class="separator">/</span><span>Danh mục</span>
 @endsection
 
 @section('content')
     <div class="page-header">
-        <div><h1 class="page-title">Danh mục Gif Meme <span class="page-badge">CATEGORIES</span></h1></div>
+        <div><h1 class="page-title">Danh mục GIF World <span class="page-badge">CATEGORIES</span></h1></div>
     </div>
 
     @if(session('success'))

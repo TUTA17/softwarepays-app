@@ -1,12 +1,12 @@
 @extends('theme::layouts.app')
 
-@section('title', $sound->title . ' - Sound Meme - SoftwarePays')
+@section('title', $sound->title . ' - Sound World - SoftwarePays')
 
 @section('content')
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
     <div class="text-sm text-slate-500 dark:text-slate-400 mb-6">
-        <a href="{{ route('sounds.index') }}" class="hover:text-blue-600 dark:hover:text-blue-400">Sound Meme</a>
+        <a href="{{ route('sounds.index') }}" class="hover:text-blue-600 dark:hover:text-blue-400">Sound World</a>
         <span class="mx-1">/</span>
         <span class="text-slate-700 dark:text-slate-300">{{ $sound->title }}</span>
     </div>

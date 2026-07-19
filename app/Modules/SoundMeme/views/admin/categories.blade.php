@@ -1,14 +1,14 @@
 @extends('core::layouts.admin')
 
-@section('title', 'Danh mục Sound Meme')
+@section('title', 'Danh mục Sound World')
 
 @section('breadcrumb')
-    <a href="{{ route('admin.dashboard') }}">Dashboard</a><span class="separator">/</span><a href="{{ route('admin.soundmeme.sounds') }}">Sound Meme</a><span class="separator">/</span><span>Danh mục</span>
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a><span class="separator">/</span><a href="{{ route('admin.soundmeme.sounds') }}">Sound World</a><span class="separator">/</span><span>Danh mục</span>
 @endsection
 
 @section('content')
     <div class="page-header">
-        <div><h1 class="page-title">Danh mục Sound Meme <span class="page-badge">CATEGORIES</span></h1></div>
+        <div><h1 class="page-title">Danh mục Sound World <span class="page-badge">CATEGORIES</span></h1></div>
     </div>
 
     @if(session('success'))
