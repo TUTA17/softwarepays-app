@@ -12,17 +12,18 @@
     </div>
 
 @php
-    $colors = [
-        'bg-[#FF0000]', // Red
-        'bg-[#0000FF]', // Blue
-        'bg-[#008000]', // Green
-        'bg-[#FFFF00]', // Yellow
-        'bg-[#800080]', // Purple
-        'bg-[#00FFFF]', // Cyan
-        'bg-[#FF00FF]', // Magenta
-        'bg-[#FFA500]', // Orange
+    $colorSets = [
+        ['light' => '#ef4444', 'dark' => '#b91c1c', 'base' => '#7f1d1d'], // Red
+        ['light' => '#3b82f6', 'dark' => '#1d4ed8', 'base' => '#1e3a8a'], // Blue
+        ['light' => '#10b981', 'dark' => '#047857', 'base' => '#064e3b'], // Green
+        ['light' => '#f59e0b', 'dark' => '#b45309', 'base' => '#78350f'], // Yellow
+        ['light' => '#8b5cf6', 'dark' => '#5b21b6', 'base' => '#4c1d95'], // Purple
+        ['light' => '#06b6d4', 'dark' => '#0e7490', 'base' => '#164e63'], // Cyan
+        ['light' => '#ec4899', 'dark' => '#be185d', 'base' => '#831843'], // Pink
+        ['light' => '#f97316', 'dark' => '#c2410c', 'base' => '#7c2d12'], // Orange
     ];
-    $c = $colors[$sound->id % count($colors)];
+    // Cùng công thức hash với card.blade.php để 1 sound luôn ra đúng 1 màu ở mọi nơi trên site.
+    $c = $colorSets[hexdec(substr(md5($sound->id . 'salt'), -5)) % count($colorSets)];
 @endphp
 
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center">
@@ -36,30 +37,8 @@
     <h1 class="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-12 font-display uppercase tracking-tight break-words">{{ $sound->title }}</h1>
 
     <div class="sound-button-wrapper inline-block mb-10" data-slug="{{ $sound->slug }}" data-play-url="{{ $sound->play_url }}">
-        <style>
-            .myinstants-btn-huge {
-                background-image: url('https://www.myinstants.com/media/images/transparent_button_sprite.png') !important;
-                background-size: 200% 100% !important;
-                background-position: 0% 0% !important;
-                background-repeat: no-repeat !important;
-                transition: none !important;
-            }
-            .myinstants-btn-huge:active,
-            .sound-button-wrapper.playing .myinstants-btn-huge {
-                background-position: 100% 0% !important;
-            }
-        </style>
-        <div class="relative mb-8 flex items-center justify-center mx-auto" style="width: 200px; height: 200px; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.4));">
-            <!-- Colored Base -->
-            <div class="absolute rounded-full {{ $c }} z-0" style="width: 86%; height: 86%;"></div>
-            
-            <!-- Transparent Sprite Button -->
-            <button type="button" class="play-btn myinstants-btn-huge absolute inset-0 z-10 focus:outline-none cursor-pointer">
-                <!-- Progress Overlay -->
-                <svg class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none opacity-0 group-[.playing]:opacity-100" viewBox="0 0 100 100">
-                    <circle class="progress-ring text-black/20" stroke-width="4" stroke="currentColor" fill="transparent" r="45" cx="50" cy="50" style="stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 0.1s linear;"></circle>
-                </svg>
-            </button>
+        <div class="mb-8" style="filter: drop-shadow(0 15px 25px rgba(0,0,0,0.4));">
+            @include('soundmeme::theme.partials.button-face', ['colorSet' => $c, 'size' => 200])
         </div>
     </div>
 
@@ -101,13 +80,16 @@
             <h3 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-4">{{ __('soundshow.related_title') }}</h3>
             <div class="flex flex-col gap-3">
                 @forelse($related as $r)
+                    @php
+                        $rc = $colorSets[hexdec(substr(md5($r->id . 'salt'), -5)) % count($colorSets)];
+                    @endphp
                     <a href="{{ route('sounds.show', $r->slug) }}" class="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow">
-                        <div class="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-900 flex items-center justify-center overflow-hidden shrink-0">
-                            @if($r->thumbnail_url)
-                                <img src="{{ $r->thumbnail_url }}" class="w-full h-full object-cover">
-                            @else
-                                <i class="fa-solid fa-music text-slate-300 dark:text-slate-600"></i>
-                            @endif
+                        <div class="relative w-12 h-12 rounded-xl shrink-0 shadow-inner" style="background-image: radial-gradient({{ $rc['light'] }}, {{ $rc['dark'] }});">
+                            <div class="absolute top-[28%] left-0 right-0 flex justify-center gap-1 pointer-events-none">
+                                <div class="w-2 h-[3px] bg-white rounded-full"></div>
+                                <div class="w-2 h-[3px] bg-white rounded-full"></div>
+                            </div>
+                            <div class="absolute bottom-[28%] left-[30%] right-[30%] h-[3px] bg-black/30 rounded-full pointer-events-none"></div>
                         </div>
                         <div class="min-w-0">
                             <div class="font-semibold text-slate-900 dark:text-white line-clamp-1 text-sm">{{ $r->title }}</div>
