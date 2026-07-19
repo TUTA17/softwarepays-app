@@ -22,6 +22,11 @@ class CrawlGifs extends Command
     protected array $categories = [
         'meme', 'reaction', 'funny', 'anime', 'animal',
         'movie', 'sports', 'gaming', 'crying', 'dance',
+        'dog', 'cat', 'happy', 'sad', 'angry', 'shocked',
+        'confused', 'bored', 'excited', 'nervous', 'scared',
+        'proud', 'embarrassed', 'awkward', 'facepalm', 'applause',
+        'love', 'birthday', 'party', 'food', 'work',
+        'monday', 'weekend', 'money', 'music', 'tiktok', 'kpop',
     ];
 
     public function handle(R2StorageService $r2)

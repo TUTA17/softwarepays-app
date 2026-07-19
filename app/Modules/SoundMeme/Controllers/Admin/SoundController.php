@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Artisan;
 use App\Modules\Core\Models\Setting;
+use App\Modules\Core\Jobs\RunArtisanCommand;
 
 class SoundController extends Controller
 {
@@ -142,12 +143,10 @@ class SoundController extends Controller
 
     public function crawl()
     {
-        try {
-            Artisan::call('soundmeme:crawl');
-            return back()->with('success', 'Đã chạy lệnh Crawl thành công. Hãy kiểm tra danh sách bài Nháp (Draft).');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Lỗi khi Crawl: ' . $e->getMessage());
-        }
+        // Chạy qua queue (không Artisan::call() thẳng) để không chặn server dev đơn luồng —
+        // crawl có thể mất vài phút tới vài chục phút, gọi đồng bộ sẽ treo cả site.
+        RunArtisanCommand::dispatch('soundmeme:crawl');
+        return back()->with('success', 'Đã đưa lệnh Crawl vào hàng đợi, sẽ chạy nền trong ít phút. Hãy F5 lại danh sách bài Nháp (Draft) sau đó.');
     }
 
     public function approve($id)
