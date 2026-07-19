@@ -56,11 +56,18 @@
     @endif
 
     <form method="GET" id="sound-filter-form" class="mb-6">
-        <div class="flex flex-wrap gap-3 mb-4">
+        <div class="flex flex-wrap gap-3">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('soundindex.search_placeholder') }}"
                    class="flex-1 min-w-[200px] px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30">
 
-            <select name="sort" class="px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+            <select name="category" onchange="this.form.submit()" class="px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+                <option value="">{{ __('soundindex.all_categories') }}</option>
+                @foreach($categories as $cat)
+                    <option value="{{ $cat->slug }}" {{ request('category') === $cat->slug ? 'selected' : '' }}>{{ $cat->name }}</option>
+                @endforeach
+            </select>
+
+            <select name="sort" onchange="this.form.submit()" class="px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30">
                 <option value="newest" {{ request('sort', 'newest') === 'newest' ? 'selected' : '' }}>{{ __('soundindex.sort_newest') }}</option>
                 <option value="popular" {{ request('sort') === 'popular' ? 'selected' : '' }}>{{ __('soundindex.sort_popular') }}</option>
                 <option value="downloads" {{ request('sort') === 'downloads' ? 'selected' : '' }}>{{ __('soundindex.sort_downloads') }}</option>
@@ -69,20 +76,6 @@
             <button type="submit" class="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-colors">
                 <i class="fa-solid fa-magnifying-glass"></i> {{ __('soundindex.search_button') }}
             </button>
-        </div>
-
-        <input type="hidden" name="category" id="category-input" value="{{ request('category') }}">
-        <div class="flex gap-2 overflow-x-auto pb-2" style="scrollbar-width: thin;">
-            <button type="button" data-value=""
-                    class="category-chip shrink-0 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors {{ !request('category') ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700' }}">
-                {{ __('soundindex.all_categories') }}
-            </button>
-            @foreach($categories as $cat)
-                <button type="button" data-value="{{ $cat->slug }}"
-                        class="category-chip shrink-0 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors {{ request('category') === $cat->slug ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700' }}">
-                    {{ $cat->name }}
-                </button>
-            @endforeach
         </div>
     </form>
 
@@ -108,13 +101,6 @@
 
 <script>
     window.SOUND_CSRF_TOKEN = '{{ csrf_token() }}';
-
-    document.querySelectorAll('.category-chip').forEach(function (chip) {
-        chip.addEventListener('click', function () {
-            document.getElementById('category-input').value = chip.dataset.value;
-            document.getElementById('sound-filter-form').submit();
-        });
-    });
 </script>
 <script src="{{ asset('js/sound-player.js?v=' . time()) }}"></script>
 @endsection
