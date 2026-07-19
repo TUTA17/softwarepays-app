@@ -25,6 +25,8 @@
     card.classList.remove('playing');
     var bar = card.querySelector('.progress-fill');
     if (bar) bar.style.width = '0%';
+    var drool = card.querySelector('.drool-fill');
+    if (drool) drool.style.height = '0%';
     var ring = card.querySelector('.progress-ring');
     if (ring) ring.style.strokeDashoffset = '264';
     var timeEl = card.querySelector('.time-current');
@@ -77,6 +79,9 @@
     
     var bar = activeCard.querySelector('.progress-fill');
     if (bar) bar.style.width = (pct * 100) + '%';
+
+    var drool = activeCard.querySelector('.drool-fill');
+    if (drool) drool.style.height = (pct * 100) + '%';
 
     var ring = activeCard.querySelector('.progress-ring');
     if (ring) ring.style.strokeDashoffset = 264 - (pct * 264);
