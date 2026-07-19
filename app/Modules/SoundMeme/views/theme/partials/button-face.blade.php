@@ -116,7 +116,7 @@
             <!-- Cái miệng — nước miếng chảy dọc từ trên xuống ngay trong khung miệng, đầy hết
                  (100%) đúng lúc bài hát kết thúc, chỉ hiện khi đang phát -->
             <div class="absolute bottom-[25%] left-[30%] right-[30%] bg-black/30 rounded-full overflow-hidden pointer-events-none z-20 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5),0_1px_1px_rgba(255,255,255,0.2)]" style="height: {{ round($size * 0.07, 1) }}px;">
-                <div class="drool-fill w-full bg-gradient-to-b from-white/95 to-white/60 opacity-0 group-[.playing]:opacity-100"></div>
+                <div class="drool-fill w-full bg-gradient-to-b from-white/95 to-white/60 opacity-0 group-[.playing]:opacity-100 group-[.drooled]:opacity-100"></div>
             </div>
         </div>
         <div class="button-bottom"></div>

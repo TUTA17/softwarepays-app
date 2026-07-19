@@ -22,7 +22,7 @@
   function resetCard(card) {
     if (!card) return;
     setIcon(card, false);
-    card.classList.remove('playing');
+    card.classList.remove('playing', 'drooled');
     var bar = card.querySelector('.progress-fill');
     if (bar) bar.style.width = '0%';
     var drool = card.querySelector('.drool-fill');
@@ -55,6 +55,12 @@
           audio.src = url;
           activeCard = card;
         }
+
+        // Bấm phát lại (kể cả cùng 1 nút sau khi đã chảy hết nước miếng) luôn bắt đầu lại từ đầu
+        // — không thì nước miếng vẫn đứng yên ở trạng thái đầy của lượt phát trước.
+        card.classList.remove('drooled');
+        var drool = card.querySelector('.drool-fill');
+        if (drool) drool.style.height = '0%';
 
         audio.play().catch(function () {});
         setIcon(card, true);
@@ -103,7 +109,13 @@
   });
 
   audio.addEventListener('ended', function () {
-    resetCard(activeCard);
+    // Clip meme thường chỉ dài 1-3 giây nên nước miếng chảy đầy gần như ngay lập tức rồi biến
+    // mất — giữ nguyên hình đã chảy đầy (không reset) để người dùng còn kịp thấy, chỉ dừng hiệu
+    // ứng "nhấn xuống" của nút. Sẽ tự reset khi bấm phát lại (cùng nút hoặc nút khác).
+    if (!activeCard) return;
+    setIcon(activeCard, false);
+    activeCard.classList.remove('playing');
+    activeCard.classList.add('drooled');
   });
 
   window.copySoundLink = function (url, btn) {
